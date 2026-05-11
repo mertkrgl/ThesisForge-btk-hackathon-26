@@ -1274,12 +1274,6 @@ Docker Compose ile **5 container**:
 - **Etkisi:** Demo'da gerçek süre 40-60s çıkarsa "23 saniye" iddiası utanç verici olur. Sunum tempo planlaması zedelenir.
 - **Önerilen Çözüm:** (i) Beklenen süreyi **40-60s** olarak ilan et, hızlı çıkarsa bonus. (ii) Demo'da kullanılacak hisseler için **pre-warmed cache** hazırla. (iii) UI'da "thinking" durumlarını detaylı göster — kullanıcı 60s'i 23s gibi hisseder. (iv) Worker'ların max tool call'unu 5 ile sınırla.
 
-### 7. Strands A2A Protocol — Olgunluk Riski
-
-- **Sorun:** Devil's Advocate'in `query_workers()` tool'u Strands'in A2A (Agent-to-Agent) protokolüne dayanıyor. Strands'in A2A katmanı henüz olgunluk açısından risk taşıyor (versioning, tool re-entrancy, error propagation).
-- **Etkisi:** Hackathon ortasında bu API'da hata varsa Devil's Advocate demo'nun ayrıştırıcı feature'ı patlar.
-- **Önerilen Çözüm:** **Plan B'yi default yap:** Devil's Advocate worker output'unu **read-only** olarak alır, ek soru sormak yerine `find_disconfirming_evidence` ve `base_rate_check` tool'larını doğrudan çağırır. "A2A query" feature'ını sadece zaman kalırsa ekle. Bu, mimariyi basitleştirir ve daha deterministik çalışır.
-
 ### 8. Backtest Validator vs Memory Agent — Sorumluluk Çakışması
 
 - **Sorun:** Agent 9 (Backtest Validator) "geçmişe gidip ne demiş olurduk" sorusunu cevaplıyor. Agent 7 (Memory Agent) **zaten** geçmiş tezlerin ground truth'unu yfinance'den update ediyor (gece cron). İki yer overlap ediyor.
