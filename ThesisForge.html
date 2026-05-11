@@ -1,0 +1,1531 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ThesisForge — Yatırım Komitesi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070A12;
+    --bg-1:#0B1220;
+    --bg-2:#0F172A;
+    --bg-3:#131C30;
+    --line:#1E2A44;
+    --line-2:#27345A;
+    --muted:#7A88A8;
+    --dim:#94A3B8;
+    --text:#E6ECF5;
+    --text-2:#C5D1E6;
+    --accent:#3B82F6;
+    --accent-2:#60A5FA;
+    --bull:#22C55E;
+    --bull-2:#16A34A;
+    --bear:#EF4444;
+    --warn:#F59E0B;
+    --warn-2:#F97316;
+    --violet:#A78BFA;
+    --cyan:#22D3EE;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Manrope',ui-sans-serif,system-ui,sans-serif;font-feature-settings:"ss01","cv11";-webkit-font-smoothing:antialiased}
+  body{min-height:100vh}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+  .tabnum{font-variant-numeric:tabular-nums}
+  button{font-family:inherit;color:inherit;cursor:pointer}
+  a{color:inherit;text-decoration:none}
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:#1E2A44;border-radius:8px;border:2px solid var(--bg)}
+  ::-webkit-scrollbar-thumb:hover{background:#27345A}
+
+  /* App shell */
+  .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+  .sidebar{position:sticky;top:0;height:100vh;background:linear-gradient(180deg,#0A1020,#070A12);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:4px}
+  .brand{display:flex;align-items:center;gap:10px;padding:8px 10px 18px;border-bottom:1px dashed var(--line);margin-bottom:10px}
+  .brand-mark{width:30px;height:30px;border-radius:8px;background:radial-gradient(120% 120% at 20% 0%,#3B82F6 0%,#1D4ED8 50%,#0B1220 100%);position:relative;display:grid;place-items:center;box-shadow:0 6px 20px -8px #3B82F6, inset 0 0 0 1px #2A4D9C}
+  .brand-mark svg{width:18px;height:18px}
+  .brand-name{font-weight:800;letter-spacing:-0.01em;font-size:16px}
+  .brand-sub{font-size:10.5px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:1px}
+  .nav-section{font-size:10.5px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase;padding:14px 10px 6px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text-2);font-size:13.5px;cursor:pointer;transition:all .15s}
+  .nav-item:hover{background:#0F1A30;color:#fff}
+  .nav-item.active{background:linear-gradient(90deg,#13213F 0%,#0E1830 100%);color:#fff;box-shadow:inset 0 0 0 1px #1E2A44, inset 2px 0 0 #3B82F6}
+  .nav-item .ic{width:16px;height:16px;opacity:.9}
+  .nav-item .badge{margin-left:auto;font-size:10.5px;background:#1E2A44;color:var(--dim);padding:2px 6px;border-radius:999px}
+  .sidebar-footer{margin-top:auto;border-top:1px dashed var(--line);padding-top:12px;display:flex;align-items:center;gap:10px}
+  .avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#A78BFA);display:grid;place-items:center;font-weight:700;font-size:12px;color:#fff}
+  .user-meta{font-size:12.5px;line-height:1.25}
+  .user-meta .name{font-weight:600;color:#fff}
+  .user-meta .plan{color:var(--muted);font-size:10.5px}
+
+  .main{display:flex;flex-direction:column;min-width:0}
+  .topbar{position:sticky;top:0;z-index:10;height:60px;background:rgba(7,10,18,.78);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 22px}
+  .crumbs{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+  .crumbs .sep{opacity:.5}
+  .crumbs .now{color:#fff;font-weight:600}
+  .search{margin-left:auto;display:flex;align-items:center;gap:8px;background:#0E1830;border:1px solid var(--line);border-radius:9px;padding:7px 10px;width:320px;color:var(--dim);font-size:13px}
+  .search:focus-within{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+  .kbd{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);background:#1A243F;border:1px solid var(--line-2);border-radius:5px;padding:1px 5px}
+  .icon-btn{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:#0E1830;display:grid;place-items:center;color:var(--dim);transition:all .15s}
+  .icon-btn:hover{color:#fff;border-color:var(--line-2)}
+  .icon-btn .dot{position:absolute;width:7px;height:7px;background:#EF4444;border-radius:50%;transform:translate(8px,-8px);border:1.5px solid #070A12}
+  .topbar-divider{width:1px;height:22px;background:var(--line)}
+
+  /* Page */
+  .page{padding:22px 26px 64px;max-width:1440px;width:100%;margin:0 auto}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:18px}
+  .h-title{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin:0}
+  .h-sub{font-size:13.5px;color:var(--muted);margin-top:4px}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:#0F1A30;border:1px solid var(--line);padding:4px 9px;border-radius:999px;font-size:11.5px;color:var(--dim)}
+  .pill .led{width:6px;height:6px;border-radius:50%;background:#22C55E;box-shadow:0 0 8px #22C55E}
+  .pill.amber .led{background:#F59E0B;box-shadow:0 0 8px #F59E0B}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:9px;font-size:13px;font-weight:600;border:1px solid var(--line);background:#0E1830;color:var(--text);transition:all .15s}
+  .btn:hover{border-color:var(--line-2);background:#13213F}
+  .btn.primary{background:linear-gradient(180deg,#3B82F6,#2563EB);border-color:#1D4ED8;color:#fff;box-shadow:0 8px 24px -10px rgba(59,130,246,.6), inset 0 1px 0 rgba(255,255,255,.18)}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent}
+  .btn.sm{height:30px;padding:0 10px;font-size:12px}
+  .btn.lg{height:44px;padding:0 18px;font-size:14px}
+
+  /* Card */
+  .card{background:linear-gradient(180deg,#0C1428,#0A1122);border:1px solid var(--line);border-radius:14px}
+  .card-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .card-title{font-size:13px;font-weight:700;letter-spacing:.01em;margin:0;color:#fff}
+  .card-sub{font-size:11.5px;color:var(--muted);margin-left:auto}
+  .card-body{padding:16px}
+
+  /* Grid layouts */
+  .grid{display:grid;gap:16px}
+  .g-12{grid-template-columns:repeat(12,minmax(0,1fr))}
+
+  /* KPI */
+  .kpi{display:flex;flex-direction:column;gap:6px;padding:14px 16px;background:linear-gradient(180deg,#0D1528,#0A1122);border:1px solid var(--line);border-radius:12px;position:relative;overflow:hidden}
+  .kpi .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .kpi .val{font-size:22px;font-weight:700;letter-spacing:-0.02em;display:flex;align-items:baseline;gap:8px}
+  .kpi .delta{font-size:12.5px;font-weight:600}
+  .kpi .delta.up{color:var(--bull)}
+  .kpi .delta.down{color:var(--bear)}
+  .kpi .delta.flat{color:var(--dim)}
+  .kpi .spark{position:absolute;right:10px;bottom:10px;opacity:.85}
+
+  /* Chip */
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:3px 8px;border-radius:6px;background:#0E1830;border:1px solid var(--line);color:var(--text-2);font-weight:600;cursor:pointer;transition:all .12s}
+  .chip:hover{background:#13213F;border-color:#2A3A5E}
+  .chip.bull{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.25);color:#86EFAC}
+  .chip.bear{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.28);color:#FCA5A5}
+  .chip.warn{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.28);color:#FCD34D}
+  .chip.info{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.3);color:#93C5FD}
+  .chip.violet{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.3);color:#C4B5FD}
+
+  .src-chip{display:inline-flex;align-items:center;gap:3px;font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:1px 5px;border-radius:4px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.28);color:#93C5FD;cursor:pointer;vertical-align:1px;margin:0 1px}
+  .src-chip:hover{background:rgba(59,130,246,.22)}
+
+  /* Status dot */
+  .sdot{display:inline-block;width:8px;height:8px;border-radius:50%}
+  .sdot.running{background:#3B82F6;box-shadow:0 0 0 0 rgba(59,130,246,.6);animation:pulse 1.6s infinite}
+  .sdot.done{background:#22C55E}
+  .sdot.wait{background:#475569}
+  .sdot.err{background:#EF4444}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(59,130,246,.55)}70%{box-shadow:0 0 0 8px rgba(59,130,246,0)}100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}}
+
+  /* Stepper */
+  .stepper{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .step{display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:7px;background:#0E1830;border:1px solid var(--line)}
+  .step.done{color:#86EFAC;border-color:rgba(34,197,94,.2);background:rgba(34,197,94,.05)}
+  .step.active{color:#fff;border-color:#3B82F6;background:rgba(59,130,246,.1)}
+  .step.wait{opacity:.6}
+  .step-sep{color:#334155}
+
+  /* Agent column */
+  .agent{display:flex;flex-direction:column;background:linear-gradient(180deg,#0C1528,#0A1122);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-height:380px}
+  .agent.running{border-color:rgba(59,130,246,.45);box-shadow:0 0 0 1px rgba(59,130,246,.18), 0 10px 40px -20px rgba(59,130,246,.5)}
+  .agent.done{border-color:rgba(34,197,94,.3)}
+  .agent-head{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.01)}
+  .agent-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#13213F;border:1px solid var(--line-2);color:#93C5FD}
+  .agent-name{font-weight:700;font-size:13.5px}
+  .agent-role{font-size:11px;color:var(--muted)}
+  .agent-status{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim)}
+  .agent-body{padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:8px}
+  .tool-log{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-2);display:flex;flex-direction:column;gap:5px}
+  .tool-line{display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.02)}
+  .tool-line.done{color:#86EFAC}
+  .tool-line.run{color:#93C5FD;background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.18)}
+  .tool-line.wait{color:#475569}
+  .tool-line .arg{color:var(--muted)}
+  .agent-summary{margin-top:auto;padding-top:10px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:6px}
+  .sum-row{display:flex;justify-content:space-between;font-size:12px}
+  .sum-row .k{color:var(--muted)}
+  .sum-row .v{color:#fff;font-weight:600}
+
+  /* Thesis viewer */
+  .reader{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px}
+  .section-h{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+  .section-h h2{font-size:16px;font-weight:700;margin:0;letter-spacing:-0.01em}
+  .section-h .badge{font-size:11px;color:var(--muted);background:#0F1A30;border:1px solid var(--line);padding:2px 8px;border-radius:999px}
+  .li{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed rgba(255,255,255,.04)}
+  .li:last-child{border-bottom:0}
+  .li-dot{width:18px;flex-shrink:0;display:flex;justify-content:center;padding-top:6px}
+  .li-dot::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--bull);box-shadow:0 0 0 3px rgba(34,197,94,.12)}
+  .li.bear .li-dot::before{background:var(--bear);box-shadow:0 0 0 3px rgba(239,68,68,.12)}
+  .li-text{font-size:13.5px;line-height:1.55;color:var(--text-2)}
+  .li-text strong{color:#fff;font-weight:600}
+  .li-note{font-size:12px;color:var(--muted);margin-top:3px}
+
+  /* Confidence bar */
+  .cbar{display:grid;grid-template-columns:170px 1fr 40px;gap:12px;align-items:center;font-size:12.5px;padding:5px 0}
+  .cbar .lab{color:var(--text-2)}
+  .cbar .track{height:6px;background:#142036;border-radius:999px;overflow:hidden}
+  .cbar .fill{height:100%;background:linear-gradient(90deg,#3B82F6,#60A5FA);border-radius:999px}
+  .cbar .num{text-align:right;font-family:'JetBrains Mono',monospace;color:#fff;font-weight:600}
+
+  /* Disclaimer */
+  .disc{background:linear-gradient(180deg,rgba(245,158,11,.06),rgba(245,158,11,.02));border:1px solid rgba(245,158,11,.25);border-radius:14px;padding:14px 16px;display:flex;gap:12px;color:#FCD34D;font-size:12.5px;line-height:1.55}
+  .disc strong{color:#FBBF24}
+
+  /* Drawer */
+  .drawer-scrim{position:fixed;inset:0;background:rgba(3,6,15,.55);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+  .drawer-scrim.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;width:460px;max-width:96vw;height:100vh;background:#0A1122;border-left:1px solid var(--line);transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);z-index:41;display:flex;flex-direction:column}
+  .drawer.open{transform:translateX(0)}
+  .drawer-head{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .drawer-body{padding:16px 18px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:14px}
+  .quote{padding:10px 12px;border-left:3px solid #3B82F6;background:rgba(59,130,246,.06);font-style:italic;font-size:13.5px;color:#DDE7FA;border-radius:0 8px 8px 0}
+  .codeblk{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:#070C18;border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:#A5B4D6;white-space:pre-wrap;line-height:1.55}
+  .kv{display:grid;grid-template-columns:120px 1fr;gap:8px;font-size:12.5px}
+  .kv .k{color:var(--muted)}
+  .kv .v{color:#E6ECF5}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;background:#0E1830;border:1px solid var(--line);border-radius:10px;padding:3px}
+  .tab{padding:6px 12px;font-size:12.5px;color:var(--dim);border-radius:7px;cursor:pointer;font-weight:600}
+  .tab.active{background:#1A2645;color:#fff;box-shadow:inset 0 0 0 1px #2A3A5E}
+
+  /* Stock card */
+  .stock-card{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:14px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px}
+  .stock-card:last-child{border-bottom:0}
+  .tick{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13.5px}
+  .star{color:var(--muted);cursor:pointer}
+  .star.on{color:#F59E0B}
+
+  /* Catalyst */
+  .cat{display:grid;grid-template-columns:90px 8px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dashed rgba(255,255,255,.05);font-size:13px}
+  .cat-date{font-family:'JetBrains Mono',monospace;color:var(--dim);font-size:11.5px}
+  .cat-dot{width:8px;height:8px;border-radius:50%}
+
+  /* Thesis card on dashboard */
+  .thesis-card{padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#0B1325;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:all .15s}
+  .thesis-card:hover{border-color:#2A3A5E;background:#0F1A30}
+  .thesis-card .row1{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+  .thesis-card .tldr{font-size:12.5px;color:var(--text-2);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* Confidence ring */
+  .ring{position:relative;width:64px;height:64px}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .num{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:16px}
+
+  /* Macro panel */
+  .macro{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .macro-cell{padding:10px 12px;border-right:1px solid var(--line)}
+  .macro-cell:last-child{border-right:0}
+  .macro-cell .l{font-size:10.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+  .macro-cell .v{font-weight:700;font-size:14px;margin-top:2px;font-family:'JetBrains Mono',monospace}
+
+  /* Token shimmer */
+  .typing::after{content:"▍";color:#3B82F6;animation:blink 1s steps(1) infinite;margin-left:2px}
+  @keyframes blink{50%{opacity:0}}
+
+  /* page-switching */
+  .view{display:none;animation:fadein .3s ease}
+  .view.show{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* Live: synth */
+  .synth-body{font-size:14px;line-height:1.7;color:var(--text-2)}
+  .synth-body h3{color:#fff;font-size:14.5px;font-weight:700;margin:16px 0 6px}
+
+  /* Helpers */
+  .row{display:flex;align-items:center;gap:10px}
+  .between{justify-content:space-between}
+  .muted{color:var(--muted)}
+  .dim{color:var(--dim)}
+  .bull{color:var(--bull)}
+  .bear{color:var(--bear)}
+  .amber{color:var(--warn)}
+  .nowrap{white-space:nowrap}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <!-- scales / committee icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 7a4 4 0 0 0 8 0L7 7"/><path d="M19 7l-3 7a4 4 0 0 0 8 0L21 7"/><path d="M8 21h8"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">ThesisForge</div>
+        <div class="brand-sub">Yatırım Komitesi</div>
+      </div>
+    </div>
+
+    <div class="nav-section">Çalışma Alanı</div>
+    <div class="nav-item" data-nav="dashboard"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</div>
+    <div class="nav-item" data-nav="request"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Yeni Tez<span class="badge">⌘N</span></div>
+    <div class="nav-item active" data-nav="live"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Canlı Komite<span class="badge" style="background:rgba(34,197,94,.15);color:#86EFAC">CANLI</span></div>
+    <div class="nav-item" data-nav="thesis"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Tez Görüntüleyici</div>
+
+    <div class="nav-section">Takip</div>
+    <div class="nav-item" data-nav="watchlist"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>Watchlist<span class="badge">5</span></div>
+    <div class="nav-item" data-nav="history"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="7 13 11 9 14 12 21 5"/></svg>Geçmiş Tezler<span class="badge">24</span></div>
+    <div class="nav-item" data-nav="backtest"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18"/><path d="M3 12h18"/></svg>Backtest Demo</div>
+
+    <div class="nav-section">Sistem</div>
+    <div class="nav-item" data-nav="settings"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ayarlar</div>
+
+    <div class="sidebar-footer">
+      <div class="avatar">M</div>
+      <div class="user-meta">
+        <div class="name">Mehmet K.</div>
+        <div class="plan">Pro · 8/∞ tez</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div class="crumbs" id="crumbs">
+        <span>Çalışma Alanı</span>
+        <span class="sep">/</span>
+        <span class="now">Canlı Komite — ASELS</span>
+      </div>
+      <div class="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Hisse ara veya yapıştır (ASELS, GARAN…)
+        <span style="flex:1"></span>
+        <span class="kbd">⌘K</span>
+      </div>
+      <div class="topbar-divider"></div>
+      <button class="icon-btn" style="position:relative">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="dot"></span>
+      </button>
+      <button class="icon-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+
+    <!-- ========================== LIVE COMMITTEE VIEW (default) ========================== -->
+    <section class="page view show" id="view-live">
+      <div class="page-head">
+        <div>
+          <div class="row" style="gap:12px;margin-bottom:6px">
+            <button class="icon-btn" onclick="showView('dashboard')" title="Geri">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <h1 class="h-title">ASELS — Yatırım Tezi Oluşturuluyor</h1>
+            <span class="chip info">Defense Squad ✓</span>
+            <span class="chip violet">Standart · 45sn</span>
+          </div>
+          <p class="h-sub">Sektör Yönlendirici komiteyi seçti. 6 ajan paralel çalışıyor.</p>
+        </div>
+        <div class="row" style="gap:10px">
+          <div class="stepper">
+            <span class="step done">✓ Doğrulama</span>
+            <span class="step-sep">›</span>
+            <span class="step done">✓ Sektör</span>
+            <span class="step-sep">›</span>
+            <span class="step active">● Worker'lar</span>
+            <span class="step-sep">›</span>
+            <span class="step active">● Devil's Advocate</span>
+            <span class="step-sep">›</span>
+            <span class="step wait">○ Sentez</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+            <div class="mono" style="font-size:13px;font-weight:700"><span id="timer">00:34</span> <span class="muted" style="font-weight:400">/ ~00:45</span></div>
+            <button class="btn sm ghost" style="height:24px;padding:0 8px;font-size:11px">✕ İptal</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Macro mini panel -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head">
+          <h3 class="card-title">Makro Bağlam</h3>
+          <span class="card-sub">Sentez bu verileri kullanacak · 14:32 itibariyle</span>
+        </div>
+        <div style="padding:0">
+          <div class="macro" style="border:none;border-radius:0">
+            <div class="macro-cell"><div class="l">BIST 100</div><div class="v">9.247,15 <span class="bull" style="font-size:11px">+1,2%</span></div></div>
+            <div class="macro-cell"><div class="l">USD/TRY</div><div class="v">34,82 <span class="bull" style="font-size:11px">+0,3%</span></div></div>
+            <div class="macro-cell"><div class="l">TCMB Faiz</div><div class="v">47,50% <span class="muted" style="font-size:11px">stabil</span></div></div>
+            <div class="macro-cell"><div class="l">Global Risk</div><div class="v">Nötr <span class="muted" style="font-size:11px">VIX 16,4</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 worker columns -->
+      <div class="grid g-12" style="margin-bottom:16px">
+        <!-- Technical -->
+        <div style="grid-column:span 4">
+          <div class="agent done">
+            <div class="agent-head">
+              <div class="agent-icon" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#86EFAC">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+              </div>
+              <div>
+                <div class="agent-name">Teknik Analist</div>
+                <div class="agent-role">90g fiyat · indikatör · pattern</div>
+              </div>
+              <div class="agent-status"><span class="sdot done"></span>Tamamlandı · 8.2sn</div>
+            </div>
+            <div class="agent-body">
+              <div class="tool-log">
+                <div class="tool-line done">✓ get_ohlcv(<span class="arg">ASELS, 90d</span>)</div>
+                <div class="tool-line done">✓ calculate_indicators(<span class="arg">RSI, MACD, BB</span>)</div>
+                <div class="tool-line done">✓ detect_patterns(<span class="arg">v=ascending_triangle</span>)</div>
+                <div class="tool-line done">✓ identify_levels(<span class="arg">support, resistance</span>)</div>
+              </div>
+              <div class="agent-summary">
+                <div class="sum-row"><span class="k">Kısa vade trendi</span><span class="v bull">Yukarı ▲</span></div>
+                <div class="sum-row"><span class="k">RSI</span><span class="v mono">71,4 · aşırı alım</span></div>
+                <div class="sum-row"><span class="k">MACD</span><span class="v bull">Pozitif kesişim</span></div>
+                <div class="sum-row"><span class="k">Destek / Direnç</span><span class="v mono">158 / 175</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Fundamental -->
+        <div style="grid-column:span 4">
+          <div class="agent done">
+            <div class="agent-head">
+              <div class="agent-icon" style="background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3);color:#C4B5FD">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+              </div>
+              <div>
+                <div class="agent-name">Temel Analist</div>
+                <div class="agent-role">KAP · bilanço · oranlar · peer</div>
+              </div>
+              <div class="agent-status"><span class="sdot done"></span>Tamamlandı · 11.4sn</div>
+            </div>
+            <div class="agent-body">
+              <div class="tool-log">
+                <div class="tool-line done">✓ fetch_kap_filings(<span class="arg">ASELS, 90d</span>) · 12 bildirim</div>
+                <div class="tool-line done">✓ get_financial_statements(<span class="arg">Q1-Q3 2025</span>)</div>
+                <div class="tool-line done">✓ compute_ratios(<span class="arg">14 oran</span>)</div>
+                <div class="tool-line done">✓ compare_to_peers(<span class="arg">OTKAR, KATMR, TUSAS</span>)</div>
+              </div>
+              <div class="agent-summary">
+                <div class="sum-row"><span class="k">Gelir büyüme (yıllık)</span><span class="v bull">+32%</span></div>
+                <div class="sum-row"><span class="k">FAVÖK marjı</span><span class="v mono">18,5%</span></div>
+                <div class="sum-row"><span class="k">Net borç / FAVÖK</span><span class="v mono">1,2x</span></div>
+                <div class="sum-row"><span class="k">F/K (sektör 22)</span><span class="v mono">18,4</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Sentiment -->
+        <div style="grid-column:span 4">
+          <div class="agent running">
+            <div class="agent-head">
+              <div class="agent-icon" style="background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              </div>
+              <div>
+                <div class="agent-name">Haber &amp; Sentiment</div>
+                <div class="agent-role">30g haber tarama · NLP skor</div>
+              </div>
+              <div class="agent-status"><span class="sdot running"></span>Çalışıyor</div>
+            </div>
+            <div class="agent-body">
+              <div class="tool-log">
+                <div class="tool-line done">✓ fetch_news(<span class="arg">ASELS, 30d</span>) · 47 haber</div>
+                <div class="tool-line done">✓ score_sentiment(<span class="arg">model=finbert-tr</span>)</div>
+                <div class="tool-line run">⟳ detect_material_events(<span class="arg">filtering…</span>)</div>
+                <div class="tool-line wait">○ correlate_with_price</div>
+              </div>
+              <div class="agent-summary">
+                <div class="sum-row"><span class="k">Sentiment skoru</span><span class="v bull">+0,42 (orta-pozitif)</span></div>
+                <div class="sum-row"><span class="k">Dağılım</span><span class="v mono">28 / 14 / 5</span></div>
+                <div class="sum-row"><span class="k">Önemli olay</span><span class="v">Mısır ihalesi</span></div>
+                <div class="sum-row"><span class="k">İlk yayın</span><span class="v dim">12 gün önce</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Devil + Memory -->
+      <div class="grid g-12" style="margin-bottom:16px">
+        <div style="grid-column:span 8">
+          <div class="card">
+            <div class="card-head">
+              <span style="width:24px;height:24px;border-radius:6px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);display:grid;place-items:center;color:#FCD34D">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </span>
+              <h3 class="card-title">Devil's Advocate</h3>
+              <span class="chip warn">Karşı argüman gücü: ORTA</span>
+              <span class="card-sub"><span class="sdot running" style="vertical-align:middle"></span> &nbsp;Worker çıktılarını sorguluyor…</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid rgba(245,158,11,.2);border-radius:8px;background:rgba(245,158,11,.04)">
+                <span class="chip warn" style="flex-shrink:0">⚠ Teknik</span>
+                <div style="font-size:13px;line-height:1.55;color:var(--text-2)">
+                  <strong>"RSI 71 = aşırı alım"</strong> iddiası için base-rate kontrolü çalıştırıldı.
+                  Son 12 ayda bu seviyenin pull-back öncesi gelme oranı <strong class="mono">%42</strong>.
+                  <span class="muted">→ Sinyal "kesin" değil, "olası" düzeyinde.</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid rgba(245,158,11,.2);border-radius:8px;background:rgba(245,158,11,.04)">
+                <span class="chip warn" style="flex-shrink:0">⚠ Temel</span>
+                <div style="font-size:13px;line-height:1.55;color:var(--text-2)">
+                  <strong>Mısır savunma ihalesi henüz tamamlanmadı.</strong> Backlog'a %18 katkı tahmini, KAP'a yansıyana kadar gelir kaydı belirsizliği taşıyor.
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid rgba(245,158,11,.2);border-radius:8px;background:rgba(245,158,11,.04)">
+                <span class="chip warn" style="flex-shrink:0">⚠ Kesişim</span>
+                <div style="font-size:13px;line-height:1.55;color:var(--text-2) " class="typing">
+                  Worker'lar TL/USD volatilitesini fiyatlamadı. ASELS'in gelirinin <strong class="mono">~%34</strong>'ü dövize bağlı; kur sert düşerse marjlar
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="grid-column:span 4">
+          <div class="card" style="height:100%;display:flex;flex-direction:column">
+            <div class="card-head">
+              <span style="width:24px;height:24px;border-radius:6px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.35);display:grid;place-items:center;color:#C4B5FD">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5a3.5 3.5 0 1 1 7 0V14a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1z"/><path d="M12 2a7 7 0 0 0-7 7v3a5 5 0 0 0 5 5"/><path d="M12 2a7 7 0 0 1 7 7v3a5 5 0 0 1-5 5"/></svg>
+              </span>
+              <h3 class="card-title">Tarihsel Hafıza</h3>
+              <span class="card-sub">Memory ajanı</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:8px;flex:1">
+              <div style="display:flex;align-items:baseline;gap:8px">
+                <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em" class="mono">2/3</div>
+                <div class="muted" style="font-size:12px">benzer tezde doğru</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted)">Geçmiş 3 ASELS tezinin 90g sonucu:</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div class="row between" style="font-size:12.5px"><span class="mono">Mart 2025</span><span class="bull mono">+18,2% ✓</span></div>
+                <div class="row between" style="font-size:12.5px"><span class="mono">Eylül 2025</span><span class="bull mono">+7,1% ✓</span></div>
+                <div class="row between" style="font-size:12.5px"><span class="mono">Aralık 2025</span><span class="bear mono">−4,4% ✗</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Synthesizer streaming -->
+      <div class="card">
+        <div class="card-head">
+          <span style="width:24px;height:24px;border-radius:6px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.35);display:grid;place-items:center;color:#93C5FD">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </span>
+          <h3 class="card-title">Sentez yazılıyor…</h3>
+          <span class="chip info">tüm worker çıktıları + DA + memory</span>
+          <span class="card-sub mono">streaming · 142 token/sn</span>
+        </div>
+        <div class="card-body synth-body">
+          <h3>📌 TL;DR</h3>
+          <p>ASELS, son çeyrekteki %32 gelir büyümesi ve onaylanmamış Mısır savunma ihalesi katalizörüyle <strong class="bull">orta-pozitif (bullish)</strong> bir tabloya sahip; ancak RSI 71'deki aşırı alım sinyali ve kur volatilitesi kısa vadede %5-8'lik geri çekilme riski yaratıyor. <strong>Güven skoru: 78/100.</strong></p>
+          <h3>🟢 Bull Case</h3>
+          <p>· Q3 2025'te %32 gelir büyümesi (sektör ort. %12) <span class="src-chip">F-2.1</span><br>· Mısır ihalesi 2026 backlog'unu %18 büyütebilir <span class="src-chip">S-1.3</span><br><span class="typing">· Teknik olarak 90g yatay konsolidasyondan</span></p>
+        </div>
+      </div>
+
+      <div class="disc" style="margin-top:18px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div><strong>Bilgi amaçlıdır, yatırım tavsiyesi değildir.</strong> ThesisForge çıktıları SPK lisanslı danışmanlık yerine geçmez. Geçmiş performans gelecek sonuçların garantisi değildir.</div>
+      </div>
+    </section>
+
+    <!-- ========================== THESIS VIEWER ========================== -->
+    <section class="page view" id="view-thesis">
+      <div class="page-head">
+        <div>
+          <div class="crumbs" style="margin-bottom:6px"><span>Tezler</span><span class="sep">/</span><span class="now">ASELS · 10 May 2026</span></div>
+          <h1 class="h-title" style="font-size:26px">ASELS — Yatırım Tezi</h1>
+          <div class="row" style="margin-top:6px;gap:8px;flex-wrap:wrap">
+            <span class="muted" style="font-size:13px">Aselsan Elektronik · Savunma & Sanayi · 10 Mayıs 2026, 14:32</span>
+            <span class="chip info">Defense Squad</span>
+            <span class="chip">Standart Analiz</span>
+            <span class="chip violet">Memory: 3 benzer</span>
+          </div>
+        </div>
+        <div class="row" style="gap:8px">
+          <button class="btn sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Kopyala</button>
+          <button class="btn sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF</button>
+          <button class="btn sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Paylaş</button>
+          <button class="btn sm primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2"/></svg>Watchlist'te</button>
+        </div>
+      </div>
+
+      <div class="reader">
+        <!-- LEFT main -->
+        <div style="display:flex;flex-direction:column;gap:18px">
+
+          <!-- KPI strip -->
+          <div class="grid g-12">
+            <div style="grid-column:span 3">
+              <div class="kpi">
+                <div class="lbl">Güven Skoru</div>
+                <div class="row" style="gap:14px;margin-top:4px">
+                  <div class="ring">
+                    <svg width="64" height="64"><circle cx="32" cy="32" r="26" fill="none" stroke="#142036" stroke-width="6"/><circle cx="32" cy="32" r="26" fill="none" stroke="url(#g1)" stroke-width="6" stroke-linecap="round" stroke-dasharray="163.36" stroke-dashoffset="35.94"/><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs></svg>
+                    <div class="num">78</div>
+                  </div>
+                  <div>
+                    <div class="bull" style="font-size:13px;font-weight:700">Yüksek</div>
+                    <div class="muted" style="font-size:11.5px">100 üzerinden</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="grid-column:span 3">
+              <div class="kpi">
+                <div class="lbl">Genel Yön</div>
+                <div class="val"><span class="bull">Bullish</span> <span class="delta up">▲</span></div>
+                <div class="muted" style="font-size:11.5px">DA dayanıklılığı: 80%</div>
+              </div>
+            </div>
+            <div style="grid-column:span 3">
+              <div class="kpi">
+                <div class="lbl">Hisse Fiyatı (tez anı)</div>
+                <div class="val mono">168,40 ₺ <span class="delta up">+2,1%</span></div>
+                <div class="muted" style="font-size:11.5px">15dk gecikmeli</div>
+                <svg class="spark" width="80" height="28" viewBox="0 0 80 28"><polyline fill="none" stroke="#22C55E" stroke-width="1.5" points="0,18 8,17 16,20 24,15 32,14 40,16 48,12 56,10 64,11 72,7 80,5"/></svg>
+              </div>
+            </div>
+            <div style="grid-column:span 3">
+              <div class="kpi">
+                <div class="lbl">Veri Tazeliği</div>
+                <div class="val" style="font-size:18px">2dk önce</div>
+                <div class="muted" style="font-size:11.5px">47 haber · 12 KAP · 4 çeyrek</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TL;DR -->
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">📌 TL;DR — 30 saniyelik özet</h3>
+            </div>
+            <div class="card-body" style="font-size:14.5px;line-height:1.7;color:var(--text-2)">
+              ASELS, Q3 2025'te <strong>%32 gelir büyümesi</strong> ve <strong>onaylanmamış Mısır savunma ihalesi</strong> katalizörüyle orta-pozitif bir tabloya sahip <span class="src-chip">F-2.1</span><span class="src-chip">S-1.3</span>. Ancak <strong>RSI 71</strong> aşırı alım sinyali ve kur volatilitesi kısa vadede %5-8 geri çekilme riskini gündemde tutuyor <span class="src-chip">T-1.4</span>. Devil's Advocate bu tezin başlıca zayıf noktasını <em>"ihalenin henüz KAP'a yansımaması"</em> olarak işaretledi.
+            </div>
+          </div>
+
+          <!-- Bull / Bear -->
+          <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px">
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title bull">🟢 Bull Case</h3>
+                <span class="card-sub">Worker güveni: 72%</span>
+              </div>
+              <div class="card-body" style="padding-top:6px">
+                <div class="li">
+                  <div class="li-dot"></div>
+                  <div>
+                    <div class="li-text"><strong>%32 gelir büyümesi</strong> Q3 2025'te (sektör ort. %12). Operasyonel kaldıraç güçleniyor. <span class="src-chip" onclick="openDrawer('F-2.1')">F-2.1</span></div>
+                    <div class="li-note">FAVÖK marjı 16,2% → 18,5% (yıllık)</div>
+                  </div>
+                </div>
+                <div class="li">
+                  <div class="li-dot"></div>
+                  <div>
+                    <div class="li-text"><strong>Mısır savunma anlaşması</strong> 2026 backlog'unu ~%18 büyütebilir. <span class="src-chip" onclick="openDrawer('S-1.3')">S-1.3</span></div>
+                    <div class="li-note">12 gün önce yayılan haber, sentiment'i +0,42'ye taşıdı</div>
+                  </div>
+                </div>
+                <div class="li">
+                  <div class="li-dot"></div>
+                  <div>
+                    <div class="li-text">90g yatay konsolidasyondan <strong>yukarı kırılım</strong> + MACD pozitif kesişim. <span class="src-chip" onclick="openDrawer('T-1.4')">T-1.4</span></div>
+                  </div>
+                </div>
+                <div class="li">
+                  <div class="li-dot"></div>
+                  <div>
+                    <div class="li-text">F/K 18,4 — sektör ortalaması <strong>22'nin altında</strong>; göreceli iskonto. <span class="src-chip">F-3.2</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3 class="card-title bear">🔴 Bear Case</h3>
+                <span class="card-sub">Devil's Advocate gücü: Orta</span>
+              </div>
+              <div class="card-body" style="padding-top:6px">
+                <div class="li bear">
+                  <div class="li-dot"></div>
+                  <div>
+                    <div class="li-text"><strong>RSI 71 → aşırı alım.</strong> Son 12 ayda bu seviyeden pull-back oranı %42. <span class="src-chip" onclick="openDrawer('T-1.4')">T-1.4</span></div>
+                  </div>
+                </div>
+                <div class="li bear">
+                  <div class="li-dot"></div>
+                  <div>
+                    <div class="li-text">Mısır ihalesi <strong>henüz KAP'a yansımadı</strong>; gelir kaydı belirsizliği. <span class="src-chip">DA-2</span></div>
+                    <div class="li-note">Sentiment skoru "söylenti" üzerinden şişmiş olabilir</div>
+                  </div>
+                </div>
+                <div class="li bear">
+                  <div class="li-dot"></div>
+                  <div>
+                    <div class="li-text">Gelirin <strong>~%34'ü dövize bağlı</strong>; TL/USD volatilitesi marj baskısı yaratabilir. <span class="src-chip">DA-3</span></div>
+                  </div>
+                </div>
+                <div class="li bear">
+                  <div class="li-dot"></div>
+                  <div>
+                    <div class="li-text">Aralık 2025 benzer tezi <strong>−%4,4 hatalı çıktı</strong>; memory base-rate temkinli olmayı öneriyor. <span class="src-chip">M-3</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Catalysts -->
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">📅 Anahtar Katalizörler</h3>
+              <span class="card-sub">3 gelişme · sonraki 90 gün</span>
+            </div>
+            <div class="card-body" style="padding-top:6px">
+              <div class="cat">
+                <div class="cat-date">2 Haz 2026</div>
+                <div class="cat-dot" style="background:#22C55E"></div>
+                <div><strong>Q1 2026 finansal sonuçları</strong> <span class="muted">· yıllık karşılaştırma kritik</span></div>
+                <span class="chip bull">Beklenen etki: Yüksek ▲</span>
+              </div>
+              <div class="cat">
+                <div class="cat-date">15 Haz 2026</div>
+                <div class="cat-dot" style="background:#22C55E"></div>
+                <div><strong>Mısır savunma ihalesi finalizasyonu</strong> <span class="muted">· KAP bildirimi bekleniyor</span></div>
+                <span class="chip bull">Yüksek ▲</span>
+              </div>
+              <div class="cat">
+                <div class="cat-date">Tem 2026</div>
+                <div class="cat-dot" style="background:#F59E0B"></div>
+                <div><strong>TCMB faiz kararı</strong> <span class="muted">· sektör geneli, dolaylı etki</span></div>
+                <span class="chip warn">Orta ◆</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confidence breakdown -->
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">🎯 Güven Skoru 78/100 — Nasıl Hesaplandı?</h3>
+              <span class="card-sub">6 bileşen</span>
+            </div>
+            <div class="card-body">
+              <div class="cbar"><span class="lab">Veri kalitesi</span><div class="track"><div class="fill" style="width:82%"></div></div><span class="num">82</span></div>
+              <div class="cbar"><span class="lab">Teknik tutarlılık</span><div class="track"><div class="fill" style="width:74%"></div></div><span class="num">74</span></div>
+              <div class="cbar"><span class="lab">Temel tutarlılık</span><div class="track"><div class="fill" style="width:88%"></div></div><span class="num">88</span></div>
+              <div class="cbar"><span class="lab">Sentiment tutarlılığı</span><div class="track"><div class="fill" style="width:65%;background:linear-gradient(90deg,#F59E0B,#FCD34D)"></div></div><span class="num">65</span></div>
+              <div class="cbar"><span class="lab">Memory base rate</span><div class="track"><div class="fill" style="width:70%"></div></div><span class="num">70</span></div>
+              <div class="cbar"><span class="lab">DA dayanıklılığı</span><div class="track"><div class="fill" style="width:80%"></div></div><span class="num">80</span></div>
+              <div class="muted" style="font-size:11.5px;margin-top:8px;border-top:1px dashed var(--line);padding-top:8px">
+                Güven skoru başarı <em>olasılığı</em> değildir — sistemin verdiği analizin <em>tutarlılığını</em> ölçer.
+              </div>
+            </div>
+          </div>
+
+          <div class="disc">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+            <div><strong>Yatırım Tavsiyesi Değildir.</strong> ThesisForge tarafından üretilen içerik yalnızca bilgi ve eğitim amaçlıdır. Burada yer alan analizler, tezler, güven skorları ve katalizörler kişiselleştirilmiş yatırım tavsiyesi niteliği taşımaz. Yatırım kararlarınız için kendi araştırmanızı yapın ve gerekirse SPK lisanslı bir yatırım danışmanına başvurun.</div>
+          </div>
+        </div>
+
+        <!-- RIGHT rail -->
+        <aside style="position:sticky;top:80px;align-self:flex-start;display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="card-head"><h3 class="card-title">İçindekiler</h3></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:6px;font-size:13px;padding:10px 14px">
+              <a class="dim" style="padding:4px 0;border-left:2px solid #3B82F6;padding-left:10px;color:#fff;font-weight:600">TL;DR</a>
+              <a class="dim" style="padding:4px 0;padding-left:12px">Bull Case</a>
+              <a class="dim" style="padding:4px 0;padding-left:12px">Bear Case</a>
+              <a class="dim" style="padding:4px 0;padding-left:12px">Katalizörler</a>
+              <a class="dim" style="padding:4px 0;padding-left:12px">Teknik Detay</a>
+              <a class="dim" style="padding:4px 0;padding-left:12px">Temel Detay</a>
+              <a class="dim" style="padding:4px 0;padding-left:12px">Sentiment</a>
+              <a class="dim" style="padding:4px 0;padding-left:12px">Güven Skoru</a>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3 class="card-title">Komite Üyeleri</h3></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;padding:12px 14px">
+              <div class="row between"><span>📈 Teknik Analist</span><span class="bull mono">✓ 8.2sn</span></div>
+              <div class="row between"><span>📊 Temel Analist</span><span class="bull mono">✓ 11.4sn</span></div>
+              <div class="row between"><span>📰 Sentiment</span><span class="bull mono">✓ 9.1sn</span></div>
+              <div class="row between"><span>⚖ Devil's Advocate</span><span class="bull mono">✓ 6.7sn</span></div>
+              <div class="row between"><span>🧠 Memory</span><span class="bull mono">✓ 2.3sn</span></div>
+              <div class="row between"><span>📝 Synthesizer</span><span class="bull mono">✓ 7.5sn</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3 class="card-title">Kaynaklar</h3></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:6px;font-size:12.5px;padding:12px 14px">
+              <div class="row between"><span class="dim">Haber taraması</span><span class="mono">47</span></div>
+              <div class="row between"><span class="dim">KAP bildirimi</span><span class="mono">12</span></div>
+              <div class="row between"><span class="dim">Finansal tablo</span><span class="mono">4 çeyrek</span></div>
+              <div class="row between"><span class="dim">Fiyat verisi</span><span class="mono">90 gün</span></div>
+              <button class="btn sm" style="margin-top:6px;justify-content:center">Tüm kaynakları gör →</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ========================== DASHBOARD ========================== -->
+    <section class="page view" id="view-dashboard">
+      <div class="page-head">
+        <div>
+          <h1 class="h-title">Merhaba, Mehmet 👋</h1>
+          <p class="h-sub">Bugün hangi hisseyi inceleyelim?</p>
+        </div>
+        <span class="pill"><span class="led"></span>Sistem: Tüm ajanlar hazır · 6/6</span>
+      </div>
+
+      <!-- Hero search -->
+      <div class="card" style="margin-bottom:18px;background:linear-gradient(135deg,#0E1830 0%,#0A1122 100%);border-color:rgba(59,130,246,.2)">
+        <div class="card-body" style="display:flex;gap:14px;align-items:center;padding:20px">
+          <div style="flex:1;display:flex;align-items:center;gap:10px;background:#070C18;border:1px solid var(--line);border-radius:10px;padding:10px 14px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input style="flex:1;background:transparent;border:0;outline:0;color:#fff;font-size:14px;font-family:inherit" placeholder="Hisse sembolü gir veya yapıştır (örn. ASELS)" value="ASELS">
+            <span class="kbd">↵</span>
+          </div>
+          <button class="btn primary lg" onclick="showView('live')">🚀 Tez Oluştur →</button>
+        </div>
+        <div style="padding:0 20px 16px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span class="muted" style="font-size:12px;margin-right:4px">Önerilen:</span>
+          <span class="chip">ASELS</span>
+          <span class="chip">GARAN</span>
+          <span class="chip">BIMAS</span>
+          <span class="chip">TUPRS</span>
+          <span class="chip">EREGL</span>
+          <span class="chip">SISE</span>
+        </div>
+      </div>
+
+      <!-- Macro KPI -->
+      <div class="grid g-12" style="margin-bottom:18px">
+        <div style="grid-column:span 3"><div class="kpi"><div class="lbl">BIST 100</div><div class="val mono">9.247,15 <span class="delta up">+1,2%</span></div><svg class="spark" width="80" height="28" viewBox="0 0 80 28"><polyline fill="none" stroke="#22C55E" stroke-width="1.5" points="0,20 10,18 20,22 30,16 40,17 50,12 60,14 70,8 80,5"/></svg></div></div>
+        <div style="grid-column:span 3"><div class="kpi"><div class="lbl">USD/TRY</div><div class="val mono">34,82 <span class="delta up">+0,3%</span></div><svg class="spark" width="80" height="28" viewBox="0 0 80 28"><polyline fill="none" stroke="#22C55E" stroke-width="1.5" points="0,14 10,16 20,13 30,15 40,12 50,14 60,11 70,10 80,9"/></svg></div></div>
+        <div style="grid-column:span 3"><div class="kpi"><div class="lbl">TCMB Faiz</div><div class="val mono">47,50% <span class="delta flat">—</span></div><div class="muted" style="font-size:11px">son değişim: 14 Mar</div></div></div>
+        <div style="grid-column:span 3"><div class="kpi"><div class="lbl">TÜFE (yıllık)</div><div class="val mono">44,38% <span class="delta down">−0,8%</span></div><div class="muted" style="font-size:11px">son veri: Nis 2026</div></div></div>
+      </div>
+
+      <div class="grid g-12">
+        <!-- Watchlist -->
+        <div style="grid-column:span 7">
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">Watchlist'im</h3>
+              <span class="card-sub">5 hisse · canlı fiyat</span>
+              <button class="btn sm ghost" style="margin-left:auto">Tümünü Gör →</button>
+            </div>
+            <div>
+              <div class="stock-card">
+                <span class="star on">★</span>
+                <div><div class="tick">ASELS</div><div class="muted" style="font-size:11.5px">Aselsan Elektronik</div></div>
+                <div class="mono" style="text-align:right">168,40 ₺<div class="bull" style="font-size:11.5px">+2,1%</div></div>
+                <div style="text-align:right"><div class="mono" style="font-weight:700">78</div><div class="bull" style="font-size:11px">Bull · 2g</div></div>
+                <button class="btn sm" onclick="showView('thesis')">Tezi Aç →</button>
+              </div>
+              <div class="stock-card">
+                <span class="star on">★</span>
+                <div><div class="tick">GARAN</div><div class="muted" style="font-size:11.5px">Garanti BBVA</div></div>
+                <div class="mono" style="text-align:right">91,25 ₺<div class="bear" style="font-size:11.5px">−0,4%</div></div>
+                <div style="text-align:right"><div class="mono" style="font-weight:700">65</div><div class="amber" style="font-size:11px">Mixed · 12g</div></div>
+                <button class="btn sm">Tezi Aç →</button>
+              </div>
+              <div class="stock-card">
+                <span class="star on">★</span>
+                <div><div class="tick">BIMAS</div><div class="muted" style="font-size:11.5px">BİM Birleşik Mağazalar</div></div>
+                <div class="mono" style="text-align:right">512,00 ₺<div class="bull" style="font-size:11.5px">+0,8%</div></div>
+                <div style="text-align:right"><div class="muted mono">—</div><div class="muted" style="font-size:11px">tez yok</div></div>
+                <button class="btn sm primary">Tez Oluştur</button>
+              </div>
+              <div class="stock-card">
+                <span class="star on">★</span>
+                <div><div class="tick">TUPRS</div><div class="muted" style="font-size:11.5px">Tüpraş</div></div>
+                <div class="mono" style="text-align:right">195,30 ₺<div class="bear" style="font-size:11.5px">−1,2%</div></div>
+                <div style="text-align:right"><div class="mono" style="font-weight:700">58</div><div class="bear" style="font-size:11px">Bear · 96g</div></div>
+                <button class="btn sm">Tezi Aç →</button>
+              </div>
+              <div class="stock-card">
+                <span class="star on">★</span>
+                <div><div class="tick">EREGL</div><div class="muted" style="font-size:11.5px">Ereğli Demir Çelik</div></div>
+                <div class="mono" style="text-align:right">42,18 ₺<div class="bull" style="font-size:11.5px">+0,2%</div></div>
+                <div style="text-align:right"><div class="mono" style="font-weight:700">71</div><div class="bull" style="font-size:11px">Bull · 21g</div></div>
+                <button class="btn sm">Tezi Aç →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Today's signals -->
+          <div class="card" style="margin-top:16px">
+            <div class="card-head">
+              <h3 class="card-title">Bugün Dikkat Çekenler</h3>
+              <span class="card-sub">3 sinyal · watchlist üzerinden</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+              <div class="row between" style="padding:10px 12px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.22);border-radius:9px">
+                <div class="row" style="gap:10px"><span class="chip warn">🔔 KAP</span><div><strong>ASELS</strong> — Yeni KAP bildirimi yayımlandı <span class="muted">· 2 saat önce</span></div></div>
+                <button class="btn sm">Detaya Bak →</button>
+              </div>
+              <div class="row between" style="padding:10px 12px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.22);border-radius:9px">
+                <div class="row" style="gap:10px"><span class="chip info">📊 Sentiment</span><div><strong>GARAN</strong> — Sentiment 7 günde <span class="bull">+18%</span> değişti</div></div>
+                <button class="btn sm">Detaya Bak →</button>
+              </div>
+              <div class="row between" style="padding:10px 12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.22);border-radius:9px">
+                <div class="row" style="gap:10px"><span class="chip bear">⚠ Teknik</span><div><strong>EREGL</strong> — RSI 71'e yükseldi, aşırı alım bölgesi</div></div>
+                <button class="btn sm">Detaya Bak →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Last theses -->
+        <div style="grid-column:span 5">
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">Son Tezlerim</h3>
+              <button class="btn sm ghost" style="margin-left:auto">Geçmiş →</button>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+              <div class="thesis-card" onclick="showView('thesis')">
+                <div class="row1"><span class="tick">ASELS</span><span class="muted">· Defense</span><span style="margin-left:auto" class="muted">10 May 14:32</span></div>
+                <div class="tldr">Q3'te %32 gelir büyümesi + Mısır ihalesi katalizörü; RSI 71 kısa vadeli risk.</div>
+                <div class="row" style="margin-top:4px"><span class="chip bull">Bullish ▲</span><span class="chip info">Güven 78</span><span class="muted" style="margin-left:auto;font-size:11.5px">5 ajan ✓</span></div>
+              </div>
+              <div class="thesis-card">
+                <div class="row1"><span class="tick">GARAN</span><span class="muted">· Banking</span><span style="margin-left:auto" class="muted">28 Nis 10:14</span></div>
+                <div class="tldr">NIM iyileşmesi pozitif ama TÜFE düşüş hızı kredi büyümesi üzerinde basınç yaratıyor.</div>
+                <div class="row" style="margin-top:4px"><span class="chip warn">Mixed ◆</span><span class="chip info">Güven 65</span><span class="muted" style="margin-left:auto;font-size:11.5px">5 ajan ✓</span></div>
+              </div>
+              <div class="thesis-card">
+                <div class="row1"><span class="tick">BIMAS</span><span class="muted">· Retail</span><span style="margin-left:auto" class="muted">12 Mar 16:48</span></div>
+                <div class="tldr">Disiplinli mağaza açılışı ve özel marka kalemleri marj koruyor; enflasyon temalı oyunda lider.</div>
+                <div class="row" style="margin-top:4px"><span class="chip bull">Bullish ▲</span><span class="chip info">Güven 82</span><span class="bull" style="margin-left:auto;font-size:11.5px;font-weight:600">+18% (90g) ✓</span></div>
+              </div>
+              <div class="thesis-card">
+                <div class="row1"><span class="tick">TUPRS</span><span class="muted">· Energy</span><span style="margin-left:auto" class="muted">5 Şub 09:02</span></div>
+                <div class="tldr">Crack spread daralıyor, stok değerleme etkisi negatif; temettü zemini tezi koruyor.</div>
+                <div class="row" style="margin-top:4px"><span class="chip bear">Bearish ▼</span><span class="chip info">Güven 58</span><span class="bear" style="margin-left:auto;font-size:11.5px;font-weight:600">+5% (90g) ✗</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== THESIS REQUEST ========================== -->
+    <section class="page view" id="view-request">
+      <div class="page-head">
+        <div>
+          <h1 class="h-title">Yeni Yatırım Tezi</h1>
+          <p class="h-sub">Komite'yi topla. Analiz 30–60 saniye sürer.</p>
+        </div>
+        <span class="pill"><span class="led"></span>6/6 ajan hazır</span>
+      </div>
+
+      <div style="max-width:760px;margin:0 auto">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-head"><h3 class="card-title">1. Hisse Seçimi</h3></div>
+          <div class="card-body">
+            <div style="display:flex;gap:10px;align-items:center;background:#070C18;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input style="flex:1;background:transparent;border:0;outline:0;color:#fff;font-size:14px;font-family:inherit" value="ASELS">
+              <span class="chip bull">✓ Geçerli</span>
+            </div>
+            <div style="background:#0B1325;border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center">
+              <div>
+                <div style="font-weight:700;font-size:14px">Aselsan Elektronik Sanayi ve Ticaret A.Ş.</div>
+                <div class="muted" style="font-size:12px;margin-top:3px">Savunma / Sanayi · BIST 30 · BIST 100</div>
+                <div class="row" style="margin-top:8px;gap:6px"><span class="chip info">3 önceki tez var</span><span class="chip">Memory: aktif</span></div>
+              </div>
+              <div style="text-align:right">
+                <div class="mono" style="font-size:20px;font-weight:700">168,40 ₺</div>
+                <div class="bull mono" style="font-size:12px">+2,1% (günlük)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-head"><h3 class="card-title">2. Analiz Modu</h3></div>
+          <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <label style="display:block;cursor:pointer;border:2px solid #3B82F6;background:rgba(59,130,246,.06);padding:14px;border-radius:10px;position:relative">
+              <div style="font-size:22px">⚖</div>
+              <div style="font-weight:700;font-size:14px;margin-top:6px">Dengeli</div>
+              <div class="muted" style="font-size:12px;line-height:1.5;margin-top:4px">Bull ve bear case eşit ağırlıkta. Çoğu yatırımcı için önerilir.</div>
+              <span class="chip info" style="position:absolute;top:12px;right:12px">SEÇİLİ</span>
+            </label>
+            <label style="display:block;cursor:pointer;border:2px solid var(--line);padding:14px;border-radius:10px">
+              <div style="font-size:22px">🛡</div>
+              <div style="font-weight:700;font-size:14px;margin-top:6px">Konservatif</div>
+              <div class="muted" style="font-size:12px;line-height:1.5;margin-top:4px">Bear case ve riskler ön planda. Temettü ve bilanço kalitesi vurgulanır.</div>
+            </label>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-head"><h3 class="card-title">3. Analiz Derinliği</h3></div>
+          <div class="card-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <label style="cursor:pointer;border:1px solid var(--line);padding:12px;border-radius:9px;text-align:center"><div class="mono" style="font-size:13px;color:var(--dim)">~20sn</div><div style="font-weight:700;margin-top:3px">Hızlı</div><div class="muted" style="font-size:11px;margin-top:2px">Temel ajanlar</div></label>
+            <label style="cursor:pointer;border:2px solid #3B82F6;background:rgba(59,130,246,.06);padding:12px;border-radius:9px;text-align:center"><div class="mono" style="font-size:13px;color:#93C5FD">~45sn</div><div style="font-weight:700;margin-top:3px">Standart ●</div><div class="muted" style="font-size:11px;margin-top:2px">Tüm worker'lar</div></label>
+            <label style="cursor:pointer;border:1px solid var(--line);padding:12px;border-radius:9px;text-align:center"><div class="mono" style="font-size:13px;color:var(--dim)">~90sn</div><div style="font-weight:700;margin-top:3px">Derin</div><div class="muted" style="font-size:11px;margin-top:2px">DA dahil tam komite</div></label>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-head"><h3 class="card-title">Gelişmiş</h3><span class="card-sub">opsiyonel</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+            <label class="row between" style="padding:8px 0;border-bottom:1px dashed var(--line)"><span>Devil's Advocate'i devre dışı bırak</span><span class="chip">aktif ✓</span></label>
+            <label class="row between" style="padding:8px 0;border-bottom:1px dashed var(--line)"><span>Memory karşılaştırması yap</span><span class="chip bull">açık ✓</span></label>
+            <label class="row between" style="padding:8px 0;border-bottom:1px dashed var(--line)"><span>Sosyal medya sentiment'ini dahil et</span><span class="chip bull">açık ✓</span></label>
+            <label class="row between" style="padding:8px 0"><span>Çıktı dili</span><span class="chip">Türkçe ▾</span></label>
+          </div>
+        </div>
+
+        <div class="row between" style="margin-top:8px">
+          <button class="btn">İptal</button>
+          <button class="btn primary lg" onclick="showView('live')">🚀 Komiteyi Topla — Analizi Başlat</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== HISTORY ========================== -->
+    <section class="page view" id="view-history">
+      <div class="page-head">
+        <div>
+          <h1 class="h-title">Geçmiş Tezler</h1>
+          <p class="h-sub">Tüm tezlerin · performans takibi · 7/30/90 gün sonuç</p>
+        </div>
+        <div class="row" style="gap:8px">
+          <button class="btn sm">⇣ CSV indir</button>
+          <button class="btn sm primary" onclick="showView('request')">+ Yeni Tez</button>
+        </div>
+      </div>
+
+      <div class="grid g-12" style="margin-bottom:16px">
+        <div style="grid-column:span 3"><div class="kpi"><div class="lbl">Toplam Tez</div><div class="val mono">24</div><div class="muted" style="font-size:11.5px">18 sonuçlandı · 6 beklemede</div></div></div>
+        <div style="grid-column:span 3"><div class="kpi"><div class="lbl">Doğruluk</div><div class="val mono">67% <span class="delta up">↑</span></div><div class="muted" style="font-size:11.5px">12/18 sonuçlanan tez</div></div></div>
+        <div style="grid-column:span 3"><div class="kpi"><div class="lbl">Ortalama Güven</div><div class="val mono">71</div><div class="muted" style="font-size:11.5px">100 üzerinden</div></div></div>
+        <div style="grid-column:span 3"><div class="kpi"><div class="lbl">En İyi Sektör</div><div class="val">Retail <span class="bull" style="font-size:13px">83%</span></div><div class="muted" style="font-size:11.5px">4/4 isabetli</div></div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-body" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px;background:#070C18;border:1px solid var(--line);border-radius:8px;padding:7px 10px;flex:1;min-width:200px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input style="flex:1;background:transparent;border:0;outline:0;color:#fff;font-size:13px;font-family:inherit" placeholder="Hisse ara…">
+          </div>
+          <span class="chip">📅 Son 90 gün ▾</span>
+          <span class="chip">Sektör: Tümü ▾</span>
+          <div class="tabs">
+            <span class="tab active">Tümü</span>
+            <span class="tab">Doğru</span>
+            <span class="tab">Kısmi</span>
+            <span class="tab">Yanlış</span>
+            <span class="tab">Beklemede</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="overflow:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead style="background:#0B1325">
+              <tr style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em">
+                <th style="padding:12px 14px">Ticker</th><th>Tarih</th><th>Sektör</th><th>Güven</th><th>Yön</th><th>7g</th><th>30g</th><th>90g</th><th>Sonuç</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-top:1px solid var(--line);cursor:pointer" onclick="showView('thesis')">
+                <td style="padding:12px 14px"><span class="tick">ASELS</span></td><td class="mono dim">10 May</td><td><span class="chip info">Defense</span></td><td class="mono"><strong>78</strong></td><td><span class="bull">▲ Bull</span></td><td class="bull mono">+4%</td><td class="dim">—</td><td class="dim">—</td><td><span class="chip warn">⏳ Beklemede</span></td><td><button class="btn sm" onclick="showView('thesis')">Aç →</button></td>
+              </tr>
+              <tr style="border-top:1px solid var(--line)">
+                <td style="padding:12px 14px"><span class="tick">GARAN</span></td><td class="mono dim">28 Nis</td><td><span class="chip violet">Banking</span></td><td class="mono"><strong>65</strong></td><td class="amber">◆ Mixed</td><td class="bull mono">+1%</td><td class="bear mono">−2%</td><td class="dim">—</td><td><span class="chip warn">⏳</span></td><td><button class="btn sm">Aç →</button></td>
+              </tr>
+              <tr style="border-top:1px solid var(--line);background:rgba(34,197,94,.03)">
+                <td style="padding:12px 14px"><span class="tick">BIMAS</span></td><td class="mono dim">12 Mar</td><td><span class="chip">Retail</span></td><td class="mono"><strong>82</strong></td><td><span class="bull">▲ Bull</span></td><td class="bull mono">+6%</td><td class="bull mono">+14%</td><td class="bull mono">+18%</td><td><span class="chip bull">✓ Doğru</span></td><td><button class="btn sm">Aç →</button></td>
+              </tr>
+              <tr style="border-top:1px solid var(--line);background:rgba(239,68,68,.03)">
+                <td style="padding:12px 14px"><span class="tick">TUPRS</span></td><td class="mono dim">5 Şub</td><td><span class="chip">Energy</span></td><td class="mono"><strong>58</strong></td><td><span class="bear">▼ Bear</span></td><td class="bear mono">−2%</td><td class="bear mono">−3%</td><td class="bull mono">+5%</td><td><span class="chip bear">✗ Yanlış</span></td><td><button class="btn sm">Aç →</button></td>
+              </tr>
+              <tr style="border-top:1px solid var(--line);background:rgba(34,197,94,.03)">
+                <td style="padding:12px 14px"><span class="tick">SISE</span></td><td class="mono dim">22 Oca</td><td><span class="chip">Industrial</span></td><td class="mono"><strong>74</strong></td><td><span class="bull">▲ Bull</span></td><td class="bull mono">+3%</td><td class="bull mono">+8%</td><td class="bull mono">+12%</td><td><span class="chip bull">✓ Doğru</span></td><td><button class="btn sm">Aç →</button></td>
+              </tr>
+              <tr style="border-top:1px solid var(--line)">
+                <td style="padding:12px 14px"><span class="tick">KCHOL</span></td><td class="mono dim">10 Oca</td><td><span class="chip">Holding</span></td><td class="mono"><strong>69</strong></td><td class="amber">◆ Mixed</td><td class="bull mono">+1%</td><td class="bull mono">+2%</td><td class="bear mono">−1%</td><td><span class="chip warn">≈ Kısmi</span></td><td><button class="btn sm">Aç →</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="row between" style="padding:12px 16px;border-top:1px solid var(--line);font-size:12.5px">
+          <div class="muted">24 sonuçtan 1–6 gösteriliyor</div>
+          <div class="row" style="gap:4px"><button class="btn sm">‹</button><button class="btn sm primary">1</button><button class="btn sm">2</button><button class="btn sm">3</button><button class="btn sm">4</button><button class="btn sm">›</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== WATCHLIST ========================== -->
+    <section class="page view" id="view-watchlist">
+      <div class="page-head">
+        <div>
+          <h1 class="h-title">Watchlist'im <span class="muted" style="font-weight:500;font-size:16px">· 5 hisse</span></h1>
+          <p class="h-sub">Takip ettiğin hisseler · canlı sinyal akışı</p>
+        </div>
+        <div class="row" style="gap:8px">
+          <span class="pill amber"><span class="led"></span>3 yeni sinyal</span>
+          <button class="btn primary">+ Hisse Ekle</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-body" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12.5px">
+          <div class="row" style="gap:6px"><span class="sdot done" style="width:7px;height:7px"></span><span class="muted">🟢 Pozitif sinyal</span></div>
+          <div class="row" style="gap:6px"><span class="sdot wait" style="width:7px;height:7px;background:#F59E0B"></span><span class="muted">🟡 Belirgin değişim yok</span></div>
+          <div class="row" style="gap:6px"><span class="sdot err" style="width:7px;height:7px"></span><span class="muted">🔴 Dikkat / tez güncelle</span></div>
+          <span class="muted" style="margin-left:auto">Son güncelleme: 14:32</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="overflow:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead style="background:#0B1325">
+              <tr style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em">
+                <th style="padding:12px 14px;width:30px"></th><th>Ticker</th><th>Şirket</th><th style="text-align:right">Fiyat</th><th style="text-align:right">Günlük %</th><th style="text-align:right">7g %</th><th>Son Tez</th><th>Sinyal</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-top:1px solid var(--line)"><td style="padding:12px 14px"><span class="star on">★</span></td><td class="tick">ASELS</td><td class="dim">Aselsan</td><td class="mono" style="text-align:right">168,40 ₺</td><td class="bull mono" style="text-align:right">+2,1%</td><td class="bull mono" style="text-align:right">+4,5%</td><td><span class="chip bull">78 · Bull · 2g</span></td><td><span class="chip bull">🟢 KAP+</span></td><td><div class="row" style="gap:6px"><button class="btn sm" onclick="showView('thesis')">Tezi Aç</button><button class="btn sm ghost">🗑</button></div></td></tr>
+              <tr style="border-top:1px solid var(--line)"><td style="padding:12px 14px"><span class="star on">★</span></td><td class="tick">GARAN</td><td class="dim">Garanti BBVA</td><td class="mono" style="text-align:right">91,25 ₺</td><td class="bear mono" style="text-align:right">−0,4%</td><td class="bear mono" style="text-align:right">−1,2%</td><td><span class="chip warn">65 · Mixed · 12g</span></td><td><span class="chip warn">🟡 Sentiment+</span></td><td><div class="row" style="gap:6px"><button class="btn sm">Güncelle</button><button class="btn sm ghost">🗑</button></div></td></tr>
+              <tr style="border-top:1px solid var(--line)"><td style="padding:12px 14px"><span class="star on">★</span></td><td class="tick">BIMAS</td><td class="dim">BİM</td><td class="mono" style="text-align:right">512,00 ₺</td><td class="bull mono" style="text-align:right">+0,8%</td><td class="bull mono" style="text-align:right">+2,1%</td><td><span class="chip">— tez yok</span></td><td><span class="chip bear">🔴 Tez yok</span></td><td><div class="row" style="gap:6px"><button class="btn sm primary">Tez Oluştur</button><button class="btn sm ghost">🗑</button></div></td></tr>
+              <tr style="border-top:1px solid var(--line)"><td style="padding:12px 14px"><span class="star on">★</span></td><td class="tick">EREGL</td><td class="dim">Ereğli Demir Çelik</td><td class="mono" style="text-align:right">42,18 ₺</td><td class="bull mono" style="text-align:right">+0,2%</td><td class="bull mono" style="text-align:right">+1,8%</td><td><span class="chip bull">71 · Bull · 21g</span></td><td><span class="chip bear">🔴 RSI 71</span></td><td><div class="row" style="gap:6px"><button class="btn sm">Tezi Aç</button><button class="btn sm ghost">🗑</button></div></td></tr>
+              <tr style="border-top:1px solid var(--line)"><td style="padding:12px 14px"><span class="star on">★</span></td><td class="tick">TUPRS</td><td class="dim">Tüpraş</td><td class="mono" style="text-align:right">195,30 ₺</td><td class="bear mono" style="text-align:right">−1,2%</td><td class="bear mono" style="text-align:right">−2,4%</td><td><span class="chip bear">58 · Bear · 96g</span></td><td><span class="chip warn">🟡 Stabil</span></td><td><div class="row" style="gap:6px"><button class="btn sm">Tezi Aç</button><button class="btn sm ghost">🗑</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== BACKTEST DEMO ========================== -->
+    <section class="page view" id="view-backtest">
+      <div class="page-head">
+        <div>
+          <h1 class="h-title">Backtest Demo — Geçmişe Yolculuk</h1>
+          <p class="h-sub">6 ay önceki veriyle çalıştırılan tezler, sonraki 90 günde nasıl performans gösterdi?</p>
+        </div>
+        <span class="pill"><span class="led"></span>Pre-computed · time-leakage yok</span>
+      </div>
+
+      <div class="row" style="gap:6px;margin-bottom:14px">
+        <span class="chip info" style="padding:8px 14px;font-size:13px">ASELS</span>
+        <span class="chip" style="padding:8px 14px;font-size:13px">GARAN</span>
+        <span class="chip" style="padding:8px 14px;font-size:13px">BIMAS</span>
+      </div>
+
+      <div class="grid g-12" style="margin-bottom:16px">
+        <div style="grid-column:span 7">
+          <div class="card" style="height:100%">
+            <div class="card-head"><h3 class="card-title">ASELS · 10 Kasım 2025 → 10 Mayıs 2026</h3><span class="card-sub">180 günlük fiyat eğrisi</span></div>
+            <div class="card-body">
+              <svg viewBox="0 0 600 220" style="width:100%;height:220px">
+                <defs>
+                  <linearGradient id="bgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22C55E" stop-opacity=".3"/><stop offset="1" stop-color="#22C55E" stop-opacity="0"/></linearGradient>
+                </defs>
+                <!-- grid -->
+                <g stroke="#142036" stroke-width="1">
+                  <line x1="0" y1="40" x2="600" y2="40"/><line x1="0" y1="90" x2="600" y2="90"/><line x1="0" y1="140" x2="600" y2="140"/><line x1="0" y1="190" x2="600" y2="190"/>
+                </g>
+                <!-- thesis line -->
+                <line x1="120" y1="20" x2="120" y2="200" stroke="#3B82F6" stroke-width="2" stroke-dasharray="4,4"/>
+                <text x="128" y="34" fill="#93C5FD" font-size="11" font-family="JetBrains Mono">Tez burada üretildi (10 Kas)</text>
+                <!-- price area -->
+                <path d="M0,160 L20,158 L40,155 L60,150 L80,152 L100,148 L120,142 L140,130 L160,135 L180,120 L200,118 L220,110 L240,105 L260,100 L280,95 L300,88 L320,90 L340,80 L360,75 L380,70 L400,72 L420,65 L440,60 L460,55 L480,58 L500,50 L520,45 L540,42 L560,38 L580,35 L600,30 L600,220 L0,220 Z" fill="url(#bgrad)"/>
+                <path d="M0,160 L20,158 L40,155 L60,150 L80,152 L100,148 L120,142 L140,130 L160,135 L180,120 L200,118 L220,110 L240,105 L260,100 L280,95 L300,88 L320,90 L340,80 L360,75 L380,70 L400,72 L420,65 L440,60 L460,55 L480,58 L500,50 L520,45 L540,42 L560,38 L580,35 L600,30" stroke="#22C55E" stroke-width="2" fill="none"/>
+                <circle cx="120" cy="142" r="5" fill="#3B82F6" stroke="#fff" stroke-width="2"/>
+                <circle cx="600" cy="30" r="5" fill="#22C55E" stroke="#fff" stroke-width="2"/>
+                <text x="125" y="158" fill="#fff" font-size="11" font-family="JetBrains Mono">142 ₺</text>
+                <text x="555" y="22" fill="#86EFAC" font-size="11" font-family="JetBrains Mono">168 ₺</text>
+              </svg>
+              <div class="row" style="gap:18px;margin-top:8px;padding-top:10px;border-top:1px dashed var(--line);font-size:12px">
+                <div><span class="muted">10 Kasım fiyatı: </span><span class="mono" style="font-weight:700">142,00 ₺</span></div>
+                <div><span class="muted">Bugün: </span><span class="mono" style="font-weight:700">168,40 ₺</span></div>
+                <div><span class="muted">Değişim: </span><span class="bull mono" style="font-weight:700">+18,6% ▲</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="grid-column:span 5">
+          <div class="card" style="height:100%;display:flex;flex-direction:column">
+            <div class="card-head"><h3 class="card-title">Sonuç</h3><span class="chip bull" style="margin-left:auto">✓ DOĞRU</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
+              <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">
+                <div class="kpi" style="padding:10px 12px"><div class="lbl">Tez yönü</div><div style="font-size:18px;font-weight:700" class="bull">▲ BULL</div></div>
+                <div class="kpi" style="padding:10px 12px"><div class="lbl">Güven (o gün)</div><div style="font-size:18px;font-weight:700" class="mono">74</div></div>
+                <div class="kpi" style="padding:10px 12px"><div class="lbl">90g getiri</div><div style="font-size:18px;font-weight:700" class="bull mono">+18,6%</div></div>
+                <div class="kpi" style="padding:10px 12px"><div class="lbl">BIST karşılaştırma</div><div style="font-size:18px;font-weight:700" class="bull mono">+11,2%</div></div>
+              </div>
+              <div>
+                <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">TL;DR — 10 Kasım 2025</div>
+                <div style="font-size:13px;line-height:1.6;color:var(--text-2);padding:10px 12px;background:#0B1325;border:1px solid var(--line);border-radius:9px">
+                  ASELS, sektör backlog büyümesi ve teknik konsolidasyon kırılım sinyaliyle <strong class="bull">orta-pozitif</strong> görünüm gösteriyor; ana risk kur volatilitesi ve Q4 marj baskısı.
+                </div>
+              </div>
+              <button class="btn primary" style="margin-top:auto;justify-content:center" onclick="showView('request')">Bu hissede şu anda tez üret →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">Komitenin o günkü argümanları</h3></div>
+        <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:13px;line-height:1.55">
+          <div>
+            <div class="bull" style="font-weight:700;margin-bottom:6px">🟢 Bull (söylendi)</div>
+            <div class="li"><div class="li-dot"></div><div>Sektör backlog'u %22 büyüdü; teslimatlar Q1-Q2'ye yığılı</div></div>
+            <div class="li"><div class="li-dot"></div><div>90 günlük yatay konsolidasyondan kırılım yakın</div></div>
+            <div class="li"><div class="li-dot"></div><div>FAVÖK marjı 16,2% → 17,8% (yıllık iyileşme)</div></div>
+          </div>
+          <div>
+            <div class="bear" style="font-weight:700;margin-bottom:6px">🔴 Bear (söylendi)</div>
+            <div class="li bear"><div class="li-dot"></div><div>TÜFE düşüşü işletme sermayesini sıkıştırabilir</div></div>
+            <div class="li bear"><div class="li-dot"></div><div>Yabancı kurumsal payı 3 ayda %2 azaldı</div></div>
+            <div class="li bear"><div class="li-dot"></div><div>Q4 sezonsallığı tarihsel olarak zayıf</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== SETTINGS ========================== -->
+    <section class="page view" id="view-settings">
+      <div class="page-head">
+        <div>
+          <h1 class="h-title">Ayarlar</h1>
+          <p class="h-sub">Profil · tercihler · bildirimler · abonelik</p>
+        </div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:220px 1fr;gap:22px">
+        <aside class="card" style="height:fit-content">
+          <div class="card-body" style="display:flex;flex-direction:column;gap:4px;padding:10px">
+            <div class="nav-item active" style="margin:0">👤 Profil</div>
+            <div class="nav-item" style="margin:0">⚙ Tercihler</div>
+            <div class="nav-item" style="margin:0">🔔 Bildirimler</div>
+            <div class="nav-item" style="margin:0">💳 Abonelik</div>
+            <div class="nav-item" style="margin:0">📜 Hukuki & Yardım</div>
+          </div>
+        </aside>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="card-head"><h3 class="card-title">Profil</h3></div>
+            <div class="card-body" style="display:flex;gap:18px;align-items:center">
+              <div class="avatar" style="width:64px;height:64px;font-size:24px">M</div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+                <div><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.1em">Görünen ad</div><input value="Mehmet K." style="background:#070C18;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:#fff;font-family:inherit;font-size:13.5px;width:280px;margin-top:4px"></div>
+                <div><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.1em">E-posta</div><div class="row" style="gap:8px"><input value="mehmet@thesisforge.io" disabled style="background:#070C18;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--dim);font-family:inherit;font-size:13.5px;width:280px;margin-top:4px"><button class="btn sm">Değiştir</button></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3 class="card-title">Tercihler</h3></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
+              <div class="row between"><div><div style="font-weight:600;font-size:13px">Tema</div><div class="muted" style="font-size:11.5px;margin-top:2px">Karanlık tema finansal terminallerde standarttır</div></div><div class="tabs"><span class="tab">Sistem</span><span class="tab">Açık</span><span class="tab active">Koyu</span></div></div>
+              <div class="row between" style="border-top:1px dashed var(--line);padding-top:14px"><div><div style="font-weight:600;font-size:13px">Dil</div><div class="muted" style="font-size:11.5px;margin-top:2px">Tez çıktıları ve arayüz</div></div><div class="tabs"><span class="tab active">Türkçe</span><span class="tab">English</span></div></div>
+              <div class="row between" style="border-top:1px dashed var(--line);padding-top:14px"><div><div style="font-weight:600;font-size:13px">Varsayılan analiz modu</div><div class="muted" style="font-size:11.5px;margin-top:2px">Yeni tezler için ön seçim</div></div><div class="tabs"><span class="tab active">Dengeli ⚖</span><span class="tab">Konservatif 🛡</span></div></div>
+              <div class="row between" style="border-top:1px dashed var(--line);padding-top:14px"><div><div style="font-weight:600;font-size:13px">Varsayılan derinlik</div><div class="muted" style="font-size:11.5px;margin-top:2px">Süre vs. detay dengesi</div></div><div class="tabs"><span class="tab">Hızlı</span><span class="tab active">Standart</span><span class="tab">Derin</span></div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3 class="card-title">Bildirimler</h3></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:12px;font-size:13px">
+              <label class="row between"><div><div style="font-weight:600">Watchlist günlük özeti</div><div class="muted" style="font-size:11.5px">E-posta · her sabah 08:00</div></div><span class="chip bull">açık ✓</span></label>
+              <label class="row between" style="border-top:1px dashed var(--line);padding-top:12px"><div><div style="font-weight:600">Önemli sinyal bildirimleri</div><div class="muted" style="font-size:11.5px">Push · KAP, RSI, sentiment sıçramaları</div></div><span class="chip bull">açık ✓</span></label>
+              <label class="row between" style="border-top:1px dashed var(--line);padding-top:12px"><div><div style="font-weight:600">Yeni KAP bildiriminde tez güncelle</div><div class="muted" style="font-size:11.5px">Otomatik olarak yeni tez üretilir</div></div><span class="chip">kapalı</span></label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3 class="card-title">Abonelik</h3><span class="card-sub">v0.1.0 (MVP)</span></div>
+            <div class="card-body" style="display:flex;gap:14px;align-items:center;padding:18px">
+              <div style="flex:1">
+                <div class="row" style="gap:8px;align-items:center"><span style="font-weight:700;font-size:18px">Pro</span><span class="chip violet">aktif</span></div>
+                <div class="muted" style="font-size:12px;margin-top:4px">Sonraki yenileme: 10 Haz 2026 · 299 ₺/ay</div>
+                <div class="muted mono" style="font-size:11.5px;margin-top:6px">Bu ay kullanım: 8/∞ tez · 5 watchlist · sınırsız memory</div>
+              </div>
+              <div class="row" style="gap:8px"><button class="btn sm">Planı yönet</button><button class="btn sm ghost" style="color:#FCA5A5;border-color:rgba(239,68,68,.3)">Hesabı sil</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== AUTH ========================== -->
+    <section class="page view" id="view-auth">
+      <div style="min-height:80vh;display:grid;place-items:center;padding:30px 0">
+        <div style="width:100%;max-width:420px">
+          <div style="text-align:center;margin-bottom:22px">
+            <div style="display:inline-flex;align-items:center;gap:10px"><div class="brand-mark" style="width:40px;height:40px;border-radius:10px"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 7a4 4 0 0 0 8 0L7 7"/><path d="M19 7l-3 7a4 4 0 0 0 8 0L21 7"/><path d="M8 21h8"/></svg></div><div style="font-weight:800;font-size:22px;letter-spacing:-0.01em">ThesisForge</div></div>
+            <div class="muted" style="margin-top:10px;font-size:13.5px">Profesyonel yatırım komitesini cebinizde taşıyın.</div>
+          </div>
+
+          <div class="card">
+            <div class="card-body" style="padding:22px">
+              <div class="tabs" style="width:100%;margin-bottom:18px"><span class="tab active" style="flex:1;text-align:center">Giriş Yap</span><span class="tab" style="flex:1;text-align:center">Kayıt Ol</span></div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">E-posta</div><input placeholder="ornek@mail.com" style="width:100%;background:#070C18;border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:#fff;font-family:inherit;font-size:13.5px"></div>
+                <div><div class="row between" style="margin-bottom:5px"><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.1em">Şifre</div><a class="dim" style="font-size:11.5px;cursor:pointer">Şifremi unuttum</a></div><input type="password" value="••••••••••" style="width:100%;background:#070C18;border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:#fff;font-family:inherit;font-size:13.5px"></div>
+                <button class="btn primary lg" onclick="showView('dashboard')" style="margin-top:6px;justify-content:center">Giriş Yap →</button>
+                <div class="row" style="gap:10px;margin:8px 0"><div style="flex:1;height:1px;background:var(--line)"></div><span class="muted" style="font-size:11px">— veya —</span><div style="flex:1;height:1px;background:var(--line)"></div></div>
+                <button class="btn lg" style="justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google ile Devam Et</button>
+                <div class="muted" style="font-size:11.5px;text-align:center;margin-top:6px;line-height:1.55">Hesap oluşturarak <a style="text-decoration:underline">Kullanım Şartları</a> ve <a style="text-decoration:underline">Gizlilik Politikası</a>'nı kabul etmiş olursunuz.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="muted" style="text-align:center;font-size:11.5px;margin-top:14px;line-height:1.55">⚠ Bilgi amaçlıdır, yatırım tavsiyesi değildir.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Source drawer -->
+<div class="drawer-scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <span style="width:30px;height:30px;border-radius:8px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);display:grid;place-items:center;color:#86EFAC">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+    </span>
+    <div>
+      <div style="font-weight:700;font-size:14px" id="drawerTitle">Kaynak: Temel Analiz — Gelir Büyümesi</div>
+      <div class="muted" style="font-size:11.5px"><span class="mono" id="drawerSrc">F-2.1</span> · Worker · Tool çıktısı</div>
+    </div>
+    <button class="icon-btn" style="margin-left:auto" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div>
+      <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">İddianın metni</div>
+      <div class="quote" id="drawerQuote">"%32 gelir büyümesi Q3 2025'te (sektör ort. %12). Operasyonel kaldıraç güçleniyor."</div>
+    </div>
+    <div class="kv">
+      <span class="k">Ajan</span><span class="v">📊 Temel Analist (Fundamental Worker)</span>
+      <span class="k">Tool çağrısı</span><span class="v mono" style="font-size:12px">get_financial_statements</span>
+      <span class="k">Ticker</span><span class="v mono">ASELS.IS</span>
+      <span class="k">Veri kaynağı</span><span class="v">KAP · yfinance · finnet</span>
+      <span class="k">Çıktı zamanı</span><span class="v mono">14:31:08 · 2dk önce</span>
+      <span class="k">Güven seviyesi</span><span class="v bull">Yüksek (hesaplama, halüsinasyon değil)</span>
+    </div>
+    <div>
+      <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Tool argümanları</div>
+      <div class="codeblk">{
+  "ticker": "ASELS",
+  "periods": ["Q1-2025","Q2-2025","Q3-2025"],
+  "fields": ["revenue","ebitda","net_income"]
+}</div>
+    </div>
+    <div>
+      <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Tool çıktısı (kesit)</div>
+      <div class="codeblk">{
+  "revenue_yoy_pct": 31.84,
+  "ebitda_margin": 0.185,
+  "ebitda_margin_prev_year": 0.162,
+  "sector_revenue_growth_median": 12.1,
+  "source": "KAP/2025-Q3",
+  "computed_at": "2026-05-10T14:31:08Z"
+}</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:auto">
+      <button class="btn sm">Kaynağı KAP'ta aç ↗</button>
+      <button class="btn sm ghost">Sorun bildir</button>
+    </div>
+  </div>
+</aside>
+
+<script>
+  // Simple view router
+  const views = ['live','thesis','dashboard','request','history','watchlist','backtest','settings','auth'];
+  const crumbsMap = {
+    live: ['Çalışma Alanı', 'Canlı Komite — ASELS'],
+    thesis: ['Tezler', 'ASELS · 10 May 2026'],
+    dashboard: ['Çalışma Alanı', 'Dashboard'],
+    request: ['Çalışma Alanı', 'Yeni Tez'],
+    history: ['Takip', 'Geçmiş Tezler'],
+    watchlist: ['Takip', 'Watchlist'],
+    backtest: ['Takip', 'Backtest Demo'],
+    settings: ['Sistem', 'Ayarlar'],
+    auth: ['—', 'Giriş / Kayıt']
+  };
+  function showView(v){
+    views.forEach(x=>document.getElementById('view-'+x).classList.toggle('show', x===v));
+    document.querySelectorAll('.nav-item').forEach(n=>{
+      n.classList.toggle('active', n.dataset.nav===v);
+    });
+    const c = crumbsMap[v];
+    if(c) document.getElementById('crumbs').innerHTML = `<span>${c[0]}</span><span class="sep">/</span><span class="now">${c[1]}</span>`;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('.nav-item[data-nav]').forEach(n=>{
+    n.addEventListener('click', ()=>showView(n.dataset.nav));
+  });
+
+  // Drawer
+  function openDrawer(src){
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('scrim').classList.add('open');
+    if(src) document.getElementById('drawerSrc').textContent = src;
+    const titles = {
+      'F-2.1': ['Kaynak: Temel Analiz — Gelir Büyümesi', '"%32 gelir büyümesi Q3 2025\'te (sektör ort. %12). Operasyonel kaldıraç güçleniyor."'],
+      'T-1.4': ['Kaynak: Teknik Analiz — RSI Hesaplaması', '"RSI 71\'de — aşırı alım bölgesinde. 90 günlük yatay konsolidasyondan yukarı kırılım gerçekleşti."'],
+      'S-1.3': ['Kaynak: Sentiment — Mısır İhalesi Haberleri', '"Mısır savunma anlaşması, 2026 backlog\'unu yaklaşık %18 büyütebilir. 12 gün önce yayılan haber sentiment\'i +0,42\'ye taşıdı."']
+    };
+    if(titles[src]){
+      document.getElementById('drawerTitle').textContent = titles[src][0];
+      document.getElementById('drawerQuote').textContent = titles[src][1];
+    }
+  }
+  function closeDrawer(){
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('scrim').classList.remove('open');
+  }
+  window.addEventListener('keydown', e=>{ if(e.key==='Escape') closeDrawer(); });
+
+  // ===== Live Committee Scene Player (00:00 → 00:45) =====
+  (function(){
+    const live = document.getElementById('view-live');
+    if(!live) return;
+    const $=(s,p=live)=>p.querySelector(s);
+    const $$=(s,p=live)=>[...p.querySelectorAll(s)];
+    const findCard=(kw)=>$$('.card').find(c=>$('.card-title',c)?.textContent.includes(kw));
+    const daCard=findCard('Devil'), memCard=findCard('Tarihsel'), synthCard=findCard('Sentez');
+    const agents=$$('.agent'), steps=$$('.step'), timerEl=document.getElementById('timer');
+
+    // Snapshot final state once
+    const FINAL={
+      da:daCard.querySelector('.card-body').innerHTML,
+      mem:memCard.querySelector('.card-body').innerHTML,
+      synth:synthCard.querySelector('.card-body').innerHTML,
+      agents:agents.map(a=>({cls:a.className,status:a.querySelector('.agent-status').innerHTML,log:a.querySelector('.tool-log').innerHTML,sum:a.querySelector('.agent-summary').innerHTML})),
+      stepCls:steps.map(s=>s.className), stepHTML:steps.map(s=>s.innerHTML)
+    };
+
+    let state='final', timers=[], raf=null;
+    const at=(t,fn)=>timers.push(setTimeout(fn,t*1000));
+    const clear=()=>{timers.forEach(clearTimeout);timers=[];if(raf)cancelAnimationFrame(raf);raf=null};
+
+    function reset(){
+      clear(); state='reset'; timerEl.textContent='00:00';
+      const labels=['● Doğrulama','○ Sektör','○ Worker\'lar','○ Devil\'s Advocate','○ Sentez'];
+      steps.forEach((s,i)=>{s.className='step '+(i===0?'active':'wait');s.innerHTML=labels[i]});
+      agents.forEach(a=>{
+        a.className='agent';
+        a.querySelector('.agent-status').innerHTML='<span class="sdot wait"></span>Bekleniyor';
+        a.querySelector('.tool-log').innerHTML='<div class="tool-line wait">○ Komite kararı bekleniyor…</div>';
+        a.querySelector('.agent-summary').style.opacity='0';
+      });
+      daCard.querySelector('.card-body').innerHTML='<div class="muted" style="font-size:13px;padding:18px;text-align:center">Worker çıktıları bekleniyor…</div>';
+      memCard.querySelector('.card-body').innerHTML='<div class="muted" style="font-size:13px;padding:18px;text-align:center">Hazır · 6.247 tezde indekslendi</div>';
+      synthCard.querySelector('.card-body').innerHTML='<div class="muted" style="font-size:13px;padding:18px;text-align:center">Worker + Devil\'s Advocate + Memory tamamlanınca başlar…</div>';
+    }
+    function restoreFinal(){
+      clear(); state='final';
+      steps.forEach((s,i)=>{s.className=FINAL.stepCls[i];s.innerHTML=FINAL.stepHTML[i]});
+      agents.forEach((a,i)=>{a.className=FINAL.agents[i].cls;a.querySelector('.agent-status').innerHTML=FINAL.agents[i].status;a.querySelector('.tool-log').innerHTML=FINAL.agents[i].log;a.querySelector('.agent-summary').innerHTML=FINAL.agents[i].sum;a.querySelector('.agent-summary').style.opacity='1'});
+      daCard.querySelector('.card-body').innerHTML=FINAL.da;
+      memCard.querySelector('.card-body').innerHTML=FINAL.mem;
+      synthCard.querySelector('.card-body').innerHTML=FINAL.synth;
+      timerEl.textContent='00:34';
+    }
+
+    const logs=[
+      ['✓ get_ohlcv(<span class="arg">ASELS, 90d</span>)','✓ calculate_indicators(<span class="arg">RSI, MACD, BB</span>)','✓ detect_patterns(<span class="arg">v=ascending_triangle</span>)','✓ identify_levels(<span class="arg">support, resistance</span>)'],
+      ['✓ fetch_kap_filings(<span class="arg">ASELS, 90d</span>) · 12 bildirim','✓ get_financial_statements(<span class="arg">Q1-Q3 2025</span>)','✓ compute_ratios(<span class="arg">14 oran</span>)','✓ compare_to_peers(<span class="arg">OTKAR, KATMR, TUSAS</span>)'],
+      ['✓ fetch_news(<span class="arg">ASELS, 30d</span>) · 47 haber','✓ score_sentiment(<span class="arg">model=finbert-tr</span>)','✓ detect_material_events(<span class="arg">3 olay</span>)','✓ correlate_with_price(<span class="arg">pearson=0.42</span>)']
+    ];
+    const doneAt=[12,15,18], dur=['8.2sn','11.4sn','14.1sn'];
+
+    const daBullets=[
+      '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid rgba(245,158,11,.2);border-radius:8px;background:rgba(245,158,11,.04)"><span class="chip warn" style="flex-shrink:0">⚠ Teknik</span><div style="font-size:13px;line-height:1.55;color:var(--text-2)"><strong>"RSI 71 = aşırı alım"</strong> için base-rate kontrolü çalıştırıldı. Son 12 ayda bu seviyenin pull-back öncesi gelme oranı <strong class="mono">%42</strong>. <span class="muted">→ Sinyal "kesin" değil, "olası" düzeyinde.</span></div></div>',
+      '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid rgba(245,158,11,.2);border-radius:8px;background:rgba(245,158,11,.04)"><span class="chip warn" style="flex-shrink:0">⚠ Temel</span><div style="font-size:13px;line-height:1.55;color:var(--text-2)"><strong>Mısır savunma ihalesi henüz tamamlanmadı.</strong> Backlog\'a %18 katkı tahmini, KAP\'a yansıyana kadar gelir kaydı belirsizliği taşıyor.</div></div>',
+      '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid rgba(245,158,11,.2);border-radius:8px;background:rgba(245,158,11,.04)"><span class="chip warn" style="flex-shrink:0">⚠ Kesişim</span><div style="font-size:13px;line-height:1.55;color:var(--text-2)">Worker\'lar TL/USD volatilitesini fiyatlamadı. ASELS\'in gelirinin <strong class="mono">~%34</strong>\'ü dövize bağlı; kur sert düşerse marjlar baskılanır.</div></div>'
+    ];
+
+    const synthChunks=['<h3>📌 TL;DR</h3>','<p>ASELS, ','son çeyrekteki <strong>%32 gelir büyümesi</strong> ','ve onaylanmamış <strong>Mısır savunma ihalesi</strong> katalizörüyle ','<strong class="bull">orta-pozitif (bullish)</strong> bir tabloya sahip; ','ancak RSI 71\'deki aşırı alım sinyali ve kur volatilitesi ','kısa vadede %5-8\'lik geri çekilme riski yaratıyor. ','<strong>Güven skoru: 78/100.</strong></p>','<h3>🟢 Bull Case</h3>','<p>· Q3 2025\'te %32 gelir büyümesi (sektör ort. %12) <span class="src-chip">F-2.1</span><br>','· Mısır ihalesi 2026 backlog\'unu %18 büyütebilir <span class="src-chip">S-1.3</span><br>','· Teknik olarak 90g yatay konsolidasyondan yukarı kırılım gerçekleşti <span class="src-chip">T-1.4</span></p>'];
+
+    function play(){
+      reset(); state='playing';
+      const start=performance.now();
+      const tick=()=>{
+        if(state!=='playing')return;
+        const t=Math.min(45,(performance.now()-start)/1000);
+        timerEl.textContent=`${String(Math.floor(t/60)).padStart(2,'0')}:${String(Math.floor(t%60)).padStart(2,'0')}`;
+        if(t<45)raf=requestAnimationFrame(tick); else state='done';
+      };
+      raf=requestAnimationFrame(tick);
+
+      at(1.5,()=>{steps[0].className='step done';steps[0].innerHTML='✓ Doğrulama';steps[1].className='step active';steps[1].innerHTML='● Sektör'});
+      at(3.0,()=>{steps[1].className='step done';steps[1].innerHTML='✓ Sektör';steps[2].className='step active';steps[2].innerHTML='● Worker\'lar'});
+
+      at(3.5,()=>{agents.forEach(a=>{a.className='agent running';a.querySelector('.agent-status').innerHTML='<span class="sdot running"></span>Çalışıyor';a.querySelector('.tool-log').innerHTML=''})});
+
+      logs.forEach((lines,i)=>{
+        const startT=3.5, endT=doneAt[i], span=endT-startT;
+        lines.forEach((line,j)=>{
+          const tt=startT+(j+1)*(span/(lines.length+1));
+          at(tt,()=>{const log=agents[i].querySelector('.tool-log');const ln=document.createElement('div');ln.className='tool-line done';ln.innerHTML=line;ln.style.cssText='animation:fadein .3s';log.appendChild(ln)});
+        });
+        at(endT,()=>{agents[i].className='agent done';agents[i].querySelector('.agent-status').innerHTML=`<span class="sdot done"></span>Tamamlandı · ${dur[i]}`;const sum=agents[i].querySelector('.agent-summary');sum.style.transition='opacity .6s';sum.style.opacity='1'});
+      });
+
+      at(18.5,()=>{steps[2].className='step done';steps[2].innerHTML='✓ Worker\'lar';steps[3].className='step active';steps[3].innerHTML='● Devil\'s Advocate';daCard.querySelector('.card-body').innerHTML='<div class="row" style="font-size:13px;color:var(--muted);padding:10px 6px"><span class="sdot running" style="margin-right:10px"></span>Worker çıktılarını sorguluyor…</div><div id="da-list" style="display:flex;flex-direction:column;gap:10px;margin-top:8px"></div>';memCard.querySelector('.card-body').innerHTML='<div class="row" style="font-size:13px;color:var(--muted);padding:10px 6px"><span class="sdot running" style="margin-right:10px"></span>Memory taranıyor…</div>'});
+      at(20,()=>{document.getElementById('da-list')?.insertAdjacentHTML('beforeend',daBullets[0])});
+      at(23,()=>{document.getElementById('da-list')?.insertAdjacentHTML('beforeend',daBullets[1])});
+      at(26,()=>{document.getElementById('da-list')?.insertAdjacentHTML('beforeend',daBullets[2])});
+
+      at(22,()=>{memCard.querySelector('.card-body').innerHTML='<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:baseline;gap:8px"><div style="font-size:28px;font-weight:800;letter-spacing:-0.02em" class="mono">2/3</div><div class="muted" style="font-size:12px">benzer tezde doğru</div></div><div style="font-size:12px;color:var(--muted)">Geçmiş 3 ASELS tezinin 90g sonucu:</div><div style="display:flex;flex-direction:column;gap:6px"><div class="row between" style="font-size:12.5px"><span class="mono">Mart 2025</span><span class="bull mono">+18,2% ✓</span></div><div class="row between" style="font-size:12.5px"><span class="mono">Eylül 2025</span><span class="bull mono">+7,1% ✓</span></div><div class="row between" style="font-size:12.5px"><span class="mono">Aralık 2025</span><span class="bear mono">−4,4% ✗</span></div></div></div>'});
+
+      at(29,()=>{steps[3].className='step done';steps[3].innerHTML='✓ Devil\'s Advocate';steps[4].className='step active';steps[4].innerHTML='● Sentez';synthCard.querySelector('.card-body').innerHTML='<div class="synth-body" id="synth-stream"></div>'});
+
+      // Stream chunks 30s → 44s
+      synthChunks.forEach((c,j)=>{const tt=30+(j+0.5)*(14/synthChunks.length);at(tt,()=>{const el=document.getElementById('synth-stream');if(!el)return;el.insertAdjacentHTML('beforeend',c)})});
+      at(44.5,()=>{steps[4].className='step done';steps[4].innerHTML='✓ Sentez';const el=document.getElementById('synth-stream');if(el){el.insertAdjacentHTML('beforeend','<div style="margin-top:14px;padding:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:9px;display:flex;align-items:center;gap:10px"><span style="color:#86EFAC">✓</span><span style="flex:1;font-size:13px"><strong>Tez hazır.</strong> Thesis Viewer\'a yönlendiriliyorsun…</span><button class="btn sm primary" onclick="showView(\'thesis\')">Tezi Aç →</button></div>')}});
+    }
+
+    // Inject control bar
+    const pageHead=live.querySelector('.page-head');
+    const bar=document.createElement('div');
+    bar.style.cssText='display:flex;gap:10px;align-items:center;margin:0 0 16px;padding:11px 16px;background:linear-gradient(90deg,rgba(59,130,246,.10),rgba(167,139,250,.05));border:1px solid rgba(59,130,246,.28);border-radius:11px';
+    bar.innerHTML=`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#93C5FD;text-transform:uppercase;letter-spacing:.14em;font-weight:700"><span style="width:6px;height:6px;border-radius:50%;background:#3B82F6;box-shadow:0 0 8px #3B82F6"></span>Sahne Oynatıcı</span><span class="muted" style="font-size:12.5px">Komite akışını 00:00 → 00:45 arası canlı izle</span><span style="flex:1"></span><button class="btn sm primary" id="sp-play">▶ Sahneyi Oynat</button><button class="btn sm" id="sp-reset">↻ Reset</button><button class="btn sm ghost" id="sp-final">⤓ Son Hâli</button>`;
+    pageHead.insertAdjacentElement('afterend',bar);
+    document.getElementById('sp-play').onclick=play;
+    document.getElementById('sp-reset').onclick=reset;
+    document.getElementById('sp-final').onclick=restoreFinal;
+  })();
+</script>
+</body>
+</html>
