@@ -1,0 +1,8 @@
+yfinance
+isyatirimhisse
+borsapy
+pykap
+pandas
+httpx
+python-dotenv
+rich
