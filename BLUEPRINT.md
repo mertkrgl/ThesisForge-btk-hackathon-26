@@ -33,7 +33,10 @@
   - [D.1 Kaynak Tablosu ve Erişim Garantileri](#d1-kaynak-tablosu-ve-erişim-garantileri)
   - [D.2 DataProvider Interface ve Fallback Zinciri](#d2-dataprovider-interface-ve-fallback-zinciri)
   - [D.3 TCMB EVDS API Kayıt Prosedürü](#d3-tcmb-evds-api-kayıt-prosedürü)
+  - [D.3.2 MKK API Portal Kayıt Prosedürü](#d32-mkk-api-portal-kayıt-prosedürü-kap-resmi-rest-api)
   - [D.4 Maliyet Tahmini](#d4-maliyet-tahmini)
+
+> **Not:** Veri katmanının tam ayrıntıları (kaynak kataloğu, modül-kaynak eşleştirme matrisi, fallback senaryoları, kayıt prosedürleri, lisans/atıf) ayrı bir dosyada: [**`VERI.md`**](VERI.md). BLUEPRINT.md D bölümü özet; çelişki halinde VERI.md geçerlidir.
 - [E. Teknoloji Yığını](#e-teknoloji-yığını)
 - [F. Persistence Şemaları](#f-persistence-şemaları)
 - [G. Sprint Planı (7 Gün, 3 Kişi)](#g-sprint-planı-7-gün-3-kişi)
@@ -490,14 +493,16 @@ Orchestrator pipeline başlat
 | Kaynak | Tip | Erişim | Garanti | Notlar |
 |---|---|---|---|---|
 | **TCMB EVDS** | Makro | Resmi REST API | ✅ Yüksek (ücretsiz, resmi) | TÜFE, faiz, USD/TRY, CDS. Rate: 300 req/dk |
-| **yfinance** | Fiyat + temel | Python kütüphane (Yahoo) | ⚠️ Orta (yarı-resmi, .IS suffix) | Yahoo politika değişikliği riski |
-| **KAP RSS** | Bildirim | RSS feed | ⚠️ Orta (resmi public, API garantisi yok) | `kap.org.tr/tr/RssAjax` |
-| **KAP Scrape (fallback)** | Bildirim | Playwright + Readability | ⚠️ Düşük (DOM değişimi) | 1 req/sn, belirgin User-Agent, robots.txt saygısı |
+| **MKK API Portal** | KAP bildirim + 12 servis | Resmi REST API (`apiportal.mkk.com.tr`) | ✅ Yüksek (ücretsiz, resmi) | Hesap onay süreci var → Sprint Gün 1 sabah başlat |
+| **KAP RSS** | Bildirim (fallback) | RSS feed | ⚠️ Orta (resmi public, API garantisi yok) | `kap.org.tr/tr/RssAjax` |
+| **isyatirim** | Fiyat + IFRS finansal tablo | PyPI `isyatirimhisse` (auth'suz JSON endpoint wrap) | ⚠️ Orta (yarı-resmi) | XI_29/IFRS/IFRS_K çeyreklik; ≤1 req/sn |
+| **borsapy** | Analist tavsiyesi + scanner | PyPI `borsapy` | ⚠️ Orta (yarı-resmi) | isyatirim'in eksik bıraktığı alanlar |
+| **yfinance** | Fiyat (secondary) | Python kütüphane (Yahoo) | ⚠️ Orta (yarı-resmi, .IS suffix) | Yahoo politika değişikliği riski |
 | **Mynet / Bigpara (news)** | Haber | Scrape | ❌ Düşük (anti-bot riski) | Cache agresif, fixture fallback |
 | **pandas-ta** | Teknik | Lokal Python (TA hesabı) | ✅ Yüksek | 130+ indikatör, kurulum sorunsuz |
 | **Foreks / Matriks** | Ticari | Ücretli API | — (v2) | Lisans ₺500-5000/ay, hackathon dışı |
 
-**Sonuç:** Sadece **TCMB EVDS** %100 garantili. Diğerleri için fallback zinciri ve fixture cache zorunlu.
+**Sonuç:** **TCMB EVDS** ve **MKK API** resmi ücretsiz primary kaynaklar. Diğerleri için fallback zinciri ve fixture cache zorunlu. **Tam katalog, modül-kaynak eşleştirme matrisi, onboarding prosedürleri için → [`VERI.md`](VERI.md).**
 
 ## D.2 DataProvider Interface ve Fallback Zinciri
 
@@ -530,10 +535,15 @@ class ChainedDataProvider:
 
 | Veri | Primary | Secondary | Fixture |
 |---|---|---|---|
-| BIST fiyat | yfinance | TwelveData free tier | `fixtures/price/<ticker>.json` |
-| KAP bildirim | KAP RSS | KAP scrape | `fixtures/kap/<ticker>.json` |
-| Makro | TCMB EVDS | — (tek kaynak) | `fixtures/macro/latest.json` |
+| BIST fiyat | yfinance | isyatirim (`isyatirimhisse`) | `fixtures/price/<ticker>.json` |
+| Finansal tablo | **isyatirim** (`fetch_financials`) | yfinance financials | `fixtures/fin/<ticker>/Q<N>.json` |
+| KAP bildirim | **MKK API Portal** | KAP RSS | `fixtures/kap/<ticker>.json` |
+| Analist tavsiyesi | borsapy | — | `fixtures/analyst/<ticker>.json` |
+| Peer compare | borsapy scanner | isyatirim manuel | `fixtures/peers/<squad>.json` |
+| Makro | TCMB EVDS | TCMB enflasyon endpoint (key'siz) | `fixtures/macro/latest.json` |
 | Haber | Mynet scrape | Bigpara scrape | `fixtures/news/<ticker>.json` |
+
+**Tam registry implementasyonu ve mode bayrakları:** [`VERI.md` §5](VERI.md#5-dataprovider-interface-ve-registry).
 
 **Fixture writer:** Her başarılı `fetch()` sonrası 48 saatlik snapshot diske yazılır (`last_known_good`). Demo'dan önce manuel olarak güncel hale getirilir.
 
@@ -556,6 +566,20 @@ class ChainedDataProvider:
    - `TP.AB.A01` — TÜFE aylık
    - `TP.PY.P01.TRY` — TCMB politika faizi
    - `TP.MK.F.BIST` — BIST 100 endeks
+
+### D.3.2 MKK API Portal Kayıt Prosedürü (KAP resmi REST API)
+
+**Sprint Gün 1 SABAH 09:00 görevi** — onay süresi belirsiz, en erken başlat. Detay: [`VERI.md` §6.2](VERI.md#62-mkk-api-portal-yeni--kritik).
+
+1. `https://apiportal.mkk.com.tr/` → "Üye Ol" → e-posta + telefon doğrulama
+2. Hesap onayı bekle (manuel onay olabilir; sorun: `kapdestek@mkk.com.tr`)
+3. Login → "Uygulamalarım" → "Yeni Uygulama" → API key
+4. `.env`:
+   ```
+   MKK_API_KEY=xxxxxxxxxxxxxxxx
+   ```
+5. "KAP Bildirim" servisine abone ol (12 servisten birisi). Doküman: `https://kap.org.tr/tr/api/about/content-file/8a019492945fbe080194b26d8bed4873` (PDF)
+6. **Plan B:** Gün 3'e kadar onay yoksa **KAP RSS primary'de kalır**, MKK v1.1'e ertelenir (Risk #14).
 
 ## D.4 Maliyet Tahmini
 
@@ -811,7 +835,7 @@ Format: `{key, fetched_at, ttl_hours, payload}`. Demo öncesi `scripts/refresh_f
 
 ### Gün 1 — Foundation & Setup
 **A:** Repo iskelet (`backend/`, `frontend/`, `docker/`), FastAPI `/health`, **Gemini Tier 1 paid plan aktif**, dummy agent (echo). `POST /chat` çalışır.
-**B:** `docker-compose.yml` (postgres+pgvector, redis, backend, frontend), `.env.example`, alembic migration framework + ilk migration (users, theses, tool_call_logs, citations). **TCMB EVDS API anahtarı kaydı (D.3'teki adımlar).**
+**B:** `docker-compose.yml` (postgres+pgvector, redis, backend, frontend), `.env.example`, alembic migration framework + ilk migration (users, theses, tool_call_logs, citations). **TCMB EVDS API anahtarı kaydı (D.3) + MKK API Portal kaydı (D.3.2) — onay gecikme riski, gün başında 09:00'da başlat.** `pip install isyatirimhisse borsapy yfinance pandas-ta` smoke test.
 **C:** Next.js 15 + Tailwind + shadcn/ui. Layout (header, sidebar/watchlist, main/chat). Mock chat UI.
 **Senkron:** `docker compose up` → tüm servisler 200.
 
@@ -931,7 +955,9 @@ Format: `{key, fetched_at, ttl_hours, payload}`. Demo öncesi `scripts/refresh_f
 
 | # | Risk | İhtimal | Etki | Azaltma |
 |---|---|---|---|---|
-| 1 | KAP scraper / RSS kırılır | Yüksek | Orta | Fallback chain (RSS → scrape → fixture), 48 saat snapshot |
+| 1 | KAP RSS kırılır | Orta | Düşük | **MKK API primary** (resmi REST), RSS fallback, 48 saat fixture snapshot |
+| 14 | MKK API Portal onayı 7 günden uzun sürer | Orta | Orta | KAP RSS primary'de kalır, MKK v1.1'e ertelenir (Gün 1 sabah başvur) |
+| 15 | isyatirim/borsapy IP-ban | Düşük | Yüksek | ≤1 req/sn ortak rate, agresif cache, yfinance secondary |
 | 2 | yfinance Yahoo politika değişir | Düşük | Yüksek | TwelveData free tier secondary, fixture fallback |
 | 3 | Gemini rate limit (429) | Orta | Yüksek | Exponential backoff, Flash öncelikli, cache agresif, kill-switch |
 | 4 | Citation validator sonsuz loop | — | — | **1-retry + `[KAYNAKSIZ]` soft pass** (DECISIONS final) |
