@@ -1,8 +1,12 @@
-yfinance
-isyatirimhisse
+yfinance>=0.2.60
+curl_cffi>=0.7
+isyatirimhisse>=5.0.1
 borsapy
 pykap
-pandas
+pandas>=2.0,<3
+pandas_ta>=0.4.67b0
+beautifulsoup4
+googlenewsdecoder
 httpx
 python-dotenv
 rich
