@@ -1,0 +1,87 @@
+"""Application settings — Pydantic v2 BaseSettings."""
+from __future__ import annotations
+
+from functools import lru_cache
+from pathlib import Path
+from typing import Literal
+
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+_BACKEND_DIR = Path(__file__).resolve().parent.parent.parent  # backend/
+_REPO_ROOT = _BACKEND_DIR.parent                              # btk-hackathon-26/
+
+
+class Settings(BaseSettings):
+    """Backend runtime configuration.
+
+    Reads from `backend/.env` first; falls back to repo-root `.env.probe`
+    so the dev-time TCMB/MKK keys stay available without duplication.
+    """
+
+    model_config = SettingsConfigDict(
+        env_file=(
+            str(_REPO_ROOT / ".env.probe"),
+            str(_BACKEND_DIR / ".env"),
+        ),
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=False,
+    )
+
+    # ── App
+    ENV: Literal["dev", "demo", "production"] = "dev"
+    LOG_LEVEL: str = "INFO"
+    THESISFORGE_MODE: Literal["live", "fixture"] = "live"
+    CACHE_BACKEND: Literal["memory", "redis"] = "memory"
+
+    # ── DB
+    DATABASE_URL: str = "postgresql+asyncpg://tf:tf@localhost:5432/thesisforge"
+
+    # ── Redis
+    REDIS_URL: str = ""
+
+    # ── LLM (Gemini-only stack)
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL_PRO: str = "gemini-2.5-pro"
+    GEMINI_MODEL_FLASH: str = "gemini-2.5-flash"
+    GEMINI_EMBED_MODEL: str = "text-embedding-004"
+    GEMINI_EMBED_DIMENSIONS: int = 768
+
+    # ── Data sources
+    TCMB_EVDS_KEY: str = ""
+    MKK_API_KEY: str = ""
+    MKK_API_SECRET: str = ""
+
+    # ── Rate limits (req/sec)
+    ISYATIRIM_RATE_PER_SEC: float = 1.0
+    YFINANCE_RATE_PER_SEC: float = 2.0
+    MKK_RATE_PER_SEC: float = 2.0
+    TCMB_RATE_PER_SEC: float = 2.0
+    BORSAPY_RATE_PER_SEC: float = 2.0
+
+    # ── Demo
+    DEMO_KILLSWITCH_THRESHOLD_SEC: int = 90
+    DEMO_TOOL_FAIL_THRESHOLD: int = 3
+
+    # ── Paths
+    PRODUCT_SCRIPTS_PATH: Path = Field(
+        default_factory=lambda: _REPO_ROOT / "scripts" / "product"
+    )
+    FIXTURE_ROOT: Path = Field(
+        default_factory=lambda: _BACKEND_DIR / "fixtures"
+    )
+
+    @field_validator("PRODUCT_SCRIPTS_PATH", "FIXTURE_ROOT", mode="after")
+    @classmethod
+    def _resolve_paths(cls, v: Path) -> Path:
+        return v.expanduser().resolve()
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    return Settings()  # type: ignore[call-arg]
+
+
+settings = get_settings()

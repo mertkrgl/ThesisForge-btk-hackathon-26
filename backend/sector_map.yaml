@@ -1,0 +1,29 @@
+Banking:
+  tickers: [GARAN, AKBNK, ISCTR, YKBNK, HALKB, VAKBN]
+  metrics: [NIM, CAR, NPL, CASA, kredi_mevduat, SYR]
+  prompt: fundamental_banking.md
+
+Energy:
+  tickers: [TUPRS, AKSEN, AKSA, ZOREN, ENJSA, AYGAZ]
+  metrics: [refining_margin, brent_korelasyon, kapasite, EPDK_tarife]
+  prompt: fundamental_energy.md
+
+Defense:
+  tickers: [ASELS, OTKAR, EREGL, KCHOL, KOZAL, KARSN]
+  metrics: [backlog, R&D_oran, USD_revenue_pct, sozlesmeler]
+  prompt: fundamental_defense.md
+
+Retail:
+  tickers: [BIMAS, MGROS, SOKM, ULKER, CCOLA, ARCLK]
+  metrics: [LFL_buyume, magaza_sayisi, sepet, SSS]
+  prompt: fundamental_retail.md
+
+RealEstate:
+  tickers: [EKGYO, ISGYO, SAHOL, AGHOL, DOHOL]
+  metrics: [NAV_iskonto, portfoy_degeri, doluluk_orani]
+  prompt: fundamental_realestate.md
+
+Generic:
+  fallback: true
+  metrics: [PE, PB, ROE, EBITDA, EV_EBITDA]
+  prompt: fundamental_generic.md

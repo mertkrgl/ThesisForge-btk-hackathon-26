@@ -1,0 +1,13 @@
+{
+  "key": "macro:latest",
+  "provider": "fixture",
+  "fetched_at": "2026-05-12T09:30:00Z",
+  "ttl_hours": 48,
+  "payload": {
+    "as_of": "12-05-2026",
+    "usd_try": 45.29,
+    "eur_try": 50.12,
+    "tufe_last": 10882.47,
+    "policy_rate": 40.0
+  }
+}
