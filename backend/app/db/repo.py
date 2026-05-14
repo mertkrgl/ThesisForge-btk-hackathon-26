@@ -11,7 +11,7 @@ from typing import Any
 from sqlalchemy import and_, or_, select, text as sql_text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Citation, Thesis, ToolCallLog, User
+from app.db.models import Citation, Thesis, ToolCallLog, User, Watchlist
 
 
 # ───────────────────────── Users ─────────────────────────
@@ -98,6 +98,26 @@ async def insert_tool_call_log(
     session.add(row)
     await session.flush()
     return row.call_id
+
+
+async def count_tool_calls_for_thesis(
+    session: AsyncSession, thesis_id: uuid.UUID
+) -> tuple[int, int]:
+    """Bir tez için (toplam_tool_çağrısı, başarılı_çağrı) — data_quality için.
+
+    Başarılı = `result IS NOT NULL`. Hata path'ında DB satırı yazılmaz, dolayısıyla
+    `total == success`. Hackathon scope'unda: total < beklenen ise düşük puan.
+    """
+    from sqlalchemy import func, case
+
+    res = await session.execute(
+        select(
+            func.count(ToolCallLog.call_id),
+            func.count(case((ToolCallLog.result.is_not(None), 1))),
+        ).where(ToolCallLog.thesis_id == thesis_id)
+    )
+    row = res.one()
+    return int(row[0] or 0), int(row[1] or 0)
 
 
 async def get_tool_call_log(
@@ -235,6 +255,88 @@ async def update_thesis_synthesis(
     if squad:
         values["squad"] = squad
     await session.execute(update(Thesis).where(Thesis.id == thesis_id).values(**values))
+
+
+async def list_citations_with_tool_results(
+    session: AsyncSession, thesis_id: uuid.UUID
+) -> list[dict[str, Any]]:
+    """Citations + tool_call_logs JOIN — tooltip için tool_result alanını çöz."""
+    res = await session.execute(
+        select(
+            Citation.claim_text,
+            Citation.call_id,
+            Citation.is_kaynaksiz,
+            ToolCallLog.tool_name,
+            ToolCallLog.result,
+        )
+        .outerjoin(ToolCallLog, Citation.call_id == ToolCallLog.call_id)
+        .where(Citation.thesis_id == thesis_id)
+    )
+    rows = res.all()
+    out: list[dict[str, Any]] = []
+    for r in rows:
+        out.append(
+            {
+                "claim": r.claim_text,
+                "call_id": str(r.call_id) if r.call_id else None,
+                "tool_name": r.tool_name,
+                "tool_result": r.result,
+                "is_kaynaksiz": bool(r.is_kaynaksiz),
+            }
+        )
+    return out
+
+
+# ───────────────────────── Watchlist ─────────────────────────
+
+
+async def list_watchlist(
+    session: AsyncSession, user_id: uuid.UUID
+) -> list[dict[str, Any]]:
+    res = await session.execute(
+        select(Watchlist).where(Watchlist.user_id == user_id).order_by(Watchlist.added_at)
+    )
+    rows = res.scalars().all()
+    return [
+        {"ticker": r.ticker, "added_at": r.added_at.isoformat()}
+        for r in rows
+    ]
+
+
+async def add_watchlist(
+    session: AsyncSession, user_id: uuid.UUID, ticker: str
+) -> bool:
+    """Idempotent INSERT — zaten varsa False, yeniyse True."""
+    upper = ticker.upper()
+    existing = await session.execute(
+        select(Watchlist).where(
+            and_(Watchlist.user_id == user_id, Watchlist.ticker == upper)
+        )
+    )
+    if existing.scalar_one_or_none() is not None:
+        return False
+    row = Watchlist(user_id=user_id, ticker=upper)
+    session.add(row)
+    await session.flush()
+    return True
+
+
+async def remove_watchlist(
+    session: AsyncSession, user_id: uuid.UUID, ticker: str
+) -> bool:
+    """True döner remove olursa, False satır yoksa."""
+    upper = ticker.upper()
+    res = await session.execute(
+        select(Watchlist).where(
+            and_(Watchlist.user_id == user_id, Watchlist.ticker == upper)
+        )
+    )
+    row = res.scalar_one_or_none()
+    if row is None:
+        return False
+    await session.delete(row)
+    await session.flush()
+    return True
 
 
 async def insert_citation(

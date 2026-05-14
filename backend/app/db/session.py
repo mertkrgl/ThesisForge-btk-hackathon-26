@@ -10,14 +10,18 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 
+# NullPool: her bağlantı için yeni asyncpg connection açılır, kullanım sonrası
+# hemen kapatılır. Paralel asyncio.gather ile çalışan branch'lerde pool'lu
+# connection cross-loop "Future attached to a different loop" hatasına yol
+# açıyordu. NullPool bu sorunu kökten çözer; performans cezası küçük (her
+# tool log INSERT'i bir bağlantı açar). Hackathon scope'unda kabul edilebilir.
 engine: AsyncEngine = create_async_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=5,
+    poolclass=NullPool,
     echo=False,
     future=True,
 )

@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     CACHE_BACKEND: Literal["memory", "redis"] = "memory"
 
     # ── DB
-    DATABASE_URL: str = "postgresql+asyncpg://tf:tf@localhost:5432/thesisforge"
+    DATABASE_URL: str = "postgresql+asyncpg://tf:tf@localhost:5433/thesisforge"
 
     # ── Redis
     REDIS_URL: str = ""

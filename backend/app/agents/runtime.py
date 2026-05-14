@@ -10,7 +10,6 @@ Agent'ı çağırır.
 """
 from __future__ import annotations
 
-import asyncio
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, TypeVar
@@ -18,6 +17,7 @@ from typing import Any, TypeVar
 from pydantic import BaseModel
 from strands import Agent
 from strands.models.gemini import GeminiModel
+from strands.tools.executors import SequentialToolExecutor
 
 from app.agents.tools import AgentContext, use_agent_context
 from app.core.config import settings
@@ -84,6 +84,9 @@ def build_agent(
     return Agent(
         model=model,
         tools=tools,
+        # SequentialToolExecutor — paralel tool çağrılarında aynı SQLAlchemy
+        # AsyncSession'ı yarıştırmasın (insert_tool_call_log INSERT'leri çakışıyor).
+        tool_executor=SequentialToolExecutor(),
         system_prompt=system_prompt,
         structured_output_model=structured_output_model,
         name=name,
@@ -103,17 +106,20 @@ async def run_agent_with_context(
 ) -> Any:
     """Agent'ı çağır; contextvar boyunca AgentContext aktif.
 
-    `output_model` verilirse structured output döner; aksi halde text yanıt.
+    `agent.invoke_async(prompt)` — native async event loop. `asyncio.to_thread`
+    KULLANMA: thread'de yeni event loop oluşur, AsyncSession'un asyncpg
+    connection'u cross-loop "Future attached to a different loop" hatası verir.
+    invoke_async ile tool'lar caller'la aynı loop'ta çalışır, NullPool ile
+    fresh asyncpg connection açılır ama session'un loop'una bağlı kalır.
+
+    Pydantic çıktısı için Agent constructor'a verilen `structured_output_model`
+    sayesinde AgentResult.structured_output field'ından çekiyoruz.
+
+    `output_model` verilirse Pydantic objesi, aksi halde AgentResult döner.
     """
     with use_agent_context(ctx):
         try:
-            if output_model is not None:
-                result = await asyncio.to_thread(
-                    lambda: agent.structured_output(output_model, prompt)
-                )
-                return result
-            result = await asyncio.to_thread(lambda: agent(prompt))
-            return result
+            result = await agent.invoke_async(prompt)
         except Exception as e:
             log.error(
                 "agent_run_fail",
@@ -121,3 +127,28 @@ async def run_agent_with_context(
                 error=str(e)[:300],
             )
             raise
+
+        if output_model is None:
+            return result
+
+        # Pydantic çıktısını AgentResult'tan çıkar
+        so = getattr(result, "structured_output", None)
+        if isinstance(so, output_model):
+            return so
+        if so is not None:
+            # SDK dict döndürebilir → validate
+            try:
+                return output_model.model_validate(so)
+            except Exception:
+                pass
+
+        # Fallback: result.message içeriğinden parse dene (genelde lazım olmaz)
+        log.warning(
+            "agent_structured_output_missing",
+            agent=getattr(agent, "name", "?"),
+            result_type=type(result).__name__,
+        )
+        raise RuntimeError(
+            f"Agent {getattr(agent, 'name', '?')} structured_output döndürmedi; "
+            f"Agent constructor'a structured_output_model verildiğinden emin ol."
+        )

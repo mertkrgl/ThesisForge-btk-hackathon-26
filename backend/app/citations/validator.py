@@ -135,7 +135,7 @@ async def validate_citations(
             citation_records.append(
                 CitationRecord(
                     claim_text=claim_text,
-                    call_id=uuid.UUID(call_id_str),
+                    call_id=call_id_str,
                     is_kaynaksiz=False,
                 )
             )

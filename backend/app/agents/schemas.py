@@ -8,7 +8,7 @@ from __future__ import annotations
 import uuid
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 SquadType = Literal[
@@ -24,10 +24,16 @@ OutcomeType = Literal["correct", "partial", "wrong", "pending"]
 
 
 class Observation(BaseModel):
-    """Bir agent'ın bir tool çıktısına bağlı tek bir gözlem."""
+    """Bir agent'ın bir tool çıktısına bağlı tek bir gözlem.
+
+    `citation_call_id` LLM tarafından uyduruluabilecek bir alan (Gemini
+    bazen `call_0`, `tool_xyz` gibi string'ler dönüyor). String olarak
+    tutulur; validator UUID regex'iyle filtreler. Gerçek UUID gelirse de
+    normal sıra çalışır.
+    """
 
     text: str
-    citation_call_id: uuid.UUID
+    citation_call_id: str
     confidence: float = Field(ge=0.0, le=100.0)
 
 
@@ -35,7 +41,7 @@ class CitationRecord(BaseModel):
     """Validator çıktısında her claim için bir kayıt."""
 
     claim_text: str
-    call_id: uuid.UUID | None = None
+    call_id: str | None = None
     is_kaynaksiz: bool = False
 
 
@@ -83,13 +89,26 @@ class TechnicalAnalysis(BaseModel):
 
 
 class FundamentalAnalysis(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    """Squad-spesifik fundamental analiz çıktısı.
+
+    Gemini JSON Schema'sı dict tipindeki field'larda `additionalProperties` üretip
+    desteklemiyor. Bu yüzden `key_metrics` ve `peer_compare` **JSON string**
+    olarak tutulur; LLM stringify edilmiş JSON döndürür, Synthesizer prompt
+    bağlamına direkt enjekte edilir.
+    """
 
     ticker: str
     squad: SquadType
     summary: str
-    key_metrics: dict[str, float | int | str] = Field(default_factory=dict)
-    peer_compare: dict[str, float] = Field(default_factory=dict)
+    key_metrics_json: str = Field(
+        default="{}",
+        description="Squad'a özgü metriklerin JSON string'i (örn. Banking için "
+        '\'{"NIM": 4.2, "CAR": 16}\').',
+    )
+    peer_compare_json: str = Field(
+        default="{}",
+        description="Peer ortalamasıyla farkların JSON string'i.",
+    )
     notable_observations: list[Observation] = Field(default_factory=list)
     fundamental_score: int = Field(ge=0, le=100)
 
@@ -136,7 +155,7 @@ class ConfidenceBreakdown(BaseModel):
 
 class BullBearPoint(BaseModel):
     point: str
-    call_id: uuid.UUID | None = None
+    call_id: str | None = None
     score: int = Field(ge=0, le=10)
 
 
@@ -144,7 +163,7 @@ class Catalyst(BaseModel):
     date: str  # YYYY-MM-DD
     event: str
     impact: Literal["high", "medium", "low"]
-    call_id: uuid.UUID | None = None
+    call_id: str | None = None
 
 
 class ThesisOutput(BaseModel):
@@ -158,6 +177,14 @@ class ThesisOutput(BaseModel):
     confidence_breakdown: ConfidenceBreakdown
     citations: list[CitationRecord] = Field(default_factory=list)
     had_kaynaksiz_flag: bool = False
+
+
+class ThesisStructured(BaseModel):
+    """Synthesizer ikinci geçişin yapılandırılmış çıktısı: bull/bear/catalysts."""
+
+    bull_points: list[BullBearPoint] = Field(default_factory=list)
+    bear_points: list[BullBearPoint] = Field(default_factory=list)
+    catalysts: list[Catalyst] = Field(default_factory=list)
 
 
 # ───────────────────────── Sabit agent_id sözlüğü ─────────────────────────

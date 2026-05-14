@@ -15,7 +15,12 @@ async def pg_session() -> AsyncIterator[AsyncSession]:
 
     Postgres + asyncpg üzerinde testler birbirini kirletmez.
     Migration'ın çalıştırılmış olduğu varsayılır (alembic upgrade head).
+
+    TestClient (sync FastAPI test) farklı bir thread/loop'ta DB connection
+    açtığı için global engine pool'unda stale connection bırakabilir.
+    Her pg_session başlangıcında engine.dispose() pool'u temizler.
     """
+    await engine.dispose()
     async with engine.connect() as conn:
         trans = await conn.begin()
         Session = async_sessionmaker(
