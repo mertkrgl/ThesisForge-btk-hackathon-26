@@ -78,8 +78,8 @@ export function MarketPulse() {
   if (flashColor === "down") bgClass = "bg-[#f23645]/20";
 
   return (
-    <div className={`rounded-2xl border border-border p-4 transition-colors duration-300 ${bgClass}`}>
-      <div className="mb-2 flex items-baseline justify-between">
+    <div className={`h-full flex flex-col rounded-2xl border border-border p-4 transition-colors duration-300 ${bgClass}`}>
+      <div className="mb-2 flex items-baseline justify-between shrink-0">
         <div>
           <h2 className="text-[13px] font-semibold text-slate-900 dark:text-white">
             BIST100 · Piyasa Nabzı
@@ -103,7 +103,7 @@ export function MarketPulse() {
           </div>
         </div>
       </div>
-      <div className="h-[200px] w-full mt-4">
+      <div className="flex-1 w-full mt-4 min-h-[200px]">
         <ReactECharts 
           option={option} 
           style={{ height: "100%", width: "100%" }} 

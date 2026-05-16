@@ -53,7 +53,7 @@ export function HistoryTable({ theses }: { theses: Thesis[] }) {
                 "rounded-md border px-2.5 py-1.5 text-[11.5px] font-medium transition-colors",
                 filter === f.id
                   ? "border-primary/40 bg-primary/10 text-blue-700 dark:text-white"
-                  : "border-slate-200 dark:border-border bg-white dark:bg-accent/50 text-slate-600 dark:text-text-2 hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
+                  : "border-slate-200 dark:border-border bg-card dark:bg-accent/50 text-slate-600 dark:text-text-2 hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
               )}
             >
               {f.label}

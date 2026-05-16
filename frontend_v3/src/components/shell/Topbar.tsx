@@ -23,7 +23,7 @@ export function Topbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-20 flex h-[60px] items-center gap-3.5 border-b border-slate-200 dark:border-border bg-white/90 dark:bg-[rgba(7,10,18,0.78)] px-6 backdrop-blur-md">
+      <header className="sticky top-0 z-20 flex h-[60px] items-center gap-3.5 border-b border-slate-200 dark:border-border bg-card/90 dark:bg-[rgba(7,10,18,0.78)] px-6 backdrop-blur-md">
         <Breadcrumbs />
 
         <button

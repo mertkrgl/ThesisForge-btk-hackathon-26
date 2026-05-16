@@ -7,10 +7,11 @@ import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { useState, useEffect } from "react";
 
 const NAV = [
-  { label: "Ürün", href: "#urun" },
+  { label: "Özellikler", href: "#urun" },
+  { label: "Kimler İçin", href: "#personalar" },
   { label: "Ajanlar", href: "#ajanlar" },
   { label: "Nasıl Çalışır", href: "#nasil-calisir" },
-  { label: "Veri Kaynakları", href: "#kaynaklar" },
+  { label: "S.S.S.", href: "#sss" },
 ];
 
 export function MarketingHeader() {
@@ -67,7 +68,7 @@ export function MarketingHeader() {
             href="https://github.com"
             target="_blank"
             rel="noreferrer"
-            className="hidden h-9 items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-accent/50 px-3 text-[12.5px] font-medium text-slate-600 dark:text-text-2 transition-colors hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white sm:inline-flex"
+            className="hidden h-9 items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-card dark:bg-accent/50 px-3 text-[12.5px] font-medium text-slate-600 dark:text-text-2 transition-colors hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white sm:inline-flex"
           >
             <GitBranch className="h-3.5 w-3.5" />
             GitHub

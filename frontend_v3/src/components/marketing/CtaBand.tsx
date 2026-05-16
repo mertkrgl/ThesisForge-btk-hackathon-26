@@ -3,11 +3,11 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 export function CtaBand() {
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden snap-section">
       <div className="absolute inset-0 tf-aurora-bg opacity-90" aria-hidden />
       <div className="absolute inset-0 tf-grid-bg opacity-30" aria-hidden />
       <div className="relative mx-auto w-full max-w-[1280px] px-6 py-24 text-center">
-        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 dark:border-border bg-white dark:bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-slate-500 dark:text-text-2">
+        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 dark:border-border bg-card dark:bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-slate-500 dark:text-text-2">
           <Sparkles className="h-3 w-3 text-violet" />
           BTK Hackathon 2026
         </div>
@@ -29,7 +29,7 @@ export function CtaBand() {
           </Link>
           <Link
             href="/app/thesis/new"
-            className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-accent/50 px-5 text-[13.5px] font-medium text-slate-600 dark:text-text-2 transition-colors hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
+            className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-card dark:bg-accent/50 px-5 text-[13.5px] font-medium text-slate-600 dark:text-text-2 transition-colors hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
           >
             Demo Tezi Çalıştır
           </Link>

@@ -84,7 +84,7 @@ export function Sidebar() {
   const pathname = usePathname() ?? "/app";
 
   return (
-    <aside className="sticky top-0 flex h-screen flex-col gap-1 border-r border-slate-200 dark:border-border bg-white dark:bg-[linear-gradient(180deg,#0A1020,#070A12)] px-3.5 py-4">
+    <aside className="sticky top-0 flex h-screen flex-col gap-1 border-r border-slate-200 dark:border-border bg-card dark:bg-[linear-gradient(180deg,#0A1020,#070A12)] px-3.5 py-4">
       <Link
         href="/app"
         className="mb-2.5 flex items-center gap-2.5 border-b border-dashed border-border px-2.5 pb-4 pt-2"

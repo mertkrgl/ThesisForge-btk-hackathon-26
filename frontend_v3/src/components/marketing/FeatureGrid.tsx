@@ -60,7 +60,7 @@ const TONE: Record<string, { ring: string; text: string; bg: string }> = {
 
 export function FeatureGrid() {
   return (
-    <section id="urun" className="relative border-b border-slate-200 dark:border-border/60">
+    <section id="urun" className="relative border-b border-slate-200 dark:border-border/60 snap-section">
       <div className="mx-auto w-full max-w-[1280px] px-6 py-20 md:py-24">
         <SectionHeader
           kicker="Özellikler"
@@ -78,7 +78,7 @@ export function FeatureGrid() {
               <StaggerItem key={f.title}>
                 <HoverCard>
                   <div
-                    className="group rounded-2xl border border-slate-200 dark:border-border bg-white dark:bg-card p-6 shadow-sm dark:shadow-none transition-all hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-border hover:shadow-md dark:hover:shadow-none"
+                    className="group rounded-2xl border border-slate-200 dark:border-border bg-card dark:bg-card p-6 shadow-sm dark:shadow-none transition-all hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-border hover:shadow-md dark:hover:shadow-none"
                   >
                     <div
                       className={cn(

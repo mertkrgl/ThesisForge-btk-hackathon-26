@@ -43,10 +43,12 @@ export function LiveThesisRunner({
   defaultSymbol = "TUPRS",
   title = "Yeni Tez",
   subtitle = "Canlı Komite",
+  autoStart = false,
 }: {
   defaultSymbol?: string;
   title?: string;
   subtitle?: string;
+  autoStart?: boolean;
 }) {
   const router = useRouter();
   const [symbol, setSymbol] = useState(defaultSymbol);
@@ -124,8 +126,17 @@ export function LiveThesisRunner({
   };
 
   useEffect(() => {
-    return () => handleRef.current?.stop();
-  }, []);
+    let t: NodeJS.Timeout;
+    if (autoStart) {
+      // UI yüklendikten hemen sonra başlatmak için ufak bir gecikme
+      t = setTimeout(() => start(), 300);
+    }
+    return () => {
+      if (t) clearTimeout(t);
+      handleRef.current?.stop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
 
   const finishedAgents = useMemo(
     () => Object.values(agents).filter((a) => a.status === "done").length,
@@ -179,7 +190,7 @@ export function LiveThesisRunner({
               {running ? (
                 <>
                   <span
-                    className="h-2 w-2 rounded-full bg-white"
+                    className="h-2 w-2 rounded-full bg-card"
                     style={{ animation: "tf-pulse-dot 1.2s ease-in-out infinite" }}
                   />
                   Komite çalışıyor…
@@ -195,7 +206,7 @@ export function LiveThesisRunner({
               <button
                 type="button"
                 onClick={start}
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-accent/50 px-3 text-[13px] font-medium text-slate-600 dark:text-text-2 transition-colors hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-card dark:bg-accent/50 px-3 text-[13px] font-medium text-slate-600 dark:text-text-2 transition-colors hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
                 title="Yeniden çalıştır"
               >
                 <RotateCcw className="h-4 w-4" />

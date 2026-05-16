@@ -24,8 +24,8 @@ const TONE_DOT: Record<AgentTone, string> = {
 
 export function AgentActivityFeed() {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="mb-3 flex items-center justify-between">
+    <div className="h-full flex flex-col rounded-2xl border border-border bg-card p-4">
+      <div className="mb-3 flex items-center justify-between shrink-0">
         <h2 className="text-[13px] font-semibold text-slate-900 dark:text-white">Ajan Aktivitesi</h2>
         <span className="text-[11px] text-muted-foreground">son 4 saat</span>
       </div>

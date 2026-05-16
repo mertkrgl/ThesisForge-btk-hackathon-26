@@ -15,7 +15,7 @@ export function DataSources() {
   return (
     <section
       id="kaynaklar"
-      className="relative border-b border-slate-200 dark:border-border/60 bg-white dark:bg-background"
+      className="relative border-b border-slate-200 dark:border-border/60 bg-card dark:bg-background snap-section"
     >
       <div className="mx-auto w-full max-w-[1280px] px-6 py-16">
         <div className="flex flex-col items-center gap-2 text-center">

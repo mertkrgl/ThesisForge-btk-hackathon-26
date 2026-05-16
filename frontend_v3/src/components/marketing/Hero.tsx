@@ -4,13 +4,13 @@ import { GradientText } from "@/components/shared/GradientText";
 
 export function Hero({ demo }: { demo?: React.ReactNode }) {
   return (
-    <section className="relative overflow-hidden border-b border-border/60">
+    <section className="relative overflow-hidden border-b border-border/60 snap-section">
       <div className="absolute inset-0 tf-aurora-bg" aria-hidden />
       <div className="absolute inset-0 tf-grid-bg opacity-[0.4]" aria-hidden />
 
       <div className="relative mx-auto grid w-full max-w-[1280px] gap-12 px-6 pb-20 pt-16 md:grid-cols-[1.05fr_1fr] md:pb-28 md:pt-24">
         <div className="flex flex-col">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 dark:border-border bg-white dark:bg-white/[0.03] px-3 py-1 text-[11px] font-medium text-slate-500 dark:text-text-2">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 dark:border-border bg-card dark:bg-white/[0.03] px-3 py-1 text-[11px] font-medium text-slate-500 dark:text-text-2">
             <span className="relative grid h-1.5 w-1.5 place-items-center">
               <span
                 className="absolute inset-0 rounded-full bg-bull"
@@ -49,7 +49,7 @@ export function Hero({ demo }: { demo?: React.ReactNode }) {
             </Link>
             <a
               href="#nasil-calisir"
-              className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-accent/50 px-4 text-[13.5px] font-medium text-slate-600 dark:text-text-2 transition-colors hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
+              className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-card dark:bg-accent/50 px-4 text-[13.5px] font-medium text-slate-600 dark:text-text-2 transition-colors hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
             >
               <Play className="h-3.5 w-3.5" />
               Nasıl çalışır?

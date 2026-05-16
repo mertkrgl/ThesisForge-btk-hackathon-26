@@ -3,7 +3,8 @@ import { Sparkles } from "lucide-react";
 import { listTheses } from "@/lib/api/thesis";
 import { WatchlistStrip } from "@/components/app/WatchlistStrip";
 import { ThesisCard } from "@/components/app/ThesisCard";
-import { DraggableDashboard } from "@/components/app/DraggableDashboard";
+import { MarketPulse } from "@/components/app/MarketPulse";
+import { AgentActivityFeed } from "@/components/app/AgentActivityFeed";
 import {
   PageTransition,
   FadeIn,
@@ -49,9 +50,16 @@ export default async function DashboardPage() {
           <WatchlistStrip />
         </FadeIn>
 
-        {/* row 2: Draggable Layout */}
+        {/* row 2: Static Layout */}
         <FadeIn delay={0.2}>
-          <DraggableDashboard />
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-12">
+            <div className="md:col-span-7">
+              <MarketPulse />
+            </div>
+            <div className="md:col-span-5">
+              <AgentActivityFeed />
+            </div>
+          </div>
         </FadeIn>
 
         {/* row 3 */}

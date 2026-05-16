@@ -145,7 +145,7 @@ export function MiniLiveDemo() {
             <div
               key={id}
               className={cn(
-                "rounded-xl border border-slate-200 dark:border-border/80 bg-white/80 dark:bg-[#0A1124]/80 p-3 transition-all",
+                "rounded-xl border border-slate-200 dark:border-border/80 bg-card/80 dark:bg-[#0A1124]/80 p-3 transition-all",
                 st?.status === "running" &&
                   "ring-1 ring-inset ring-primary/50 shadow-[0_0_0_3px_rgba(59,130,246,0.08)]"
               )}

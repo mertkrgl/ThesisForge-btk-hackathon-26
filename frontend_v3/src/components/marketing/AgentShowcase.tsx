@@ -44,7 +44,7 @@ const TONE_BG: Record<AgentTone, string> = {
 
 export function AgentShowcase() {
   return (
-    <section id="ajanlar" className="relative border-b border-slate-200 dark:border-border/60">
+    <section id="ajanlar" className="relative border-b border-slate-200 dark:border-border/60 snap-section">
       <div className="mx-auto w-full max-w-[1280px] px-6 py-20 md:py-24">
         <SectionHeader
           kicker="Komite"
@@ -63,7 +63,7 @@ export function AgentShowcase() {
                 <HoverCard>
                   <div
                     className={cn(
-                      "group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-border bg-white dark:bg-card p-5 shadow-sm dark:shadow-none transition-all",
+                      "group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-border bg-card dark:bg-card p-5 shadow-sm dark:shadow-none transition-all",
                       "hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-border",
                       TONE_GLOW[agent.tone]
                     )}

@@ -28,7 +28,7 @@ export function HowItWorks() {
   return (
     <section
       id="nasil-calisir"
-      className="relative border-b border-slate-200 dark:border-border/60 bg-slate-50 dark:bg-background"
+      className="relative border-b border-slate-200 dark:border-border/60 bg-slate-50 dark:bg-background snap-section"
     >
       <div className="mx-auto w-full max-w-[1280px] px-6 py-20 md:py-24">
         <SectionHeader
@@ -52,10 +52,10 @@ export function HowItWorks() {
             return (
               <li
                 key={step.title}
-                className="relative rounded-2xl border border-slate-200 dark:border-border bg-white dark:bg-card/60 p-5"
+                className="relative rounded-2xl border border-slate-200 dark:border-border bg-card dark:bg-card/60 p-5"
               >
                 <div className="flex items-center gap-3">
-                  <div className="grid h-[52px] w-[52px] place-items-center rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-secondary shadow-sm dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]">
+                  <div className="grid h-[52px] w-[52px] place-items-center rounded-xl border border-slate-200 dark:border-border bg-card dark:bg-secondary shadow-sm dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <span className="font-mono text-[28px] font-bold text-line-2">

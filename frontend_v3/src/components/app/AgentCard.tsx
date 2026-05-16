@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   LineChart,
   Calculator,
@@ -65,6 +66,24 @@ export function AgentCard({
   className?: string;
 }) {
   const Icon = ICONS[meta.icon] ?? Sparkles;
+  const [expanded, setExpanded] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (status === "running") {
+      setProgress(10);
+      const interval = setInterval(() => {
+        setProgress((p) => Math.min(p + (Math.random() * 10 + 5), 90));
+      }, 500);
+      return () => clearInterval(interval);
+    } else if (status === "done") {
+      setProgress(100);
+    } else {
+      setProgress(0);
+      setExpanded(false);
+    }
+  }, [status]);
+
   return (
     <div
       className={cn(
@@ -97,35 +116,78 @@ export function AgentCard({
             "h-2 w-2 shrink-0 rounded-full",
             status === "idle" ? "bg-line-2" : TONE_DOT[meta.tone]
           )}
-          style={{
-            animation:
-              status === "running"
-                ? "tf-pulse-dot 1.2s ease-in-out infinite"
-                : undefined,
-          }}
         />
       </div>
 
-      <div className="mt-3 min-h-[72px] font-mono text-[12px] leading-relaxed text-text-2">
-        {text || (
-          <span className="text-muted-foreground/60">
-            {status === "idle" ? "Sırada…" : "düşünüyor…"}
-          </span>
+      <div className="mt-4 flex-1 flex flex-col justify-center min-h-[72px]">
+        {status === "idle" && (
+          <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 p-3 text-[11.5px] text-muted-foreground/70">
+            Sırasını bekliyor...
+          </div>
         )}
+
         {status === "running" && (
-          <span className="ml-0.5 inline-block h-3 w-1 translate-y-0.5 bg-primary/80 align-middle [animation:tf-pulse-dot_0.9s_ease-in-out_infinite]" />
+          <div className="flex h-full flex-col justify-center space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <span className="inline-block h-2 w-2 rounded-full bg-primary [animation:tf-pulse-dot_1s_ease-in-out_infinite]" />
+                Veriler sentezleniyor...
+              </span>
+              <span className="font-mono">{Math.round(progress)}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-line">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {status === "done" && (
+          <div className="flex h-full flex-col">
+            {!expanded ? (
+               <div 
+                 onClick={() => setExpanded(true)}
+                 className={cn(
+                   "flex flex-1 cursor-pointer items-center gap-2.5 rounded-lg p-3 border transition-colors hover:bg-opacity-80",
+                   TONE_BG[meta.tone].replace("text-", "border-").replace("/12", "/20 bg-opacity-30")
+                 )}
+               >
+                 <div className={cn("h-2 w-2 shrink-0 rounded-full", TONE_DOT[meta.tone])} />
+                 <span className="line-clamp-2 text-[12px] font-medium leading-relaxed opacity-90">
+                   {text ? text.replace(/[*#]/g, '') : "Analiz başarıyla tamamlandı."}
+                 </span>
+               </div>
+            ) : (
+               <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3 font-mono text-[12px] leading-relaxed text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 whitespace-pre-wrap">
+                 {text}
+               </div>
+            )}
+            
+            {text && (
+              <div className="mt-3 text-center">
+                <button 
+                  onClick={() => setExpanded(!expanded)}
+                  className="text-[10.5px] font-semibold text-primary hover:underline focus:outline-none"
+                >
+                  {expanded ? "▲ Özeti Göster" : "▼ Detaylı Analizi Oku"}
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
       {typeof confidence === "number" && (
-        <div className="mt-auto pt-3">
+        <div className="mt-auto pt-3 border-t border-border mt-4">
           <div className="flex items-center justify-between text-[10.5px] text-muted-foreground">
-            <span>katkı</span>
+            <span>Komite Katkısı</span>
             <span className="font-mono text-text-2">
               {Math.round(confidence)}%
             </span>
           </div>
-          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-line/60">
+          <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-line/60">
             <div
               className={cn("h-full rounded-full", TONE_DOT[meta.tone])}
               style={{ width: `${confidence}%` }}

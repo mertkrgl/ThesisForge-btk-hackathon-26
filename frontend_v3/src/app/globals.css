@@ -68,10 +68,10 @@
 
 :root {
   /* ThesisForge Light palette (Midas Style) */
-  --tf-bg: #FFFFFF;
-  --tf-bg-1: #F8FAFC;
-  --tf-bg-2: #F1F5F9;
-  --tf-bg-3: #E2E8F0;
+  --tf-bg: #F8FAFC;
+  --tf-bg-1: #F1F5F9;
+  --tf-bg-2: #E2E8F0;
+  --tf-bg-3: #CBD5E1;
   --tf-line: #E2E8F0;
   --tf-line-2: #CBD5E1;
   --tf-dim: #64748B;
@@ -84,17 +84,17 @@
   --tf-violet: #8B5CF6;
   --tf-cyan: #06B6D4;
 
-  --background: #F8FAFC;
+  --background: #F1F5F9;
   --foreground: #0F172A;
-  --card: #FFFFFF;
+  --card: #F8FAFC;
   --card-foreground: #0F172A;
-  --popover: #FFFFFF;
+  --popover: #F8FAFC;
   --popover-foreground: #0F172A;
   --primary: #2563EB;
   --primary-foreground: #ffffff;
-  --secondary: #F1F5F9;
+  --secondary: #E2E8F0;
   --secondary-foreground: #0F172A;
-  --muted: #F1F5F9;
+  --muted: #E2E8F0;
   --muted-foreground: #64748B;
   --accent: #E2E8F0;
   --accent-foreground: #0F172A;
@@ -108,7 +108,7 @@
   --chart-4: #A78BFA;
   --chart-5: #06B6D4;
   --radius: 0.625rem;
-  --sidebar: #F8FAFC;
+  --sidebar: #F1F5F9;
   --sidebar-foreground: #0F172A;
   --sidebar-primary: #2563EB;
   --sidebar-primary-foreground: #ffffff;
@@ -180,6 +180,8 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+    scroll-snap-type: y proximity;
   }
   .mono,
   .tabnum {
@@ -280,5 +282,10 @@
 
   .tf-rise {
     animation: tf-rise 0.6s ease-out both;
+  }
+
+  .snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 }
