@@ -32,6 +32,25 @@ UUID_RE = re.compile(r"\[kaynak:\s*([a-f0-9-]{36})\]", re.IGNORECASE)
 # Markdown bullet ('- ' ya da '* ') veya satır sonu nokta/ünlemiyle bitiş.
 _SENTENCE_LINE_RE = re.compile(r"^(?:[-*]\s+)?(.+)$")
 
+# Finansal/somut sayı pattern'i — bu içermeyen bullet'lar (gelecek catalyst
+# tarihleri, soyut risk maddeleri) yapısal olarak kaynaklanamaz, flag
+# tetiklememeli. Yakaladığı: yüzde (%X), para birimi (X TL/USD/milyar/milyon),
+# çarpan (X.Yx), baz puan, ondalık sayı.
+_FACTUAL_NUMBER_RE = re.compile(
+    r"%\s*[\d.,]+"                              # %15, %2.4
+    r"|[\d.,]+\s*(?:TL|USD|EUR|₺|\$)"           # 100 TL, 5 USD
+    r"|[\d.,]+\s*(?:milyar|milyon|bin|trilyon)" # 5 milyar
+    r"|\b\d+[.,]\d+\s*x\b"                      # 1.5x
+    r"|\b\d+\s*(?:baz puan|bp)\b"               # 50 baz puan
+    r"|\b\d+[.,]\d+\b",                         # 1.47, 39.97 (ondalık)
+    re.IGNORECASE,
+)
+
+
+def _has_factual_number(text: str) -> bool:
+    """Bullet'da finansal/somut sayı var mı? Tarih (2026-Q3) sayılmaz."""
+    return bool(_FACTUAL_NUMBER_RE.search(text))
+
 
 @dataclass
 class ValidationReport:
@@ -107,7 +126,12 @@ async def validate_citations(
 
     # ───── Citations INSERT ─────
     citations = _split_into_claims(md)
-    invalid_set = set(final_invalid) | set(final_missing) | final_numeric_uuids
+    # `final_numeric_uuids` had_kaynaksiz tetiklemez: numeric sanity layer
+    # türetilmiş metrikler (kar marjı, peer farkı, yıllık büyüme %) için
+    # yanlış-pozitif üretiyordu. UUID gerçek tool çağrısına bağlıysa
+    # kaynaklı sayılır; numeric_issues hâlâ log'a yazılır ama flag karartmaz.
+    # Halüsinasyon koruması Katman 2 (missing UUID) ile sürer.
+    invalid_set = set(final_invalid) | set(final_missing)
     citation_records: list[CitationRecord] = []
     had_kaynaksiz = False
 
@@ -123,7 +147,12 @@ async def validate_citations(
             citation_records.append(
                 CitationRecord(claim_text=claim_text, call_id=None, is_kaynaksiz=True)
             )
-            had_kaynaksiz = True
+            # Flag yalnızca **finansal sayı içeren** claim kaynaksızsa tetiklenir.
+            # Gelecek tarihli catalyst (2026-Q3) veya soyut risk maddesi
+            # (jeopolitik, regülasyon) için worker pool'unda eşleşecek UUID
+            # yok — bunlar audit'te kaynaksız görünür ama flag karartmaz.
+            if _has_factual_number(claim_text):
+                had_kaynaksiz = True
         else:
             await insert_citation(
                 session,
@@ -157,7 +186,13 @@ async def validate_citations(
 
 
 def _split_into_claims(md: str) -> list[tuple[str, str | None]]:
-    """Markdown'u claim'lere böl, her claim için (text, call_id_or_None) çek."""
+    """Markdown'u claim'lere böl, her claim için (text, call_id_or_None) çek.
+
+    Sadece **markdown bullet'ları** claim olarak işlenir. Paragraf cümleleri
+    (Disclaimer, TL;DR yorum, Güven Skoru açıklaması, "memory bulunmadı"
+    sistem mesajı vb.) yapısal olarak kaynak gerektirmediği için atlanır —
+    aksi halde `had_kaynaksiz_flag` her tezde true çıkıyor.
+    """
     claims: list[tuple[str, str | None]] = []
     for raw in md.split("\n"):
         line = raw.strip()
@@ -165,6 +200,10 @@ def _split_into_claims(md: str) -> list[tuple[str, str | None]]:
             continue
         # Başlıkları (# ##) atla
         if line.startswith("#"):
+            continue
+        # Yalnızca bullet'lar: Bull/Bear/Catalyst/Risk Uyarıları bölümleri.
+        # Paragraf cümleleri claim sayılmaz.
+        if not line.startswith(("- ", "* ", "• ")):
             continue
 
         m = UUID_RE.search(line)
@@ -174,11 +213,8 @@ def _split_into_claims(md: str) -> list[tuple[str, str | None]]:
             if claim:
                 claims.append((claim, m.group(1)))
         else:
-            # Kaynaklanmamış cümle — sadece "anlamlı" görünenleri al
             stripped = _strip_bullet_prefix(line)
-            if not stripped:
-                continue
-            if stripped.endswith((".", "!", "?")) or stripped.startswith(("-", "*")):
+            if stripped:
                 claims.append((stripped, None))
     return claims
 

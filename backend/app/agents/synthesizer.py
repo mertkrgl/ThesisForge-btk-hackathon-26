@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 
 from app.agents.runtime import build_agent, read_prompt, run_agent_with_context
 from app.agents.schemas import (
@@ -44,11 +45,34 @@ def _extractor_agent():
         name="synthesizer_extractor",
         system_prompt=(
             "Sen bir markdown yatırım tezini okuyup yapılandırılmış JSON "
-            "(bull_points, bear_points, catalysts) çıkaran bir asistansın. "
-            "Markdown'daki `[kaynak: <uuid>]` etiketlerini call_id olarak "
-            "BullBearPoint/Catalyst alanına eşle; eşleşmeyenler için call_id=None bırak. "
-            "Her bull/bear için 0-10 arası `score` ata (sayısal güçlü iddialar yüksek). "
-            "Tool çağırma."
+            "(bull_points, bear_points, catalysts) çıkaran bir asistansın.\n\n"
+            "## Kurallar\n"
+            "1. Markdown'da üç `##` başlığı altındaki bullet'ları işle: "
+            "**Bull Case**, **Bear Case**, **Anahtar Katalizörler**.\n"
+            "2. Her bullet için `[kaynak: <UUID>]` etiketini ARA. UUID formatı "
+            "`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` (8-4-4-4-12 hex). "
+            "Bullet içinde bir veya birden fazla UUID olabilir; **ilkini** call_id "
+            "olarak al. UUID yoksa `call_id=None`.\n"
+            "3. Bear ve Catalyst bullet'larında UUID Bull'lardan daha sık eksik "
+            "olabilir — bu normal, NULL'a izin var ama varsa kesinlikle çıkar.\n"
+            "4. Catalyst bullet'ları `YYYY-MM-DD` veya `YYYY-Q[1-4]` veya "
+            "`YYYY-H[1-2]` formatında bir tarih ile başlar; `date` alanına bu "
+            "tarihi koy. Olay metnini `event` alanına yaz (\"—\" sonrası kısım).\n"
+            "5. Her bull/bear için 0-10 arası `score`: sayısal kanıt + mekanizma + "
+            "kaynak içeren güçlü iddialar 8-10; sayısı olmayan jenerik iddialar 4-6.\n"
+            "6. Catalyst için `impact`: yön belirten "
+            "(`high` = re-rating tetikleyici, `medium` = nötr veri, `low` = uzak ihtimal).\n\n"
+            "## Örnek bullet çıkarımı\n"
+            "Input: `- TUPRS, 1.1 cari oran ile sektör üstünde [kaynak: 240e43cc-96d4-43ea-a8cd-5e5f00ccc974].`\n"
+            "→ `{\"point\": \"TUPRS, 1.1 cari oran ile sektör üstünde\", "
+            "\"call_id\": \"240e43cc-96d4-43ea-a8cd-5e5f00ccc974\", \"score\": 8}`\n\n"
+            "Input (kaynaksız): `- Makro belirsizlik karlılığı baskılayabilir.`\n"
+            "→ `{\"point\": \"Makro belirsizlik karlılığı baskılayabilir.\", "
+            "\"call_id\": null, \"score\": 4}`\n\n"
+            "## Yasaklı\n"
+            "- Tool çağırma.\n"
+            "- UUID uydurma (regex'e uymayan string'leri yok say).\n"
+            "- Bullet metnine `[kaynak: ...]` etiketini dahil etme — sadece içerik."
         ),
         tools=[],
         use_pro=False,
@@ -77,8 +101,10 @@ def _build_user_prompt(
     user_mode: str,
     feedback: str | None = None,
 ) -> str:
+    today = date.today().isoformat()
     parts = [
         f"# Tez bağlamı — {ticker}",
+        f"**Bugün**: {today}  (Anahtar Katalizörler ve zaman ufukları bu tarihe göre kurgulanmalı; geçmiş tarih veya gerçekçi olmayan yakın gelecek tarihi yazma.)",
         f"user_mode: {user_mode}",
         "",
         "## Macro Context",

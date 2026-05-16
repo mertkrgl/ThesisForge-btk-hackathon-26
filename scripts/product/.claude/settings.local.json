@@ -5,7 +5,8 @@
       "Bash(python3 -m pytest tests/unit/test_workers.py tests/unit/test_synthesizer.py -v)",
       "Bash(env)",
       "Bash(pip3 list *)",
-      "Bash(python3 -m py_compile app/main.py app/api/__init__.py app/api/ws_hub.py app/api/chat.py app/api/thesis_ws.py app/api/thesis_rest.py app/api/watchlist.py app/api/admin.py app/db/repo.py)"
+      "Bash(python3 -m py_compile app/main.py app/api/__init__.py app/api/ws_hub.py app/api/chat.py app/api/thesis_ws.py app/api/thesis_rest.py app/api/watchlist.py app/api/admin.py app/db/repo.py)",
+      "Read(//home/mert/Masaüstü/btk-hackathon'26/backend/**)"
     ]
   }
 }

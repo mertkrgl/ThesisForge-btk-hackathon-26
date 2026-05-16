@@ -236,6 +236,11 @@ async def _run_thesis_inner(
         critique: Critique = await devil_mod.run_devils_advocate(
             ctx, upper, tech, fund, memory_hits=memory_hits
         )
+        # Critique persist edilmiyor; tüketicilerin (run_thesis.py vs UI)
+        # ham counter-argümanları görebilmesi için WS üzerinden yayınla.
+        await _safe_emit(
+            emit, {"type": "critique", "critique": critique.model_dump(mode="json")}
+        )
 
         # ───── 5. data_quality + 6. confidence ─────
         total, success = await count_tool_calls_for_thesis(session, thesis_id)

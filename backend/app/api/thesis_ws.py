@@ -83,7 +83,7 @@ async def thesis_ws(
         return
 
     try:
-        async for event in hub.subscribe(thesis_id, timeout_sec=180.0):
+        async for event in hub.subscribe(thesis_id, timeout_sec=300.0):
             await ws.send_text(json.dumps(event, default=str))
     except WebSocketDisconnect:
         return

@@ -31,7 +31,7 @@ class WSHub:
             await q.put(_DONE_SENTINEL)
 
     async def subscribe(
-        self, thesis_id: uuid.UUID, *, timeout_sec: float = 180.0
+        self, thesis_id: uuid.UUID, *, timeout_sec: float = 300.0
     ) -> AsyncIterator[dict[str, Any]]:
         q = self._ensure(thesis_id)
         try:

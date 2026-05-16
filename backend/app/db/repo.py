@@ -277,7 +277,7 @@ async def list_citations_with_tool_results(
     for r in rows:
         out.append(
             {
-                "claim": r.claim_text,
+                "claim_text": r.claim_text,
                 "call_id": str(r.call_id) if r.call_id else None,
                 "tool_name": r.tool_name,
                 "tool_result": r.result,

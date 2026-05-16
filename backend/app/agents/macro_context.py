@@ -9,11 +9,14 @@ from app.core.logging import log
 
 
 def _agent():
+    # use_pro=True: Gemini 2.5 Flash'ta thinking + structured output çakışmasından
+    # ötürü macro_context "failed to invoke structured output tool" hatası alıyordu.
+    # Pro pathway 16384 token budget'a sahip, structured output forcing daha stabil.
     return build_agent(
         name="macro_context",
         system_prompt=read_prompt("macro_context.md"),
         tools=MACRO_TOOLS,
-        use_pro=False,
+        use_pro=True,
         structured_output_model=MacroContextOutput,
     )
 
