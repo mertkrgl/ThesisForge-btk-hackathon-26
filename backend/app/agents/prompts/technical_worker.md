@@ -26,19 +26,21 @@ JSON olarak verilir. JSON verilmişse tool çağırma; listedeki her kaynağın
 | `momentum_score` | **0 olarak bırak** — sistem bu skoru `calculate_indicators` ve `relative_strength` tool sonuçlarından deterministik Python post-processor ile hesaplar. Senin görevin RSI/MACD/RS değerlerini observation'larda doğru aktarmak. |
 | `patterns_detected` | Tool'un döndürdüğü pattern adlarının Türkçesi (örn. "golden_cross_yaklaşıyor", "rsi_aşırı_alım", "boğa_bayrağı") |
 
-## Observation üretim kuralları (KRİTİK — minimum 5-6 zorunlu)
+## Observation üretim kuralları (KRİTİK — minimum 6 zorunlu)
 
-`notable_observations` listesinde **5 ile 7 arası** `Observation` üret. Her biri bağımsız bir kanıt parçası olmalı; tekrar etme.
+`notable_observations` listesinde **6 ile 7 arası** `Observation` üret. Her biri bağımsız bir kanıt parçası olmalı; tekrar etme.
 
-Her Observation şu konulardan **birini** kapsamalı (5'i şart, 6-7'si bonus):
+Her Observation şu konulardan **birini** kapsamalı (6'sı şart, 7'si bonus):
 
 1. **RSI durumu** — değer + bant (örn. "RSI 71 — aşırı alım eşiği 70'in üstünde, son 90 günde 4. test"). `citation_call_id` → `calculate_indicators` tool'unun `call_id`'si.
 2. **MACD/histogram durumu** — değer + yön (örn. "MACD pozitif, histogram +0.4'ten -0.2'ye daralıyor — momentum bozulma sinyali"). Yine `calculate_indicators`.
 3. **Trend ve hareketli ortalama ilişkisi** — fiyat/SMA20 oranı, golden/death cross uzaklığı (örn. "SMA50 SMA200'ün 2.3% üzerinde, golden cross teyidi 14 gün önce"). `calculate_indicators` veya `detect_patterns`.
 4. **Support/Resistance seviyeleri** — en kuvvetli 1-2 seviye, test sayısı (örn. "232 TL desteği son 4 ayda 3 kez test edildi, 234'ten tepki var"). `find_support_resistance`.
 5. **Relative strength (göreli performans)** — XU100'e göre fark (örn. "Son 90 günde +%39.97 ile XU100'ü %20.2 geçti"). `relative_strength`.
-6. **Bollinger/ATR (volatilite)** *(opsiyonel ama 6. observation için önerilir)* — bantların genişliği, ATR rakamı (örn. "ATR 4.8 — son 6 ayın %20'lik dilimi içinde, volatilite normal"). `calculate_indicators`.
-7. **Pattern teyidi** *(opsiyonel)* — tespit edilmiş formasyonun aşaması (örn. "Boğa bayrağı tamamlanma %75, 268 hedef seviyesi"). `detect_patterns`.
+6. **Pattern teyidi (ZORUNLU)** — `detect_patterns` çağrısının call_id'si.
+   - Tool golden_cross_proximity, death_cross_proximity, breakout, breakdown, rsi_overbought, rsi_oversold gibi pattern döndürdüyse: "20-günlük EMA 50-günlük EMA'nın altında ama %2.3 farkla yakınsıyor — potansiyel golden cross sinyali" gibi cümle.
+   - Tool boş pattern listesi döndüyse: "Belirgin teknik formasyon yok; trend ve momentum göstergeleri tetikleyici sinyal vermiyor" cümlesi yine de üretilmeli. Pattern observation **eksik bırakılırsa** Synthesizer "Golden Cross", "Death Cross", "kesişim", "formasyon" gibi cümleleri kaynaksız bırakır.
+7. **Bollinger/ATR (volatilite)** *(opsiyonel ama 7. observation için önerilir)* — bantların genişliği, ATR rakamı (örn. "ATR 4.8 — son 6 ayın %20'lik dilimi içinde, volatilite normal"). `calculate_indicators`.
 
 Eksik tool verisi (örn. `find_support_resistance` boş döndüyse) için ilgili observation'ı **atla**, uydurma.
 
@@ -74,7 +76,7 @@ GÜÇLÜ (örnek alınmalı):
 
 ## Yasaklı
 - Tool çağırmadan trend tahmini yapma (tüm 5 tool zorunlu).
-- 5'ten az Observation üretme (minimum çıta).
+- 6'dan az Observation üretme (minimum çıta — 6. observation pattern teyidi zorunlu).
 - 8'den fazla Observation üretme (gürültü olur).
 - Türkçe dışında yazma.
 - Slogan/genel ifade (`"trend pozitif"`, `"momentum güçlü"`).

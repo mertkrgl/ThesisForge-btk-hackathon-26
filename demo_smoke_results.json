@@ -2,13 +2,11 @@
   {
     "ticker": "ASELS",
     "mode": "default",
-    "ok": false,
-    "errors": [
-      "had_kaynaksiz_flag=True (validator unhappy)"
-    ],
-    "duration_sec": 169.25,
-    "confidence": 72.7,
-    "had_kaynaksiz_flag": true,
+    "ok": true,
+    "errors": [],
+    "duration_sec": 94.49,
+    "confidence": 66.81,
+    "had_kaynaksiz_flag": false,
     "bull_count": 5,
     "bear_count": 5
   },
@@ -17,47 +15,43 @@
     "mode": "default",
     "ok": true,
     "errors": [],
-    "duration_sec": 147.03,
-    "confidence": 53.9,
+    "duration_sec": 108.22,
+    "confidence": 46.97,
     "had_kaynaksiz_flag": false,
-    "bull_count": 5,
-    "bear_count": 6
+    "bull_count": 4,
+    "bear_count": 5
   },
   {
     "ticker": "TUPRS",
     "mode": "default",
-    "ok": false,
-    "errors": [
-      "had_kaynaksiz_flag=True (validator unhappy)"
-    ],
-    "duration_sec": 176.62,
-    "confidence": 70.8,
-    "had_kaynaksiz_flag": true,
+    "ok": true,
+    "errors": [],
+    "duration_sec": 97.08,
+    "confidence": 62.91,
+    "had_kaynaksiz_flag": false,
     "bull_count": 5,
-    "bear_count": 5
+    "bear_count": 6
   },
   {
     "ticker": "MGROS",
     "mode": "default",
     "ok": true,
     "errors": [],
-    "duration_sec": 148.98,
-    "confidence": 65.7,
+    "duration_sec": 93.4,
+    "confidence": 64.01,
     "had_kaynaksiz_flag": false,
     "bull_count": 5,
-    "bear_count": 6
+    "bear_count": 5
   },
   {
     "ticker": "EREGL",
     "mode": "default",
-    "ok": false,
-    "errors": [
-      "had_kaynaksiz_flag=True (validator unhappy)"
-    ],
-    "duration_sec": 143.44,
-    "confidence": 72.5,
-    "had_kaynaksiz_flag": true,
-    "bull_count": 5,
-    "bear_count": 5
+    "ok": true,
+    "errors": [],
+    "duration_sec": 109.78,
+    "confidence": 60.16,
+    "had_kaynaksiz_flag": false,
+    "bull_count": 6,
+    "bear_count": 6
   }
 ]

@@ -1,6 +1,7 @@
 """FastAPI uygulama girişi — router register + CORS + APScheduler lifespan."""
 from __future__ import annotations
 
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,9 +15,59 @@ from app.core.config import settings
 from app.core.logging import log
 
 
+async def _warmup() -> None:
+    """Pipeline cold start latency'sini düşürmek için module preload + cache hit.
+
+    İlk request'te yfinance modülü ilk import (~5-10s) + Gemini client init
+    (~3-5s) + yfinance BIST cache miss (~20-30s) overhead'i ~30-50s'ye varıyor.
+    Bu maliyeti uvicorn startup zamanına alıyoruz; demo'da ilk ticker'ın
+    ortalama ticker süresine yakın çıkması için.
+    """
+
+    async def _yf_warmup() -> None:
+        import yfinance as yf
+        await asyncio.to_thread(
+            lambda: yf.Ticker("GARAN.IS").history(period="5d")
+        )
+
+    async def _gemini_warmup() -> None:
+        # Gemini client'i sadece init et — gerçek API call yapmıyoruz
+        # (token harcamamak için). lru_cache'li factory ilk çağrıda
+        # GeminiModel instance'ı yaratır; sonraki agent build_agent
+        # çağrılarında bu instance reuse edilir.
+        from app.agents.runtime import flash_model, pro_model
+        flash_model()
+        pro_model()
+
+    async def _db_warmup() -> None:
+        from sqlalchemy import text
+        from app.db.session import session_scope
+        async with session_scope() as s:
+            await s.execute(text("SELECT 1"))
+
+    results = await asyncio.gather(
+        _yf_warmup(), _gemini_warmup(), _db_warmup(),
+        return_exceptions=True,
+    )
+    failures = [
+        (name, r)
+        for name, r in zip(("yfinance", "gemini", "db"), results)
+        if isinstance(r, Exception)
+    ]
+    if failures:
+        for name, err in failures:
+            log.warning("warmup_step_failed", step=name, error=str(err)[:200])
+    else:
+        log.info("warmup_done")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     log.info("app_startup", env=settings.ENV, cache_backend=settings.CACHE_BACKEND)
+    try:
+        await _warmup()
+    except Exception as e:
+        log.warning("warmup_failed", error=str(e)[:200])
     # Aşama 10 — nightly outcome cron buraya gelecek (şimdilik atlandı).
     yield
     log.info("app_shutdown")

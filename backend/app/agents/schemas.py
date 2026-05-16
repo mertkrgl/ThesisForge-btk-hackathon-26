@@ -5,10 +5,11 @@ LLM yapılandırılmış cevap döndürürken bu şemalara uyacak (sonraki tur).
 """
 from __future__ import annotations
 
+import json
 import uuid
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 SquadType = Literal[
@@ -112,6 +113,19 @@ class FundamentalAnalysis(BaseModel):
     )
     notable_observations: list[Observation] = Field(default_factory=list)
     fundamental_score: int = Field(ge=0, le=100)
+
+    @field_validator("key_metrics_json", "peer_compare_json")
+    @classmethod
+    def _validate_json_string(cls, v: str) -> str:
+        # LLM bozuk JSON döndürebilir (single quote, trailing comma, Python None).
+        # Bunu downstream'e taşımak yerine boş objeye düşür.
+        if not v or not v.strip():
+            return "{}"
+        try:
+            json.loads(v)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return "{}"
+        return v
 
 
 # ───────────────────────── Devil's Advocate ─────────────────────────

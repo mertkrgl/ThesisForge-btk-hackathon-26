@@ -32,7 +32,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 TICKERS = ["ASELS", "GARAN", "TUPRS", "MGROS", "EREGL"]
 MODE = "default"
-MAX_DURATION_SEC = 130.0
+# Pipeline timeout 200s; ortalama 80-100s, ilk ticker cold start ~150s.
+# 160s smoke eşiği: cold start'a tolerans ama 200s timeout'a hâlâ buffer var.
+MAX_DURATION_SEC = 160.0
 CONFIDENCE_MIN = 30.0
 CONFIDENCE_MAX = 90.0
 MIN_BULL = 3

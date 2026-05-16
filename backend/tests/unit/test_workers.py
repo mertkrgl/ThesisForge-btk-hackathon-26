@@ -215,3 +215,42 @@ async def test_devils_advocate_fallback_on_exception(monkeypatch):
     out = await dac.run_devils_advocate(_ctx(), "X", tech, fund)
     assert out.overall_critique_strength == 50
     assert out.cross_cutting_risks  # nötr boş değil — uyarı var
+
+
+def test_fundamental_analysis_invalid_json_fallback():
+    fa = FundamentalAnalysis(
+        ticker="TEST",
+        squad="Generic",
+        summary="dummy",
+        key_metrics_json="{'invalid': True,}",  # single quote + trailing comma
+        peer_compare_json="not json at all",
+        fundamental_score=50,
+    )
+    assert fa.key_metrics_json == "{}"
+    assert fa.peer_compare_json == "{}"
+
+
+def test_fundamental_analysis_valid_json_preserved():
+    fa = FundamentalAnalysis(
+        ticker="TEST",
+        squad="Banking",
+        summary="dummy",
+        key_metrics_json='{"NIM": 4.2, "CAR": 16}',
+        peer_compare_json='{"peer_avg_pe": 8.1}',
+        fundamental_score=70,
+    )
+    assert '"NIM"' in fa.key_metrics_json
+    assert "peer_avg_pe" in fa.peer_compare_json
+
+
+def test_fundamental_analysis_empty_json_fallback():
+    fa = FundamentalAnalysis(
+        ticker="TEST",
+        squad="Generic",
+        summary="dummy",
+        key_metrics_json="",
+        peer_compare_json="   ",
+        fundamental_score=50,
+    )
+    assert fa.key_metrics_json == "{}"
+    assert fa.peer_compare_json == "{}"

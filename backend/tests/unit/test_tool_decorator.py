@@ -174,10 +174,14 @@ async def test_embed_text_stub_deterministic(pg_session):
 
 
 async def test_base_rate_check_with_empty_history(pg_session):
+    """Hiç tezi olmayan bir squad sorgulandığında fonksiyon boş özet döndürmeli.
+
+    NOT: Banking/Defense gibi seed edilmiş squad'larda DB satır var; bu yüzden
+    test deterministik olmak için DB'de bulunmayan bir squad ismi kullanıyor.
+    """
     thesis_id = await create_thesis_skeleton(pg_session, ticker="X", squad="Generic")
     ctx = AgentContext(thesis_id=thesis_id, agent_id="devils_advocate", session=pg_session)
-    out = await base_rate_check(ctx, squad="Banking")
-    assert out["result"]["squad"] == "Banking"
-    # Boş geçmişte success_rate None olmalı (transaction rollback ile her test temiz başlar)
+    out = await base_rate_check(ctx, squad="NonexistentSquad_XYZ")
+    assert out["result"]["squad"] == "NonexistentSquad_XYZ"
     assert out["result"]["total_completed"] == 0
     assert out["result"]["success_rate_pct"] is None

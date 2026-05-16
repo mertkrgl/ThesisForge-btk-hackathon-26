@@ -241,6 +241,15 @@ _RISK_NEWS_KW = (
     "net loan", "regülasyon",
 )
 
+# Base rate cümleleri (Devil's Advocate base_rate_warnings çıktısı):
+# "Energy squad'ının geçmiş tezlerindeki başarı oranı %50", "Defense'te 4 tez %75".
+# Bu cümleler Critique.citation_call_ids listesinin SON elemanlarına bağlanır
+# (sıra: technical + fundamental + cross_cutting + base_rate).
+_BASE_RATE_KW = (
+    "squad", "geçmiş tez", "başarı oranı", "base rate", "geçmişte benzer",
+    "tezlerin", "tezimiz", "tez başarı", "oran", "tarihsel başarı",
+)
+
 
 def _valid_call_id(value: str | None) -> str | None:
     if value and _UUID_VALUE_RE.match(value):
@@ -305,13 +314,25 @@ def _repair_missing_bullet_citations(
         if existing and existing.group(1) in known_ids:
             repaired.append(line)
             continue
+
+        # Catalyst bullet'ları (tarih prefix'i: YYYY-Q3, YYYY-MM-DD) repair
+        # branch'inden ÇIKARILDI. Önceki sürüm catalyst'lere macro pool'undan
+        # rastgele ilk UUID atıyordu → claim metni tool çıktısıyla alakasız
+        # olsa bile audit'te "kaynaklı" görünüyordu (TUPRS Avrupa Yeşil
+        # Mutabakatı vakası). Synthesizer prompt artık "UUID bulamadığın
+        # catalyst'i çıkar veya kaynaksız bırak" kuralını uyguluyor.
         if not _FINANCIAL_NUMBER_RE.search(stripped):
             repaired.append(line)
             continue
 
         lower = stripped.lower()
         call_id: str | None = None
-        if any(kw in lower for kw in _TECHNICAL_KW):
+        # Base rate cümleleri (örn. "Energy squad %50 başarı") — Devil's
+        # citation_call_ids listesinin son elemanları base_rate_check UUID'sidir.
+        # Bu mapping doğru bir UUID->cümle bağlantısı sağlıyor; misleading değil.
+        if any(kw in lower for kw in _BASE_RATE_KW) and risk_ids:
+            call_id = risk_ids[-1]
+        elif any(kw in lower for kw in _TECHNICAL_KW):
             call_id = _best_observation_call_id(line, tech.notable_observations)
         elif any(kw in lower for kw in _FUNDAMENTAL_KW):
             call_id = _best_observation_call_id(line, fund.notable_observations)

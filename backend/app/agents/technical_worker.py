@@ -151,6 +151,67 @@ def _normalize_observation_citations(
     return analysis.model_copy(update={"notable_observations": normalized})
 
 
+_PATTERN_KEYWORDS = (
+    "golden", "death", "kesişim", "formasyon", "pattern", "breakout",
+    "breakdown", "bayrak", "flag",
+)
+
+
+def _ensure_pattern_observation(
+    analysis: TechnicalAnalysis, tool_results: dict[str, dict]
+) -> TechnicalAnalysis:
+    """LLM pattern observation üretmediyse, detect_patterns tool sonucundan
+    deterministic bir observation ekle.
+
+    Synthesizer Bull/Bear Case'inde "Golden Cross yaklaşıyor" gibi pattern
+    cümleleri kaynaklayabilmek için tool UUID'sinin observation pool'unda
+    bulunması gerek. LLM bazen patterns_detected listesini doldursa bile
+    notable_observations'a pattern observation'ı koymuyor → cümle kaynaksız.
+    """
+    has_pattern_obs = any(
+        any(kw in (obs.text or "").lower() for kw in _PATTERN_KEYWORDS)
+        for obs in analysis.notable_observations
+    )
+    if has_pattern_obs:
+        return analysis
+
+    bundle = tool_results.get("detect_patterns") or {}
+    call_id = bundle.get("call_id")
+    if not isinstance(call_id, str) or not call_id:
+        return analysis
+
+    result = bundle.get("result") or {}
+    if isinstance(result, dict):
+        payload = result.get("payload") or result
+        detected = (
+            payload.get("patterns")
+            or payload.get("detected")
+            or payload.get("signals")
+            or analysis.patterns_detected
+            or []
+        )
+    else:
+        detected = analysis.patterns_detected or []
+
+    if detected:
+        # Pattern adlarını basit Türkçeleştirme + ilk 3'ünü göster
+        names = ", ".join(str(d) for d in detected[:3])
+        text = f"Tespit edilen teknik formasyon(lar): {names}."
+    else:
+        text = (
+            "Belirgin teknik formasyon yok; trend ve momentum göstergeleri "
+            "açık bir tetikleyici sinyal vermiyor."
+        )
+
+    pattern_obs = Observation(
+        text=text,
+        citation_call_id=call_id,
+        confidence=75.0,
+    )
+    new_observations = list(analysis.notable_observations) + [pattern_obs]
+    return analysis.model_copy(update={"notable_observations": new_observations})
+
+
 def _compute_momentum_from_tools(
     indicators_payload: dict | None,
     rs_payload: dict | None,
@@ -276,6 +337,7 @@ async def run_technical_worker(ctx: AgentContext, ticker: str) -> TechnicalAnaly
         if tech.ticker.upper() != upper:
             tech = tech.model_copy(update={"ticker": upper})
         tech = _normalize_observation_citations(tech, tool_results)
+        tech = _ensure_pattern_observation(tech, tool_results)
 
         # ───── Python post-processor: momentum_score ─────
         ind_payload, rs_payload = await _fetch_indicator_payloads(ctx, upper)

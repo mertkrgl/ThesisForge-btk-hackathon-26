@@ -9,7 +9,7 @@ Energy:
   prompt: fundamental_energy.md
 
 Defense:
-  tickers: [ASELS, OTKAR, EREGL, KCHOL, KOZAL, KARSN]
+  tickers: [ASELS, OTKAR, KCHOL, KOZAL, KARSN]
   metrics: [backlog, R&D_oran, USD_revenue_pct, sozlesmeler]
   prompt: fundamental_defense.md
 

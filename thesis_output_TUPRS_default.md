@@ -3,9 +3,9 @@
 **Thesis ID**: `?`  
 **Squad**: Energy  
 **User mode**: default  
-**Final confidence**: 67.8/100  
-**Kaynaksız flag**: True  
-**thesis_md uzunluk**: 4872 karakter
+**Final confidence**: 61.41/100  
+**Kaynaksız flag**: False  
+**thesis_md uzunluk**: 5974 karakter
 
 ---
 
@@ -13,38 +13,39 @@
 
 ```markdown
 ## TL;DR
-TUPRS için temkinli bir nötr-bullish tez öne sürüyoruz. Şirket, güçlü net nakit pozisyonu ve sektör ortalamasının üzerinde likidite oranları ile finansal sağlamlığını korurken [kaynak: 5c8b6b64-c49b-4ad9-abc1-cde2bc97db84], Q1 2026'da %1.48 net kar marjı ve %1.06 özsermaye karlılığı ile karlılık baskısı altında kalmıştır [kaynak: e9a86403-ab6c-4907-96e0-3752ed08f8cb]. Teknik tarafta, uzun vadeli trend bullish olsa da, MACD histogramının -2.49 ile negatif bölgede olması kısa vadeli momentum zayıflığına işaret ediyor [kaynak: 6e881dea-0b33-4f03-a2c1-e9c3f5cfdcc2]. Zaman ufku 6-12 ay; final güven skoru 67.8/100.
+TUPRS için nötr-orta güçlü bullish bir tez yapılandırıyoruz. Şirket, 2026 Mart itibarıyla %75.9'luk dönen varlık büyümesi ve %178.3'lük nakit artışı ile güçlü bir finansal yapı sergilerken [kaynak: 2160bf70-0c5d-48d3-94e1-2bafab5b6354], teknik tarafta MACD'nin negatif bölgede daralması kısa vadeli düşüş momentumuna işaret ediyor [kaynak: 477f6055-fe6a-434c-8d4d-be2418edb9d9]. Zaman ufku 6-12 ay olup, final güven skoru 61/100'dür. Brent petrol fiyatlarındaki %9.9'luk artış rafineri marjlarını destekleyebilir [kaynak: eab1f4e0-3d76-4135-b872-b1fdc6df51d0].
 
 ## Bull Case
-- Net borç/EBITDA oranı -1.11 ile şirketin net nakit pozisyonunda olduğunu ve düşük kaldıraçlı bir yapıya sahip olduğunu gösteriyor; bu durum önümüzdeki 6-12 ayda finansal esneklik ve potansiyel yatırım fırsatları sunabilir [kaynak: 5c8b6b64-c49b-4ad9-abc1-cde2bc97db84].
-- TUPRS'ın 2026/3 dönemi cari oranı 1.1 ile peer ortalaması 0.82'nin üzerinde ve borç/özkaynak oranı 0.97 ile peer ortalaması 1.18'in altında; bu, şirketin likidite ve kaldıraç açısından sektördeki rakiplerine göre daha güçlü bir finansal yapıya sahip olduğunu gösteriyor [kaynak: 1c2414ea-a07b-45f3-a4f7-32250adede43].
-- Şirket, 2026/3 LTM (son 12 aylık) gelir 964.4 milyar TL ve LTM EBITDA 68.43 milyar TL ile büyük bir operasyonel ölçeğe sahip; bu durum, sektördeki konumunu güçlendirerek uzun vadeli büyüme potansiyeli sunuyor [kaynak: e9a86403-ab6c-4907-96e0-3752ed08f8cb].
-- Son 90 günde TUPRS, BIST 100 endeksini %20.2 oranında geride bırakarak güçlü bir göreceli performans sergiledi; bu, hissenin piyasaya göre daha dirençli olduğunu ve yatırımcı ilgisini çektiğini gösteriyor [kaynak: e7b2f7cf-ed68-44ae-9f41-64a16da4ee40].
-- Hisse fiyatı (258.5 TL), 50 günlük Basit Hareketli Ortalaması (255.81 TL) üzerinde işlem görüyor; bu orta vadeli desteği sürdürüyor ve uzun vadeli bullish trendi destekliyor [kaynak: 6e881dea-0b33-4f03-a2c1-e9c3f5cfdcc2].
+- TUPRS'ın dönen varlıkları 2026 Mart itibarıyla 315.18 milyar TL'ye ulaşarak bir önceki yılın aynı dönemine göre %75.9 oranında önemli bir büyüme kaydetti; bu durum şirketin operasyonel kapasitesini ve gelecekteki gelir potansiyelini önümüzdeki 12 ayda destekleyebilir [kaynak: 2160bf70-0c5d-48d3-94e1-2bafab5b6354].
+- Nakit ve nakit benzerleri 2026 Mart'ta 129.90 milyar TL'ye yükselerek yıllık bazda %178.3'lük dikkat çekici bir artış gösterdi; bu güçlü likidite pozisyonu, şirkete önümüzdeki 6-9 ay içinde stratejik yatırımlar veya temettü dağıtımı için esneklik sağlayabilir [kaynak: 2160bf70-0c5d-48d3-94e1-2bafab5b6354].
+- Toplam varlıklar 2026 Mart itibarıyla 704.75 milyar TL'ye ulaşarak yıllık %48.09 oranında büyüdü; bu operasyonel ölçek genişlemesi, şirketin pazar payını artırma ve uzun vadeli büyüme hedeflerine ulaşma potansiyelini güçlendiriyor [kaynak: 2160bf70-0c5d-48d3-94e1-2bafab5b6354].
+- Son 90 günde TUPRS, %20.4 getiri ile BIST 100 endeksini (%0.2 getiri) %20.2 oranında geride bırakarak güçlü bir göreceli performans sergiledi; bu, piyasanın şirkete olan güvenini ve kısa-orta vadeli pozitif algısını gösteriyor [kaynak: 1164078a-f179-47cb-8da2-b4d5f457edb5].
+- Brent petrolün varil fiyatı son 30 günde %9,9 artarak 109,26 dolara yükseldi; bu yükseliş, rafineri marjlarını destekleyerek TUPRS'ın karlılığına önümüzdeki çeyrekte pozitif katkı sağlayabilir [kaynak: eab1f4e0-3d76-4135-b872-b1fdc6df51d0].
 
 ## Bear Case
-- Q1 2026 Net Kar Marjı %1.48 ve Özsermaye Karlılığı (ROE) %1.06 seviyesinde gerçekleşti; bu düşük karlılık marjları, şirketin operasyonel verimlilikte veya maliyet yönetiminde potansiyel zayıflıklara işaret ediyor ve önümüzdeki çeyreklerde baskı yaratabilir [kaynak: e9a86403-ab6c-4907-96e0-3752ed08f8cb].
-- MACD histogramı -2.49 ile negatif bölgede ve MACD çizgisi (0.69) sinyal çizgisinin (3.19) altında seyrediyor; bu düşüş eğilimli momentumun kısa vadede devam edebileceğine işaret ediyor [kaynak: 6e881dea-0b33-4f03-a2c1-e9c3f5cfdcc2].
-- Hisse fiyatı (258.5 TL), 20 günlük Basit Hareketli Ortalaması (262.96 TL) altında işlem görüyor; bu kısa vadede zayıflığa işaret ediyor ve 269.5 TL direncini aşmakta zorlanabilir [kaynak: 6e881dea-0b33-4f03-a2c1-e9c3f5cfdcc2, c506792b-e567-4cde-8c78-192031af4b9d].
-- Petrol fiyatlarındaki oynaklık ve rafineri marjları (crack spread) üzerindeki baskı, küresel ekonomik yavaşlama veya arz fazlası nedeniyle önümüzdeki 6-12 ay içinde şirketin karlılığını olumsuz etkileyebilir.
-- Çevre düzenlemelerinin sıkılaşması veya karbon vergileri gibi yeni yasal düzenlemeler, 2026-H2'de TUPRS'ın operasyonel maliyetlerini artırarak kar marjlarını daha da daraltma riski taşıyor.
+- MACD çizgisi (0.70) sinyal çizgisinin (3.19) altında seyrediyor ve MACD histogramı -2.49 ile negatif bölgede daralıyor; bu durum, kısa vadede düşüş momentumunun devam ettiğini ve hisse fiyatı üzerinde baskı oluşturabileceğini gösteriyor [kaynak: 477f6055-fe6a-434c-8d4d-be2418edb9d9].
+- Hisse fiyatı (258.5 TL) 20 günlük Basit Hareketli Ortalamasının (262.96 TL) %1.7 altında işlem görüyor; bu kısa vadede zayıflığa işaret ediyor ve 269.5 TL ve 279.24 TL seviyelerindeki direnç noktalarının test edilmesini zorlaştırabilir [kaynak: 8fc957d8-fa76-479a-85a3-14068200cd40].
+- Cari oran 1.1 seviyesinde; bu da şirketin kısa vadeli yükümlülüklerini karşılama kapasitesinin sektördeki bazı rakiplerine kıyasla daha sınırlı olabileceğini ve likidite riskini artırabileceğini gösteriyor. [kaynak: d8816457-e287-4bd7-ba71-820f631648ee]
+- Şirketin güçlü varlık ve nakit büyümesine rağmen, karlılık metrikleri (örn. EBITDA marjı) hakkında detaylı bilgi eksikliği, bu büyümenin operasyonel verimliliğe ne ölçüde yansıdığı konusunda belirsizlik yaratıyor ve yatırımcı güvenini olumsuz etkileyebilir.
+- Makroekonomik belirsizlik: Küresel enerji fiyatlarındaki dalgalanmalar ve jeopolitik gerilimler, rafineri marjlarını ve talep görünümünü önümüzdeki 6-12 ay içinde olumsuz etkileyebilir [kaynak: eab1f4e0-3d76-4135-b872-b1fdc6df51d0].
+- Döviz kuru oynaklığı: USD/TRY kuru 45,3482 seviyesinde seyrederken, TUPRS'ın gelir ve gider yapısında USD/TL paritesine olan hassasiyet, kurdaki ani ve sert hareketlerde 3-6 ay içinde kar marjlarını olumsuz etkileyebilir [kaynak: 98dc6c4d-72c6-4462-b919-59ed015ca97b].
 
 ## Anahtar Katalizörler
-- 2026-07-30 (tahmini): Q2 2026 kazanç açıklaması — karlılık marjları ve operasyonel verimlilikteki değişimler piyasa tepkisini belirleyecek.
-- 2026-H2: Küresel petrol piyasası dinamikleri — OPEC+ kararları veya jeopolitik gelişmeler Brent petrol fiyatlarını ve rafineri marjlarını etkileyebilir [kaynak: 435c5e2c-5912-4df0-8d19-fb417f6025f9].
-- 2026-Q4: Yeni çevre düzenlemeleri veya karbon vergileri hakkında yasal gelişmeler — operasyonel maliyetler üzerindeki potansiyel etki netleşecek.
+- 2026-Q2: Brent petrol fiyatlarındaki %9,9'luk artışın rafineri marjlarına yansıması — karlılıkta iyileşme potansiyeli [kaynak: eab1f4e0-3d76-4135-b872-b1fdc6df51d0].
+- 2026-08: 2026 yılı 2. çeyrek finansal raporunun açıklanması — dönen varlık ve nakit büyümesinin karlılığa yansıması netleşecek [kaynak: f4ff0074-5ddb-4e99-b0bf-5e642a041216].
+- 2026-H2: Enerji sektöründeki olası karbon emisyonu düzenlemelerinin netleşmesi — operasyonel maliyetler ve karlılık üzerinde doğrudan etki.
 
 ## Tarihsel Bağlam
-Bu hisse için memory havuzunda eşleşen önceki tez bulunmadı.
+2024-11-14 tarihli TUPRS tezimiz kısmi doğru (partial) sonuçlandı ve -%1.62 getiri sağladı; bu durum, şirketin performansında kısa vadeli dalgalanmaların olabileceğine işaret ediyor. Öte yandan, 2026-01-21 tarihli AYGAZ tezimiz enerji sektöründeki benzer dinamiklerle +%15.53 getiri ile doğru (correct) sonuçlandı; bu, sektördeki genel pozitif momentumun TUPRS için de potansiyel taşıdığını gösteriyor. Ayrıca, 2026-05-15 tarihli TUPRS tezi henüz sonuçlanmamış (pending) olsa da, güçlü finansal yapıya odaklanması mevcut tezimizle benzerlik gösteriyor.
 
 ## Risk Uyarıları
-- Petrol fiyat oynaklığı ve rafineri marjları baskısı: Küresel ekonomik yavaşlama veya arz fazlası, rafineri marjlarını daraltarak TUPRS'ın karlılığını olumsuz etkileyebilir.
-- Çevre düzenlemeleri ve karbon vergileri: Yeni yasal düzenlemeler, operasyonel maliyetleri artırarak şirketin rekabet gücünü azaltabilir.
-- Jeopolitik riskler: Bölgesel çatışmalar veya enerji tedarik zincirindeki aksaklıklar, ham petrol tedarikinde kesintilere veya fiyat artışlarına yol açarak üretim maliyetlerini yükseltebilir.
-- Rekabetçi risk: Yeni rafineri kapasitelerinin devreye girmesi veya alternatif enerji kaynaklarına geçişin hızlanması, TUPRS'ın pazar payını ve fiyatlandırma gücünü tehdit edebilir.
+- Makroekonomik belirsizlik: Küresel enerji fiyatlarındaki dalgalanmalar ve jeopolitik gerilimler, rafineri marjlarını ve talep görünümünü 6-12 ay içinde olumsuz etkileyebilir [kaynak: eab1f4e0-3d76-4135-b872-b1fdc6df51d0].
+- Regülasyon riski: Enerji sektöründeki karbon emisyonu düzenlemeleri veya vergilendirme değişiklikleri, 2026-H2'de operasyonel maliyetleri artırabilir ve karlılığı baskılayabilir.
+- Döviz kuru oynaklığı: TUPRS'ın gelir ve gider yapısında USD/TL paritesine olan hassasiyet, kurdaki ani ve sert hareketlerde 3-6 ay içinde kar marjlarını olumsuz etkileyebilir [kaynak: 98dc6c4d-72c6-4462-b919-59ed015ca97b].
+- Energy squad'ında geçmiş tezlerin başarı oranı %50 seviyesinde; bu, enerji sektöründeki yatırım tezlerinin doğasında bulunan yüksek belirsizliği ve riskleri vurgulamaktadır. [kaynak: d8816457-e287-4bd7-ba71-820f631648ee]
 
 ## Güven Skoru
-**67.8/100** — Data quality (100) ve fundamental (70) bileşenleri tezin temelini sağlam tutarken, technical (54) ve devil_inverse (40) bileşenleri güçlü karşı argümanlar ve teknik zayıflıklar nedeniyle skoru aşağı çekmektedir. Cap uygulanmadı; mevcut skor doğrudan rapor edilebilir.
+**61/100** — Data quality (94.44) bileşeni tezin temelini sağlam tutarken, news_macro (30.0) küresel makro belirsizlikten, devil_inverse (45.0) güçlü karşıt argümanlardan ve technical (54.0) zayıf kısa vadeli momentumdan dolayı düşük seviyede kalmıştır. Cap uygulanmadı; mevcut skor doğrudan rapor edilebilir.
 
 ## Disclaimer
 Bu içerik bilgi amaçlıdır; yatırım tavsiyesi değildir.
@@ -56,129 +57,144 @@ Bu içerik bilgi amaçlıdır; yatırım tavsiyesi değildir.
 
 | Bileşen | Değer |
 |---|---|
-| `data_quality` | 100.0 |
+| `data_quality` | 94.44 |
 | `technical` | 54.0 |
-| `fundamental` | 70.0 |
-| `news_macro` | 60.0 |
+| `fundamental` | 65.0 |
+| `news_macro` | 30.0 |
 | `memory_base` | 50.0 |
-| `devil_inverse` | 40.0 |
-| `computed_raw` | 67.8 |
+| `devil_inverse` | 45.0 |
+| `computed_raw` | 61.41 |
 | `applied_cap` | None |
-| `final` | 67.8 |
+| `final` | 61.41 |
 
 ---
 
-## 3. Bull Points (5)
+## 3. Memory Hits (3)
 
-### Bull #1  —  score `9`  —  call_id `5c8b6b64-c49b-4ad9-abc1-cde2bc97db84`
-
-Net borç/EBITDA oranı -1.11 ile şirketin net nakit pozisyonunda olduğunu ve düşük kaldıraçlı bir yapıya sahip olduğunu gösteriyor; bu durum önümüzdeki 6-12 ayda finansal esneklik ve potansiyel yatırım fırsatları sunabilir
-
-### Bull #2  —  score `9`  —  call_id `1c2414ea-a07b-45f3-a4f7-32250adede43`
-
-TUPRS'ın 2026/3 dönemi cari oranı 1.1 ile peer ortalaması 0.82'nin üzerinde ve borç/özkaynak oranı 0.97 ile peer ortalaması 1.18'in altında; bu, şirketin likidite ve kaldıraç açısından sektördeki rakiplerine göre daha güçlü bir finansal yapıya sahip olduğunu gösteriyor
-
-### Bull #3  —  score `8`  —  call_id `e9a86403-ab6c-4907-96e0-3752ed08f8cb`
-
-Şirket, 2026/3 LTM (son 12 aylık) gelir 964.4 milyar TL ve LTM EBITDA 68.43 milyar TL ile büyük bir operasyonel ölçeğe sahip; bu durum, sektördeki konumunu güçlendirerek uzun vadeli büyüme potansiyeli sunuyor
-
-### Bull #4  —  score `8`  —  call_id `e7b2f7cf-ed68-44ae-9f41-64a16da4ee40`
-
-Son 90 günde TUPRS, BIST 100 endeksini %20.2 oranında geride bırakarak güçlü bir göreceli performans sergiledi; bu, hissenin piyasaya göre daha dirençli olduğunu ve yatırımcı ilgisini çektiğini gösteriyor
-
-### Bull #5  —  score `7`  —  call_id `6e881dea-0b33-4f03-a2c1-e9c3f5cfdcc2`
-
-Hisse fiyatı (258.5 TL), 50 günlük Basit Hareketli Ortalaması (255.81 TL) üzerinde işlem görüyor; bu orta vadeli desteği sürdürüyor ve uzun vadeli bullish trendi destekliyor
+| Ticker | Tarih | Outcome | Return | Confidence | Distance | Summary |
+|---|---:|---|---:|---:|---:|---|
+| TUPRS | 2024-11-14T00:00:00+00:00 | partial | -0.0162 | 54.8 | 0.1557 | TUPRS (Energy) — 2024-11-14 seed kaydı. 30 günlük gerçek getiri: %-1.62. Outcome=partial. Bu satır base_rate ve memory altyapısının testi için demo seed verisid |
+| AYGAZ | 2026-01-21T00:00:00+00:00 | correct | 0.1553 | 73.2 | 0.1931 | AYGAZ (Energy) — 2026-01-21 seed kaydı. 30 günlük gerçek getiri: %+15.53. Outcome=correct. Bu satır base_rate ve memory altyapısının testi için demo seed verisi |
+| TUPRS | 2026-05-15T18:44:46.953335+00:00 | pending |  | 65.5 | 0.1803 | ## TL;DR TUPRS için orta-güçlü bullish bir tez yapılandırıyoruz: kısa ve uzun vadeli trendler boğa piyasası yönünde ve 74.7 milyar TL net nakit pozisyonu ile gü |
 
 ---
 
-## 4. Bear Points (5)
+## 4. Bull Points (5)
 
-### Bear #1  —  score `9`  —  call_id `e9a86403-ab6c-4907-96e0-3752ed08f8cb`
+### Bull #1  —  score `9`  —  call_id `2160bf70-0c5d-48d3-94e1-2bafab5b6354`
 
-Q1 2026 Net Kar Marjı %1.48 ve Özsermaye Karlılığı (ROE) %1.06 seviyesinde gerçekleşti; bu düşük karlılık marjları, şirketin operasyonel verimlilikte veya maliyet yönetiminde potansiyel zayıflıklara işaret ediyor ve önümüzdeki çeyreklerde baskı yaratabilir
+TUPRS'ın dönen varlıkları 2026 Mart itibarıyla 315.18 milyar TL'ye ulaşarak bir önceki yılın aynı dönemine göre %75.9 oranında önemli bir büyüme kaydetti; bu durum şirketin operasyonel kapasitesini ve gelecekteki gelir potansiyelini önümüzdeki 12 ayda destekleyebilir.
 
-### Bear #2  —  score `7`  —  call_id `6e881dea-0b33-4f03-a2c1-e9c3f5cfdcc2`
+### Bull #2  —  score `9`  —  call_id `2160bf70-0c5d-48d3-94e1-2bafab5b6354`
 
-MACD histogramı -2.49 ile negatif bölgede ve MACD çizgisi (0.69) sinyal çizgisinin (3.19) altında seyrediyor; bu düşüş eğilimli momentumun kısa vadede devam edebileceğine işaret ediyor
+Nakit ve nakit benzerleri 2026 Mart'ta 129.90 milyar TL'ye yükselerek yıllık bazda %178.3'lük dikkat çekici bir artış gösterdi; bu güçlü likidite pozisyonu, şirkete önümüzdeki 6-9 ay içinde stratejik yatırımlar veya temettü dağıtımı için esneklik sağlayabilir.
 
-### Bear #3  —  score `7`  —  call_id `6e881dea-0b33-4f03-a2c1-e9c3f5cfdcc2`
+### Bull #3  —  score `9`  —  call_id `2160bf70-0c5d-48d3-94e1-2bafab5b6354`
 
-Hisse fiyatı (258.5 TL), 20 günlük Basit Hareketli Ortalaması (262.96 TL) altında işlem görüyor; bu kısa vadede zayıflığa işaret ediyor ve 269.5 TL direncini aşmakta zorlanabilir
+Toplam varlıklar 2026 Mart itibarıyla 704.75 milyar TL'ye ulaşarak yıllık %48.09 oranında büyüdü; bu operasyonel ölçek genişlemesi, şirketin pazar payını artırma ve uzun vadeli büyüme hedeflerine ulaşma potansiyelini güçlendiriyor.
 
-### Bear #4  —  score `6`  —  call_id `None`
+### Bull #4  —  score `9`  —  call_id `1164078a-f179-47cb-8da2-b4d5f457edb5`
 
-Petrol fiyatlarındaki oynaklık ve rafineri marjları (crack spread) üzerindeki baskı, küresel ekonomik yavaşlama veya arz fazlası nedeniyle önümüzdeki 6-12 ay içinde şirketin karlılığını olumsuz etkileyebilir.
+Son 90 günde TUPRS, %20.4 getiri ile BIST 100 endeksini (%0.2 getiri) %20.2 oranında geride bırakarak güçlü bir göreceli performans sergiledi; bu, piyasanın şirkete olan güvenini ve kısa-orta vadeli pozitif algısını gösteriyor.
 
-### Bear #5  —  score `6`  —  call_id `None`
+### Bull #5  —  score `9`  —  call_id `eab1f4e0-3d76-4135-b872-b1fdc6df51d0`
 
-Çevre düzenlemelerinin sıkılaşması veya karbon vergileri gibi yeni yasal düzenlemeler, 2026-H2'de TUPRS'ın operasyonel maliyetlerini artırarak kar marjlarını daha da daraltma riski taşıyor.
-
----
-
-## 5. Catalysts (3)
-
-### Catalyst #1  —  date `2026-07-30`  —  impact `medium`  —  call_id `None`
-
-Q2 2026 kazanç açıklaması — karlılık marjları ve operasyonel verimlilikteki değişimler piyasa tepkisini belirleyecek.
-
-### Catalyst #2  —  date `2026-H2`  —  impact `high`  —  call_id `435c5e2c-5912-4df0-8d19-fb417f6025f9`
-
-Küresel petrol piyasası dinamikleri — OPEC+ kararları veya jeopolitik gelişmeler Brent petrol fiyatlarını ve rafineri marjlarını etkileyebilir
-
-### Catalyst #3  —  date `2026-Q4`  —  impact `medium`  —  call_id `None`
-
-Yeni çevre düzenlemeleri veya karbon vergileri hakkında yasal gelişmeler — operasyonel maliyetler üzerindeki potansiyel etki netleşecek.
+Brent petrolün varil fiyatı son 30 günde %9,9 artarak 109,26 dolara yükseldi; bu yükseliş, rafineri marjlarını destekleyerek TUPRS'ın karlılığına önümüzdeki çeyrekte pozitif katkı sağlayabilir.
 
 ---
 
-## 6. Devil's Advocate — Ham Counter-Argümanlar
+## 5. Bear Points (6)
 
-**overall_critique_strength**: `60/100`  (yüksek = güçlü karşıt argüman; `confidence_breakdown.devil_inverse = 100 - strength`)
+### Bear #1  —  score `9`  —  call_id `477f6055-fe6a-434c-8d4d-be2418edb9d9`
+
+MACD çizgisi (0.70) sinyal çizgisinin (3.19) altında seyrediyor ve MACD histogramı -2.49 ile negatif bölgede daralıyor; bu durum, kısa vadede düşüş momentumunun devam ettiğini ve hisse fiyatı üzerinde baskı oluşturabileceğini gösteriyor.
+
+### Bear #2  —  score `9`  —  call_id `8fc957d8-fa76-479a-85a3-14068200cd40`
+
+Hisse fiyatı (258.5 TL) 20 günlük Basit Hareketli Ortalamasının (262.96 TL) %1.7 altında işlem görüyor; bu kısa vadede zayıflığa işaret ediyor ve 269.5 TL ve 279.24 TL seviyelerindeki direnç noktalarının test edilmesini zorlaştırabilir.
+
+### Bear #3  —  score `9`  —  call_id `d8816457-e287-4bd7-ba71-820f631648ee`
+
+Cari oran 1.1 seviyesinde; bu da şirketin kısa vadeli yükümlülüklerini karşılama kapasitesinin sektördeki bazı rakiplerine kıyasla daha sınırlı olabileceğini ve likidite riskini artırabileceğini gösteriyor.
+
+### Bear #4  —  score `4`  —  call_id `None`
+
+Şirketin güçlü varlık ve nakit büyümesine rağmen, karlılık metrikleri (örn. EBITDA marjı) hakkında detaylı bilgi eksikliği, bu büyümenin operasyonel verimliliğe ne ölçüde yansıdığı konusunda belirsizlik yaratıyor ve yatırımcı güvenini olumsuz etkileyebilir.
+
+### Bear #5  —  score `7`  —  call_id `eab1f4e0-3d76-4135-b872-b1fdc6df51d0`
+
+Makroekonomik belirsizlik: Küresel enerji fiyatlarındaki dalgalanmalar ve jeopolitik gerilimler, rafineri marjlarını ve talep görünümünü önümüzdeki 6-12 ay içinde olumsuz etkileyebilir.
+
+### Bear #6  —  score `9`  —  call_id `98dc6c4d-72c6-4462-b919-59ed015ca97b`
+
+Döviz kuru oynaklığı: USD/TRY kuru 45,3482 seviyesinde seyrederken, TUPRS'ın gelir ve gider yapısında USD/TL paritesine olan hassasiyet, kurdaki ani ve sert hareketlerde 3-6 ay içinde kar marjlarını olumsuz etkileyebilir.
+
+---
+
+## 6. Catalysts (3)
+
+### Catalyst #1  —  date `2026-Q2`  —  impact `medium`  —  call_id `eab1f4e0-3d76-4135-b872-b1fdc6df51d0`
+
+Brent petrol fiyatlarındaki %9,9'luk artışın rafineri marjlarına yansıması — karlılıkta iyileşme potansiyeli.
+
+### Catalyst #2  —  date `2026-08`  —  impact `medium`  —  call_id `f4ff0074-5ddb-4e99-b0bf-5e642a041216`
+
+2026 yılı 2. çeyrek finansal raporunun açıklanması — dönen varlık ve nakit büyümesinin karlılığa yansıması netleşecek.
+
+### Catalyst #3  —  date `2026-H2`  —  impact `low`  —  call_id `None`
+
+Enerji sektöründeki olası karbon emisyonu düzenlemelerinin netleşmesi — operasyonel maliyetler ve karlılık üzerinde doğrudan etki.
+
+---
+
+## 7. Devil's Advocate — Ham Counter-Argümanlar
+
+**overall_critique_strength**: `55/100`  (yüksek = güçlü karşıt argüman; `confidence_breakdown.devil_inverse = 100 - strength`)
 
 ### Technical Pushback
 
-- MACD histogramı -2.49 ile negatif bölgede ve MACD çizgisi (0.69) sinyal çizgisinin (3.19) altında seyrediyor; bu düşüş eğilimli momentumun devam edebileceğine işaret ediyor.
-- Hisse fiyatı (258.5 TL), 20 günlük Basit Hareketli Ortalaması (262.96 TL) altında işlem görüyor; bu kısa vadede zayıflığa işaret ediyor ve 269.5 TL direncini aşmakta zorlanabilir.
+- MACD histogramı -2.49 ile negatif bölgede daralıyor; bu, düşüş momentumunun devam ettiğini gösteriyor ve kısa vadede yükseliş tezini zorluyor.
+- Hisse fiyatı (258.5 TL) 20 günlük Basit Hareketli Ortalamasının (262.96 TL) %1.7 altında işlem görüyor, bu kısa vadede zayıflığa işaret ediyor ve direnç seviyelerinin test edilmesini zorlaştırabilir.
 
 ### Fundamental Pushback
 
-- Q1 2026 Net Kar Marjı %1.48 ve Özsermaye Karlılığı (ROE) %1.06 seviyesinde gerçekleşti; bu, şirketin karlılıkta baskı altında olduğunu ve sektör medyanının altında kalma riskini gösteriyor.
-- LTM EBITDA 68.43 milyar TL gibi büyük bir operasyonel ölçeğe rağmen, düşük kar marjları operasyonel verimlilikte veya maliyet yönetiminde potansiyel zayıflıklara işaret ediyor.
+- Cari oran 1.1 seviyesinde, bu da şirketin kısa vadeli yükümlülüklerini karşılama kapasitesinin sektördeki bazı rakiplerine kıyasla daha sınırlı olabileceğini gösteriyor.
+- Şirketin güçlü varlık ve nakit büyümesine rağmen, karlılık metrikleri (örn. EBITDA marjı) hakkında detaylı bilgi eksikliği, bu büyümenin operasyonel verimliliğe ne ölçüde yansıdığı konusunda belirsizlik yaratıyor.
 
 ### Cross-Cutting Risks
 
-- Petrol fiyatlarındaki oynaklık ve rafineri marjları (crack spread) üzerinde baskı: küresel ekonomik yavaşlama veya arz fazlası 6-12 ay içinde karlılığı olumsuz etkileyebilir.
-- Çevre düzenlemelerinin sıkılaşması veya karbon vergileri gibi yeni yasal düzenlemeler: 2026-H2'de operasyonel maliyetleri artırabilir.
-- Jeopolitik riskler: bölgesel çatışmalar veya enerji tedarik zincirindeki aksaklıklar ham petrol tedarikinde kesintilere veya fiyat artışlarına yol açarak 3-6 ay içinde üretim maliyetlerini yükseltebilir.
-- Rekabetçi risk: yeni rafineri kapasitelerinin devreye girmesi veya alternatif enerji kaynaklarına geçişin hızlanması uzun vadede (1-2 yıl) pazar payı ve marjlar üzerinde baskı oluşturabilir.
+- Makroekonomik belirsizlik: Küresel enerji fiyatlarındaki dalgalanmalar ve jeopolitik gerilimler, rafineri marjlarını ve talep görünümünü 6-12 ay içinde olumsuz etkileyebilir.
+- Regülasyon riski: Enerji sektöründeki karbon emisyonu düzenlemeleri veya vergilendirme değişiklikleri, 2026-H2'de operasyonel maliyetleri artırabilir ve karlılığı baskılayabilir.
+- Döviz kuru oynaklığı: TUPRS'ın gelir ve gider yapısında USD/TL paritesine olan hassasiyet, kurdaki ani ve sert hareketlerde 3-6 ay içinde kar marjlarını olumsuz etkileyebilir.
 
 ### Base Rate Warnings
 
-_(base rate uyarısı üretilmedi)_
+- Energy squad'ında geçmiş tezlerin başarı oranı %50 seviyesinde; bu, benzer tezlerde %50 oranında kısmi veya yanlış sonuçlar alındığını gösteriyor.
+- Geçmiş TUPRS tezlerinden biri (2024-11-14) %-1.62 getiri ile 'partial' sonuçlanmıştır, bu da benzer koşullarda kısa vadeli negatif getirilerin mümkün olduğunu işaret ediyor.
 
 ---
 
-## 7. Citation Audit
+## 8. Citation Audit
 
-**Toplam claim**: 17  |  **Kaynaklı**: 8  |  **Kaynaksız**: 9
+**Toplam claim**: 18  |  **Kaynaklı**: 15  |  **Kaynaksız**: 3
 
 | # | Kaynaksız? | call_id | Claim |
 |---|---|---|---|
-| 1 | kaynaklı | `5c8b6b64-c49b-4ad9` | Net borç/EBITDA oranı -1.11 ile şirketin net nakit pozisyonunda olduğunu ve düşük kaldıraçlı bir yapıya sahip olduğunu gösteriyor; bu durum  |
-| 2 | kaynaklı | `1c2414ea-a07b-45f3` | TUPRS'ın 2026/3 dönemi cari oranı 1.1 ile peer ortalaması 0.82'nin üzerinde ve borç/özkaynak oranı 0.97 ile peer ortalaması 1.18'in altında; |
-| 3 | kaynaklı | `e9a86403-ab6c-4907` | Şirket, 2026/3 LTM (son 12 aylık) gelir 964.4 milyar TL ve LTM EBITDA 68.43 milyar TL ile büyük bir operasyonel ölçeğe sahip; bu durum, sekt |
-| 4 | kaynaklı | `e7b2f7cf-ed68-44ae` | Son 90 günde TUPRS, BIST 100 endeksini %20.2 oranında geride bırakarak güçlü bir göreceli performans sergiledi; bu, hissenin piyasaya göre d |
-| 5 | kaynaklı | `6e881dea-0b33-4f03` | Hisse fiyatı (258.5 TL), 50 günlük Basit Hareketli Ortalaması (255.81 TL) üzerinde işlem görüyor; bu orta vadeli desteği sürdürüyor ve uzun  |
-| 6 | kaynaklı | `e9a86403-ab6c-4907` | Q1 2026 Net Kar Marjı %1.48 ve Özsermaye Karlılığı (ROE) %1.06 seviyesinde gerçekleşti; bu düşük karlılık marjları, şirketin operasyonel ver |
-| 7 | kaynaklı | `6e881dea-0b33-4f03` | MACD histogramı -2.49 ile negatif bölgede ve MACD çizgisi (0.69) sinyal çizgisinin (3.19) altında seyrediyor; bu düşüş eğilimli momentumun k |
-| 8 | kaynaksız | `—` | Hisse fiyatı (258.5 TL), 20 günlük Basit Hareketli Ortalaması (262.96 TL) altında işlem görüyor; bu kısa vadede zayıflığa işaret ediyor ve 2 |
-| 9 | kaynaksız | `—` | Petrol fiyatlarındaki oynaklık ve rafineri marjları (crack spread) üzerindeki baskı, küresel ekonomik yavaşlama veya arz fazlası nedeniyle ö |
-| 10 | kaynaksız | `—` | Çevre düzenlemelerinin sıkılaşması veya karbon vergileri gibi yeni yasal düzenlemeler, 2026-H2'de TUPRS'ın operasyonel maliyetlerini artırar |
-| 11 | kaynaksız | `—` | 2026-07-30 (tahmini): Q2 2026 kazanç açıklaması — karlılık marjları ve operasyonel verimlilikteki değişimler piyasa tepkisini belirleyecek. |
-| 12 | kaynaklı | `435c5e2c-5912-4df0` | 2026-H2: Küresel petrol piyasası dinamikleri — OPEC+ kararları veya jeopolitik gelişmeler Brent petrol fiyatlarını ve rafineri marjlarını et |
-| 13 | kaynaksız | `—` | 2026-Q4: Yeni çevre düzenlemeleri veya karbon vergileri hakkında yasal gelişmeler — operasyonel maliyetler üzerindeki potansiyel etki netleş |
-| 14 | kaynaksız | `—` | Petrol fiyat oynaklığı ve rafineri marjları baskısı: Küresel ekonomik yavaşlama veya arz fazlası, rafineri marjlarını daraltarak TUPRS'ın ka |
-| 15 | kaynaksız | `—` | Çevre düzenlemeleri ve karbon vergileri: Yeni yasal düzenlemeler, operasyonel maliyetleri artırarak şirketin rekabet gücünü azaltabilir. |
-| 16 | kaynaksız | `—` | Jeopolitik riskler: Bölgesel çatışmalar veya enerji tedarik zincirindeki aksaklıklar, ham petrol tedarikinde kesintilere veya fiyat artışlar |
-| 17 | kaynaksız | `—` | Rekabetçi risk: Yeni rafineri kapasitelerinin devreye girmesi veya alternatif enerji kaynaklarına geçişin hızlanması, TUPRS'ın pazar payını  |
+| 1 | kaynaksız | `—` | Regülasyon riski: Enerji sektöründeki karbon emisyonu düzenlemeleri veya vergilendirme değişiklikleri, 2026-H2'de operasyonel maliyetleri ar |
+| 2 | kaynaklı | `2160bf70-0c5d-48d3` | TUPRS'ın dönen varlıkları 2026 Mart itibarıyla 315.18 milyar TL'ye ulaşarak bir önceki yılın aynı dönemine göre %75.9 oranında önemli bir bü |
+| 3 | kaynaklı | `2160bf70-0c5d-48d3` | Nakit ve nakit benzerleri 2026 Mart'ta 129.90 milyar TL'ye yükselerek yıllık bazda %178.3'lük dikkat çekici bir artış gösterdi; bu güçlü lik |
+| 4 | kaynaklı | `2160bf70-0c5d-48d3` | Toplam varlıklar 2026 Mart itibarıyla 704.75 milyar TL'ye ulaşarak yıllık %48.09 oranında büyüdü; bu operasyonel ölçek genişlemesi, şirketin |
+| 5 | kaynaklı | `1164078a-f179-47cb` | Son 90 günde TUPRS, %20.4 getiri ile BIST 100 endeksini (%0.2 getiri) %20.2 oranında geride bırakarak güçlü bir göreceli performans sergiled |
+| 6 | kaynaklı | `eab1f4e0-3d76-4135` | Brent petrolün varil fiyatı son 30 günde %9,9 artarak 109,26 dolara yükseldi; bu yükseliş, rafineri marjlarını destekleyerek TUPRS'ın karlıl |
+| 7 | kaynaklı | `477f6055-fe6a-434c` | MACD çizgisi (0.70) sinyal çizgisinin (3.19) altında seyrediyor ve MACD histogramı -2.49 ile negatif bölgede daralıyor; bu durum, kısa vaded |
+| 8 | kaynaklı | `8fc957d8-fa76-479a` | Hisse fiyatı (258.5 TL) 20 günlük Basit Hareketli Ortalamasının (262.96 TL) %1.7 altında işlem görüyor; bu kısa vadede zayıflığa işaret ediy |
+| 9 | kaynaklı | `d8816457-e287-4bd7` | Cari oran 1.1 seviyesinde; bu da şirketin kısa vadeli yükümlülüklerini karşılama kapasitesinin sektördeki bazı rakiplerine kıyasla daha sını |
+| 10 | kaynaksız | `—` | Şirketin güçlü varlık ve nakit büyümesine rağmen, karlılık metrikleri (örn. EBITDA marjı) hakkında detaylı bilgi eksikliği, bu büyümenin ope |
+| 11 | kaynaklı | `eab1f4e0-3d76-4135` | Makroekonomik belirsizlik: Küresel enerji fiyatlarındaki dalgalanmalar ve jeopolitik gerilimler, rafineri marjlarını ve talep görünümünü önü |
+| 12 | kaynaklı | `98dc6c4d-72c6-4462` | Döviz kuru oynaklığı: USD/TRY kuru 45,3482 seviyesinde seyrederken, TUPRS'ın gelir ve gider yapısında USD/TL paritesine olan hassasiyet, kur |
+| 13 | kaynaklı | `eab1f4e0-3d76-4135` | 2026-Q2: Brent petrol fiyatlarındaki %9,9'luk artışın rafineri marjlarına yansıması — karlılıkta iyileşme potansiyeli . |
+| 14 | kaynaklı | `f4ff0074-5ddb-4e99` | 2026-08: 2026 yılı 2. çeyrek finansal raporunun açıklanması — dönen varlık ve nakit büyümesinin karlılığa yansıması netleşecek . |
+| 15 | kaynaksız | `—` | 2026-H2: Enerji sektöründeki olası karbon emisyonu düzenlemelerinin netleşmesi — operasyonel maliyetler ve karlılık üzerinde doğrudan etki. |
+| 16 | kaynaklı | `eab1f4e0-3d76-4135` | Makroekonomik belirsizlik: Küresel enerji fiyatlarındaki dalgalanmalar ve jeopolitik gerilimler, rafineri marjlarını ve talep görünümünü 6-1 |
+| 17 | kaynaklı | `98dc6c4d-72c6-4462` | Döviz kuru oynaklığı: TUPRS'ın gelir ve gider yapısında USD/TL paritesine olan hassasiyet, kurdaki ani ve sert hareketlerde 3-6 ay içinde ka |
+| 18 | kaynaklı | `d8816457-e287-4bd7` | Energy squad'ında geçmiş tezlerin başarı oranı %50 seviyesinde; bu, enerji sektöründeki yatırım tezlerinin doğasında bulunan yüksek belirsiz |

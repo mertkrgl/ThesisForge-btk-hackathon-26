@@ -74,7 +74,10 @@ def pro_model() -> GeminiModel:
     # Synthesizer + Devil's Advocate uzun, yapılandırılmış rapor üretiyor;
     # Gemini 2.5 thinking mode default açık → thinking tokens output budget'ı
     # yiyor. 16384 = thinking (~10K) + visible (~6K) için yeterli, retry
-    # senaryosunda da 180s pipeline timeout'unu aşmaz.
+    # senaryosunda da 200s pipeline timeout'unu aşmaz.
+    # NOT: 12288'e indirildiğinde validator retry path'inde Synthesizer
+    # "max_tokens unrecoverable" hatası verdi (GARAN smoke). Budget'ı geri
+    # aldık. Cold start kazancını warm-up (main.py:_warmup) sağlıyor zaten.
     return _gemini_model(settings.GEMINI_MODEL_PRO, 16384)
 
 

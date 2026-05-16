@@ -54,7 +54,10 @@ else
     cd "$BACKEND"
     # shellcheck disable=SC1091
     source .venv/bin/activate
-    nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-level info \
+    # WSHub şu an in-memory dict; multi-worker uvicorn'da publish ve subscribe
+    # farklı worker'lara düşüp event'ler kaybolur. Redis pub/sub gelene kadar
+    # tek worker zorunlu (rapor §4.1).
+    nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 --log-level info \
         > "$UVICORN_LOG" 2>&1 &
     disown
     cd "$ROOT"

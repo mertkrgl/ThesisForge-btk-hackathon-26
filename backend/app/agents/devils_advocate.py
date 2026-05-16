@@ -26,6 +26,7 @@ def _empty() -> Critique:
         fundamental_pushback=[],
         cross_cutting_risks=["Devil's Advocate çalışmadı; risk değerlendirmesi eksik."],
         base_rate_warnings=[],
+        citation_call_ids=[],
         overall_critique_strength=50,
     )
 
