@@ -18,7 +18,7 @@ ThesisForge, profesyonel yatırım komitesinin tartışma sürecini her bireysel
 |---|---|---|
 | Ürün vizyonu, problem, personalar, rakipler | [`docs/product.md`](docs/product.md) | herkes |
 | Sistem mimarisi, 4 katman, Strands | [`docs/architecture.md`](docs/architecture.md) | A, B |
-| 8 ajan + squad + citation + conservative + güven skoru | [`docs/agents.md`](docs/agents.md) | A |
+| 8 ajan + 17+1 squad + citation + conservative + güven skoru | [`docs/agents.md`](docs/agents.md) | A |
 | Veri kaynakları + provider chain + onboarding | [`docs/data.md`](docs/data.md) | B |
 | Postgres + pgvector + Redis + fixture | [`docs/database.md`](docs/database.md) | B |
 | Sequence diagram, cache, citation, memory, kill-switch | [`docs/flows.md`](docs/flows.md) | A, C |
@@ -47,7 +47,7 @@ ThesisForge bilgi sunumu ve eğitim aracıdır (SPK lisans dışı). 4 persona i
 
 ### Ajanlar
 
-8 ajan: Macro Context, Orchestrator, Sector Router, Technical Worker, Fundamental Worker, **Devil's Advocate (Pro)**, **Synthesizer (Pro)**, Memory Agent. Pro x2 (kalite) + Flash x6 (maliyet). 5+1 sektör squad (Banking, Energy, Defense, Retail, RealEstate, Generic). **Citation-grounded 4 katmanlı halüsinasyon savunması:** tool provenance + structured output + ID-bazlı validate + numeric sanity. **Conservative mode:** bear başa, confidence ≤70, temettü vurgulu. Sentiment Worker ve Backtest Validator v2'ye.
+8 ajan: Macro Context, Orchestrator, Sector Router, Technical Worker, Fundamental Worker, **Devil's Advocate (Pro)**, **Synthesizer (Pro)**, Memory Agent. Pro x2 (kalite) + Flash x6 (maliyet). 17+1 sektör squad (Banking, Insurance, Finance, Brokerage, RealEstate, Energy, Defense, Automotive, Technology, Healthcare, Food, Retail, Construction, Industrial, Mining, Transportation, Holding, Generic — `backend/sector_map.yaml` 893 tickerı kapsar). **Citation-grounded 4 katmanlı halüsinasyon savunması:** tool provenance + structured output + ID-bazlı validate + numeric sanity. **Conservative mode:** bear başa, confidence ≤70, temettü vurgulu. Sentiment Worker ve Backtest Validator v2'ye.
 
 👉 [`docs/agents.md`](docs/agents.md)
 
@@ -89,7 +89,7 @@ Unit testler kritik path'lerde >%70 coverage (validate_citations, sector_router,
 
 ### Riskler ve Tasarım Kararları
 
-15 risk tablosu (KAP, yfinance, Gemini rate limit, MKK onay gecikme, IP-ban, sunum çökmesi, vb.) + 15 finalize edilmiş tasarım kararı (pgvector, Pro/Flash split, conservative mode, citation 1-retry, pandas-ta, 5+1 squad, MKK primary, vb.). Mimari kümülatif etki: 10→8 ajan, 3→2 paralel worker.
+15 risk tablosu (KAP, yfinance, Gemini rate limit, MKK onay gecikme, IP-ban, sunum çökmesi, vb.) + 15 finalize edilmiş tasarım kararı (pgvector, Pro/Flash split, conservative mode, citation 1-retry, pandas-ta, 17+1 squad MKK-bazlı, MKK primary, vb.). Mimari kümülatif etki: 10→8 ajan, 3→2 paralel worker.
 
 👉 [`docs/risks.md`](docs/risks.md)
 

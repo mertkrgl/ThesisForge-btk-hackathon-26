@@ -76,6 +76,55 @@ async def test_squad_for_ticker_known_and_unknown():
     assert squad_for_ticker("XYZ123") == "Generic"
 
 
+@pytest.mark.parametrize(
+    "ticker, expected_squad",
+    [
+        ("GARAN", "Banking"),
+        ("AKBNK", "Banking"),
+        ("AKGRT", "Insurance"),
+        ("ANSGR", "Insurance"),
+        ("ALFIN", "Finance"),
+        ("CRDFA", "Finance"),
+        ("A1CAP", "Brokerage"),
+        ("ISMEN", "Brokerage"),
+        ("EKGYO", "RealEstate"),
+        ("ISGYO", "RealEstate"),
+        ("TUPRS", "Energy"),
+        ("AYGAZ", "Energy"),
+        ("ASELS", "Defense"),
+        ("OTKAR", "Defense"),
+        ("FROTO", "Automotive"),
+        ("TOASO", "Automotive"),
+        ("LOGO", "Technology"),
+        ("TCELL", "Technology"),
+        ("MPARK", "Healthcare"),
+        ("SELEC", "Healthcare"),
+        ("ULKER", "Food"),
+        ("CCOLA", "Food"),
+        ("BIMAS", "Retail"),
+        ("MGROS", "Retail"),
+        ("AKCNS", "Construction"),
+        ("CIMSA", "Construction"),
+        ("EREGL", "Industrial"),
+        ("ARCLK", "Industrial"),
+        ("KOZAL", "Mining"),
+        ("KOZAA", "Mining"),
+        ("THYAO", "Transportation"),
+        ("PGSUS", "Transportation"),
+        ("KCHOL", "Holding"),
+        ("SAHOL", "Holding"),
+        ("UNKNOWN_TICKER_XYZ", "Generic"),
+    ],
+)
+def test_squad_for_ticker_parametric(ticker: str, expected_squad: str) -> None:
+    """sector_map.yaml'ın 17+1 squad kapsamasını verify eder.
+
+    Yeni bir squad eklendiğinde veya bir ticker yanlış sektöre düşerse
+    burada açık bir hata ile yakalanır.
+    """
+    assert squad_for_ticker(ticker) == expected_squad
+
+
 async def test_metrics_and_prompt_lookup():
     assert "NIM" in metrics_for_squad("Banking")
     assert prompt_file_for_squad("Energy").endswith(".md")

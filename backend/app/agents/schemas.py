@@ -13,7 +13,10 @@ from pydantic import BaseModel, Field, field_validator
 
 
 SquadType = Literal[
-    "Banking", "Energy", "Defense", "Retail", "RealEstate", "Generic"
+    "Banking", "Insurance", "Finance", "Brokerage", "RealEstate",
+    "Energy", "Defense", "Automotive", "Technology", "Healthcare",
+    "Food", "Retail", "Construction", "Industrial", "Mining",
+    "Transportation", "Holding", "Generic",
 ]
 
 UserMode = Literal["default", "conservative"]

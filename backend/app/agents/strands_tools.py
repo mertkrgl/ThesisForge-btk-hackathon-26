@@ -106,7 +106,7 @@ async def lookup_sector(ticker: str) -> dict[str, Any]:
 
 @strands_tool
 async def select_squad(ticker: str) -> dict[str, Any]:
-    """Bir ticker için squad ataması: Banking/Energy/Defense/Retail/RealEstate/Generic."""
+    """Bir ticker için squad ataması (sector_map.yaml'daki 18 squad'dan biri, yoksa Generic)."""
     return await _invoke("select_squad", ticker=ticker)
 
 

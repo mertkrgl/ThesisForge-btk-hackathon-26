@@ -41,4 +41,9 @@ def metrics_for_squad(squad: str) -> list[str]:
 def prompt_file_for_squad(squad: str) -> str:
     sm = load_sector_map()
     cfg = sm.get(squad) or sm.get("Generic") or {}
-    return cfg.get("prompt") or "fundamental_generic.md"
+    candidate = cfg.get("prompt") or "fundamental_generic.md"
+    # YAML'da kayıtlı prompt dosyası fiziksel olarak yoksa generic'e düş.
+    prompts_dir = Path(__file__).resolve().parent / "prompts"
+    if not (prompts_dir / candidate).exists():
+        return "fundamental_generic.md"
+    return candidate

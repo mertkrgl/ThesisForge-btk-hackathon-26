@@ -1,29 +1,103 @@
+# ThesisForge squad haritası.
+#
+# `metrics:` listesi sektör-spesifik anahtarlardır (NIM, CAR, refining_margin, ARR …).
+# Bu anahtarlar `compute_ratios` tool'undan otomatik DÖNMEZ — sadece
+# `cari_oran`, `borc_ozkaynak`, `aktif_toplam` döner. Squad'a özel anahtarlar
+# `fundamental_<squad>.md` prompt'unda LLM'e checklist olarak verilir; LLM
+# `get_financial_statements` ham verisinden ve `fetch_kap_filings`'den
+# derivasyonla doldurur. Üretilemeyen metriği LLM `key_metrics_json`'a koymaz
+# ve "eksik veri uyarısı" diye AYRI bir observation üretir.
+#
+# `prompt:` dosyası diskte yoksa `sector_map.prompt_file_for_squad` otomatik
+# `fundamental_generic.md`'ye düşer, sistem hata vermez.
+
 Banking:
-  tickers: [GARAN, AKBNK, ISCTR, YKBNK, HALKB, VAKBN]
+  tickers: [ADA, ADB, AFB, AKBNK, AKTVK, ALBRK, ALNTF, BPOZ, BRGAN, BYR, CIT, DBI, DENIZ, DLR, DTBMK, DYBNK, EKT, EXIMB, FBB, FIN, FKT, GARAN, GGI, GIN, GSB, HALKB, HDFYB, HFK, HSB, ICB, ISATR, KLN, KTK, MLB, MSY, MUF, NRBNK, ODB, PBT, QYATB, RBO, SEK, TAE, TBA, TBN, TCM, TCZ, TEB, TSK, TVB, VKF, YKB, ZTB]
   metrics: [NIM, CAR, NPL, CASA, kredi_mevduat, SYR]
   prompt: fundamental_banking.md
 
+Insurance:
+  tickers: [AGESA, AKGRT, ANHYT, ANSGR, RAYSG, TURSG]
+  metrics: [combined_ratio, premium_growth, solvency_ratio, loss_ratio, investment_yield]
+  prompt: fundamental_insurance.md
+
+Finance:
+  tickers: [AKDFA, AKFK, AKSFA, ALFIN, ALJF, ARNFK, ATLFA, BIENF, BNPFK, BRGFK, BRKT, BRKVY, BSRFK, CAGFA, CRDFA, DENFA, DFKTR, DGRVK, DNFIN, DNYVA, DSTKF, DVRLK, EKOFA, EKTVK, EMIRV, EMVAR, FIBAF, FNCLL, GARFA, GGBVK, GLCVY, GRFIN, HALKF, HDFVK, HEPFN, HLKFA, HLVKS, HUZFA, ISFAK, ISFIN, ISTFK, ISTVY, KATVK, KFKTF, KLVKS, KNTFA, KOCFN, KTKVK, KTLEV, KTSVK, LIDFA, MBFTR, MRBKF, NURVK, OPTMA, ORFIN, PRFFK, QNBFF, QNBFL, QNBVK, QUFIN, SEKFA, SEKFK, SMRFA, SMRVA, TAMFA, TEBCE, TEBFA, TFNVK, TMKS, TRKFN, ULUFA, VAKFA, VAKFN, VAKVK, VDFAS, YAT, YATVK, YKFIN, YKFKT, YSRFA, ZIPFN, ZKBVK, ZKBVR, ZORLF]
+  metrics: [NPL, kredi_buyume, fonlama_maliyeti, sermaye_yeterlilik, aktif_kalitesi]
+  prompt: fundamental_finance.md
+
+Brokerage:
+  tickers: [A1CAP, ABO, ACA, ADY, AKM, AKP, ALA, ALBMD, ALN, ALNUS, AMK, APY, ATA, ATLAS, AXG, AYX, BAH, BLS, BLU, BMK, BSK, BVP, CIM, COL, CSM, DET, DMK, DZY, EFG, ELP, EPY, ERM, EUP, FIP, FNV, FNY, FPY, FTP, GCM, GEDIK, GEP, GLB, GLT, GNI, GOZDE, GPO, GPY, GRM, GRP, HALKI, HAO, HDFGS, HFP, HPY, HSY, HUBVC, HVP, IAZ, ICP, ICT, ICUGS, IEP, IGP, IGR, IKN, INFO, INM, ISGSY, ISMEN, ISP, ISY, IVT, JPM, KCP, KGY, KIG, KPO, KRP, KTP, KVY, KYM, LCP, LPO, MAP, MDS, MEKMD, MEP, MGY, MPO, MPY, MRBAS, MSI, MSP, MTY, MUP, NOR, NRL, NTA, NTR, OGP, OMD, OMP, OPO, ORA, OYA, PA1, PAY, PER, PGA, PHC, PHP, PIE, PIT, PMK, POL, PRDGS, PRT, PSP, RGE, ROP, SKP, SKY, STE, STJ, STP, TAC, TBY, TCR, TERA, TEY, TFG, TKY, TLR, TRMEN, UNLUS, UNP, VERTU, VKY, VNB, VPG, VPY, VVP, YGP, YKR, ZPY, ZRA, ZRY]
+  metrics: [AUM, komisyon_geliri, islem_hacmi, musteri_sayisi, ozsermaye_karlilik]
+  prompt: fundamental_brokerage.md
+
+RealEstate:
+  tickers: [ADESE, ADGYO, AGYO, AHSGY, AKFGY, AKMGY, AKSGY, ALGYO, ASGYO, ATAGY, AVGYO, AVPGY, BASGZ, BEGYO, DAPGM, DGGYO, DZGYO, EDIP, EKGYO, EYGYO, FZLGY, HLGYO, IDGYO, ISGYO, KGYO, KLGYO, KRGYO, KZBGY, KZGYO, MHRGY, MRGYO, MSGYO, NUGYO, OZGYO, OZKGY, PAGYO, PEKGY, PSGYO, RGYAS, RYGYO, SEGYO, SNGYO, SRVGY, SURGY, TDGYO, TIMUR, TRGYO, TSGYO, VKGYO, VRGYO, YGGYO, YGYO, ZRGYO]
+  metrics: [NAV_iskonto, portfoy_degeri, doluluk_orani, kira_geliri, metrekare_fiyat]
+  prompt: fundamental_realestate.md
+
 Energy:
-  tickers: [TUPRS, AKSEN, AKSA, ZOREN, ENJSA, AYGAZ]
-  metrics: [refining_margin, brent_korelasyon, kapasite, EPDK_tarife]
+  tickers: [AHGAZ, AKENR, AKFYE, AKSEN, AKSUE, ALFAS, ALMAD, ARASE, ASTOR, AYDEM, AYEN, AYGAZ, BIOEN, BSENR, CANTE, CASA, CATES, CLKEN, CONSE, CREAN, CWENE, EMKEL, ENERY, ENJSA, ENTRA, ESEN, EUPWR, GOKNR, GWIND, HUNER, IEYHO, IPEKE, IZENR, KARYE, KONTR, LYDYE, MAGEN, MANAS, MEPET, METUR, MOGAN, NATEN, ODAS, OPET, ORGE, PALEN, PALMT, PAMEL, PLGAZ, PRKME, SAYAS, SHTRP, SMRTG, TATEN, TRCAS, TUPRS, ULAS, YAYLA, YEOTK, ZEDUR, ZOREN, ZOROE]
+  metrics: [refining_margin, brent_korelasyon, kapasite, EPDK_tarife, kapasite_kullanim]
   prompt: fundamental_energy.md
 
 Defense:
-  tickers: [ASELS, OTKAR, KCHOL, KOZAL, KARSN]
-  metrics: [backlog, R&D_oran, USD_revenue_pct, sozlesmeler]
+  tickers: [ALTNY, ASELS, FORTE, OTKAR, PAPIL, SDTTR]
+  metrics: [backlog, R&D_oran, USD_revenue_pct, sozlesmeler, ihracat_orani]
   prompt: fundamental_defense.md
 
+Automotive:
+  tickers: [ASUZU, BEYAZ, BORLS, BRISA, DOAS, DTRND, EPLAS, FLAP, FROTO, GOODY, INALR, ISKPL, KARSN, OTOKC, OTOSR, PKART, SEKUR, TMPOL, TOASO, YESOT]
+  metrics: [uretim_adedi, ihracat_orani, pazar_payi, kapasite_kullanim, USD_revenue_pct]
+  prompt: fundamental_automotive.md
+
+Technology:
+  tickers: [AGROT, ALCTL, ANGEN, ARDYZ, ARENA, ATATP, AZTEK, BINBN, BLKOM, CEOEM, DESPC, DGATE, DOBUR, EDATA, EKOS, ESCOM, FONET, HKTM, HTTBT, INDES, INGRM, INTEK, KAREL, KCSIS, KFEIN, KRONT, LINK, LOGO, MAKIM, MIATK, MOBTL, MTRKS, NETAS, OBASE, ODINE, ONRYT, PATEK, PCILT, PENTA, PRZMA, PYCLL, REEDR, SKYLP, SMART, SNKRN, SUPER, TCELL, TCKRC, TRKNT, TTKOM, TV8TV, VBTYZ, VESTL]
+  metrics: [ARR, gross_margin, R&D_oran, musteri_buyume, ARPU]
+  prompt: fundamental_technology.md
+
+Healthcare:
+  tickers: [ECILC, ECZIP, ECZYT, EGEPO, GENIL, LKMNH, MEDTR, MPARK, NOBEL, RTALB, SELEC, TNZTP, TRILC]
+  metrics: [hasta_sayisi, doluluk_orani, AR_GE, ihracat_orani, EBITDA_margin]
+  prompt: fundamental_healthcare.md
+
+Food:
+  tickers: [AEFES, ALKLC, ATAKP, AVOD, BAKAB, BALSU, BANVT, BARMA, BIGCH, BNTAS, BORSK, CCOLA, CEMZY, CMYEM, DARDL, DMRGD, DTYGD, DURDO, DURKN, EFORC, EKER, EKSUN, ELITE, EMNIS, ENSRI, ERSU, ETILR, FADE, FRIGO, FSDAT, GEDZA, GLYHO, GUNDG, HSTAS, KAPLM, KAYSE, KENT, KERVT, KIMMR, KNFRT, KRPLS, KRVGD, KTSKR, KUVVA, MEKAG, MERKO, MNDTR, OFSYM, ORCAY, OZRDN, OZSUB, PENGD, PETUN, PINSU, PLTUR, PNSUT, SARTN, SEGMN, SELGD, SELVA, TABGD, TARFN, TATGD, TKBIR, TKHOL, TKMRT, TKYAG, TKYEM, TRYKI, TUKAS, ULDAG, ULKER, ULUUN, VANGD, YAPRK, YYLGD]
+  metrics: [hacim_buyume, fiyat_etkisi, brut_kar_margin, pazar_payi, emtia_maliyeti]
+  prompt: fundamental_food.md
+
 Retail:
-  tickers: [BIMAS, MGROS, SOKM, ULKER, CCOLA, ARCLK]
-  metrics: [LFL_buyume, magaza_sayisi, sepet, SSS]
+  tickers: [ADEL, AKFNI, ALTYZ, ARZUM, AVTUR, AYCES, BIENY, BIMAS, BIZIM, BYDNR, CRFSA, DAGI, DERIM, DESA, DGNMO, DIVAN, DUZEY, EBEBK, ERGLI, GIPTA, GMTAS, GRSEL, GZNMI, IHEVA, KOTON, KSTUR, LIDER, MAALT, MARTI, MAVI, MERIT, MGROS, MRMAG, PKENT, SAMAT, SFNED, SOKM, TEKTU, TKNSA, TUREX, VAKKO, VESBE, YIGIT]
+  metrics: [LFL_buyume, magaza_sayisi, sepet, SSS, gross_margin]
   prompt: fundamental_retail.md
 
-RealEstate:
-  tickers: [EKGYO, ISGYO, SAHOL, AGHOL, DOHOL]
-  metrics: [NAV_iskonto, portfoy_degeri, doluluk_orani]
-  prompt: fundamental_realestate.md
+Construction:
+  tickers: [AFYON, AKCNS, ANELE, BASCM, BOBET, BRKSN, BSOKE, BTCIM, BUCIM, CIMSA, CMBTN, CMENT, DNISI, EGSER, EKOVR, ENKAI, EUREN, FORMT, GAPIN, GESAN, GOLTS, GSDDE, INTEM, KLSER, KONYA, LMKDC, NIBAS, NRLIN, NUHCM, OYAKC, SANEL, SISE, ULUSE, USAK, YBTAS]
+  metrics: [proje_backlog, satis_hizi, maliyet_baskisi, teslim_takvimi, sermaye_donus]
+  prompt: fundamental_construction.md
+
+Industrial:
+  tickers: [ACSEL, AKCKM, AKSA, ALKA, ALKIM, ALVES, ARCLK, ARSAN, ARTMS, ASALU, ATEKS, AYES, BAGFS, BAHKM, BFREN, BMSCH, BMSTL, BRKO, BRLSM, BRMEN, BRSAN, BRYAT, BURCE, BURVA, BVSAN, CELHA, CEMAS, CEMTS, CLDNM, CLKMT, CUSAN, DIRIT, DITAS, DMSAS, DOGUB, DOKTA, DYOBY, EGGUB, EKIZ, ERBOS, ERCB, EREGL, GUBRF, HATEK, IMASM, ISDMR, IZMDC, KBORU, KCAER, KLKIM, KOCMT, KONKA, KORDS, KORTS, KRDMA, KRTEK, LILAK, MAKTK, MEGMT, MERCN, MNDRS, MRSHL, MTOTO, PARSN, PETKM, POLTK, PRKAB, RODRG, ROYAL, RUBNS, SARKY, SEYKM, SKTAS, SNPAM, SONME, SUNTK, SUWEN, TEZOL, TTRAK, TUCLK, VKING, YKSLN]
+  metrics: [kapasite_kullanim, emtia_korelasyon, ihracat_orani, EBITDA_margin, USD_revenue_pct]
+  prompt: fundamental_industrial.md
+
+Mining:
+  tickers: [CVKMD, KOPOL, KOZAA, KOZAL, MARBL]
+  metrics: [rezerv, altin_fiyat_korelasyon, uretim_maliyeti, tenör, kapasite]
+  prompt: fundamental_mining.md
+
+Transportation:
+  tickers: [CLEBI, DINCR, HATSN, HOROZ, HRKET, MNGKA, OZATD, PASEU, PGSUS, RYSAS, TAVHL, THYAO, TLMAN]
+  metrics: [yolcu_yuk_sayisi, kapasite_kullanim, yakit_maliyeti, doluluk_orani, birim_gelir]
+  prompt: fundamental_transportation.md
+
+Holding:
+  tickers: [AGHOL, AKFEN, AKYHO, ALARK, ATSYH, AVHOL, BERA, BINHO, COSMO, DAGHL, DENGE, DERHL, DEVA, DOHOL, EUHOL, FBHOL, FNHOL, GLRYH, GRTHO, GSDHO, HEDEF, IHLAS, IHYAY, INVEO, INVES, ISBIR, IZINV, KCHOL, KERVN, KLRHO, LRSHO, LYDHO, MARKA, METRO, MZHLD, NRHOL, NTHOL, OTTO, PEHOL, POLHO, QYHOL, RALYH, RNHOL, SAHOL, TKFEN, UMPAS, UNLU, VERUS, YESIL]
+  metrics: [NAV_iskonto, portfoy_dagilimi, temettu_geliri, borc_oz_sermaye, sum_of_parts]
+  prompt: fundamental_holding.md
 
 Generic:
   fallback: true
   metrics: [PE, PB, ROE, EBITDA, EV_EBITDA]
   prompt: fundamental_generic.md
+  tickers: [ALCAR, BALAT, BAYRK, BJKAS, BLCYT, BNPPI, BOSSA, DCTTR, DDTCR, DOCO, DOFER, DRCDR, DRPHN, EGEEN, EGPRO, ESCAR, ETYAT, EUKYO, EUYO, FENER, FMIZP, GARFL, GENTS, GEREL, GRNYO, GSIPD, GSRAY, HDFFL, HEKTS, HURGZ, IHAAS, IHGZT, IHLGM, ISSEN, ISYAT, IZFAS, JANTS, JCRAV, KARTN, KATMR, KHSTR, KLMSN, KLSYN, KMPUR, KRSTL, KUTPO, KUYAS, LUKSK, MACKO, MEGAP, MMCAS, MTRYO, NTGAZ, OBAMS, ONCSM, ORMA, OSTIM, OYAYO, OYLUM, OZYSR, PNLSN, PSDTC, QUAGR, RNPOL, SAFKR, SAHAR, SANFM, SANKO, SASA, SILVR, SNICA, SODSN, SOG, SOKE, SUMAS, SZUKI, TARKM, TBORG, TGSAS, TMOAS, TMSN, TOKI, TRATE, TSPOR, TURGG, UFUK, VDFLO, VKFYO, YATAS, YONGA, YUNSA, YYAPI]

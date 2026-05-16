@@ -31,7 +31,7 @@ Bir BIST hissesi (örn. `TUPRS`) verirsin; sistem **çok-ajanlı bir komite**
 1. create_thesis_skeleton(ticker)              → thesis_id (DB INSERT)
 
 2. PARALLEL (asyncio.gather, izole session):
-   ├─ sector_router       → ticker'ı squad'a ata (Banking/Energy/Defense/Retail/RealEstate/Generic)
+   ├─ sector_router       → ticker'ı 17 squad + Generic fallback içinden birine ata (sector_map.yaml)
    ├─ macro_context       → USD/TRY, TÜFE, politika faizi, XU100, Brent
    └─ memory_agent        → geçmişten benzer tezleri çek (top_k=3, embedding similarity)
 
@@ -194,13 +194,27 @@ ve synthesizer "Güven Skoru" bölümünde bunu açıkça yazmak zorundadır.
 `backend/sector_map.yaml` ticker → squad eşleşmesi tutar. Squad seçilince
 fundamental_worker o squad'ın özel prompt'unu yükler:
 
+17 sektör squad'ı + Generic fallback. Toplam 893 BIST tickerı `mkk_companies.csv`'den otomatik kategorize edildi.
+
 | Squad | Örnek tickerlar | Squad-spesifik metrikler |
 |---|---|---|
 | **Banking** | GARAN, AKBNK, ISCTR, YKBNK | NIM, CAR, NPL, CASA, ROE, cost_to_income |
-| **Energy** | TUPRS, AKSEN, ENJSA, AYGAZ | refining_margin, brent_korelasyon, EBITDA, net_borc/EBITDA |
-| **Defense** | ASELS, OTKAR, KCHOL | backlog, R&D_oran, USD_revenue_pct |
-| **Retail** | BIMAS, MGROS, SOKM, ULKER | LFL_buyume, magaza_sayisi, SSS, brut_marj |
-| **RealEstate** | EKGYO, ISGYO, SAHOL | NAV_iskonto, portfoy_degeri, doluluk_orani |
+| **Insurance** | AKGRT, ANSGR, AGESA, ANHYT | combined_ratio, loss_ratio, premium_growth, solvency_ratio |
+| **Finance** | ALFIN, ATLFA, CRDFA, DENFA (faktoring, leasing, finansman) | NPL, kredi_buyume, fonlama_maliyeti, kaldirac |
+| **Brokerage** | A1CAP, ISMEN, INFO, GEDIK (aracı kurum, PYS) | AUM, komisyon_geliri, islem_hacmi_payi, ROE |
+| **RealEstate** | EKGYO, ISGYO, AKMGY, ALGYO | NAV_iskonto, portfoy_degeri, doluluk_orani |
+| **Energy** | TUPRS, AKSEN, ENJSA, AYGAZ | refining_margin, brent_korelasyon, EBITDA, EPDK_tarife |
+| **Defense** | ASELS, OTKAR, ALTNY, FORTE | backlog, R&D_oran, USD_revenue_pct |
+| **Automotive** | FROTO, TOASO, OTKAR, DOAS, BRISA | uretim_adedi, ihracat_orani, kapasite_kullanim, EBITDA_margin |
+| **Technology** | LOGO, ARDYZ, KAREL, NETAS, TCELL, TTKOM | ARR, gross_margin, R&D_oran, EBITDA_margin |
+| **Healthcare** | MPARK, LKMNH, SELEC, ECILC, ECZYT | doluluk_orani, ihracat_orani, R&D_oran, EBITDA_margin |
+| **Food** | ULKER, CCOLA, AEFES, BANVT, KENT | hacim_buyume, fiyat_etkisi, brut_kar_margin, pazar_payi |
+| **Retail** | BIMAS, MGROS, SOKM, CRFSA, EBEBK | LFL_buyume, magaza_sayisi, SSS, gross_margin |
+| **Construction** | AKCNS, BTCIM, CIMSA, NUHCM, ENKAI, SISE | satis_hizi, kapasite_kullanim, ihracat_orani, birim_marja |
+| **Industrial** | EREGL, KRDMA, ISDMR, PETKM, ARCLK, KORDS | kapasite_kullanim, emtia_korelasyon, USD_revenue_pct, EBITDA_margin |
+| **Mining** | KOZAA, KOZAL, MARBL, CVKMD | rezerv, AISC, altin_fiyat_korelasyon, EBITDA_margin |
+| **Transportation** | THYAO, PGSUS, TAVHL, CLEBI, RYSAS | yolcu_sayisi, doluluk_orani, yakit_maliyeti, USD_revenue_pct |
+| **Holding** | KCHOL, SAHOL, DOHOL, AGHOL, ALARK, BERA | NAV_iskonto, portfoy_dagilimi, temettu_geliri, borc_servis_orani |
 | **Generic** | (eşleşmeyenler) | P/E, P/B, ROE, EBITDA, EV/EBITDA |
 
 Squad prompt'ları (`backend/app/agents/prompts/fundamental_*.md`):
