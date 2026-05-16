@@ -153,34 +153,23 @@ async def run_synthesizer(
             feedback=feedback,
         )
         out = await run_agent_with_context(agent, prompt, ctx, output_model=None)
+
+        def _post(md: str) -> str:
+            repaired = _repair_missing_bullet_citations(
+                md, macro=macro, tech=tech, fund=fund, critique=critique
+            )
+            return _drop_weak_unsourced_bullets(repaired)
+
         # Strands text response: str veya AgentResult; .message veya str() ile çıkar
         if isinstance(out, str) and out.strip():
-            return _repair_missing_bullet_citations(
-                out,
-                macro=macro,
-                tech=tech,
-                fund=fund,
-                critique=critique,
-            )
+            return _post(out)
         for attr in ("message", "output", "text"):
             v = getattr(out, attr, None)
             if isinstance(v, str) and v.strip():
-                return _repair_missing_bullet_citations(
-                    v,
-                    macro=macro,
-                    tech=tech,
-                    fund=fund,
-                    critique=critique,
-                )
+                return _post(v)
         s = str(out).strip()
         if s:
-            return _repair_missing_bullet_citations(
-                s,
-                macro=macro,
-                tech=tech,
-                fund=fund,
-                critique=critique,
-            )
+            return _post(s)
         raise SynthesizerError("synthesizer returned empty text")
     except SynthesizerError:
         raise
@@ -349,6 +338,40 @@ def _repair_missing_bullet_citations(
         repaired.append(line)
 
     return "\n".join(repaired)
+
+
+_WEAK_FILTER_SECTIONS = {"bull case", "bear case", "anahtar katalizörler"}
+
+
+def _drop_weak_unsourced_bullets(md: str) -> str:
+    """Bull/Bear/Katalizör bölümlerinde **hem kaynaksız hem sayısız** bullet'ları düşür.
+
+    Synthesizer prompt'unda "düşük-değerli kaynaksız bullet üretme" kuralı var
+    ama LLM zaman zaman ASELS Bull #5 örneğindeki gibi ("Uzun vadeli trend
+    bullish ve golden cross yaklaşıyor" — UUID yok, sayı yok) zayıf bullet
+    yazıyor. Bu post-processor sert garantidir: bullet ne tool kaynağına ne
+    somut bir sayıya bağlıysa, kararı bir LLM yorumudur ve tezde yer almaz.
+
+    Risk Uyarıları ve Tarihsel Bağlam bölümlerine dokunulmaz — orada soyut
+    risk maddesi (jeopolitik, kurumsal yönetim) sayı içermez ama meşrudur.
+    """
+    out: list[str] = []
+    section: str = ""
+    for raw in md.split("\n"):
+        line = raw.rstrip()
+        stripped = line.strip()
+        if stripped.startswith("##"):
+            section = stripped.lstrip("#").strip().lower()
+            out.append(line)
+            continue
+        if section in _WEAK_FILTER_SECTIONS and stripped.startswith(("- ", "* ")):
+            has_uuid = bool(_UUID_RE.search(stripped))
+            has_number = bool(_FINANCIAL_NUMBER_RE.search(stripped))
+            if not has_uuid and not has_number:
+                # Bullet'ı tamamen düşür (satırı kaldır).
+                continue
+        out.append(line)
+    return "\n".join(out)
 
 
 def _extract_section_bullets(md: str, section_title: str) -> list[str]:

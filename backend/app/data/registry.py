@@ -1,12 +1,24 @@
 """ChainedDataProvider + global registry — domain bazında provider zinciri."""
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Callable
 
 from app.core.logging import log
 from app.data.cache import CacheBackend, get_cache_backend
 from app.data.fixture import read_fixture
 from app.data.providers.base import DataProvider, DataUnavailable, ProviderResult
+
+
+def _today_utc() -> str:
+    """Cache anahtarına gömülen gün etiketi (UTC).
+
+    Aynı UTC günü içinde fundamental veriler için cache hit garanti edilir;
+    ertesi gün anahtar değişir → fresh fetch. Demo sırasında aynı ticker'ın
+    iki kez çalıştırılması arasında ROE/EBITDA değerlerinin sapmasını
+    engeller (rapor §2.3'teki MEPET çelişkisinin bir kanadı).
+    """
+    return datetime.now(timezone.utc).strftime("%Y%m%d")
 
 
 FixtureKeyFn = Callable[..., str]
@@ -139,14 +151,14 @@ def build_registry() -> dict[str, ChainedDataProvider]:
         ),
         "financials": ChainedDataProvider(
             [IsyatirimFinancialsProvider()],
-            fixture_key_fn=lambda ticker, years=2, **_: f"fin:{ticker.upper()}:{years}y",
+            fixture_key_fn=lambda ticker, years=2, **_: f"fin:{ticker.upper()}:{years}y:{_today_utc()}",
             cache=cache,
             cache_ttl=24 * 3600,
             domain="financials",
         ),
         "ratios": ChainedDataProvider(
             [RatiosProvider()],
-            fixture_key_fn=lambda ticker, **_: f"ratios:{ticker.upper()}",
+            fixture_key_fn=lambda ticker, **_: f"ratios:{ticker.upper()}:{_today_utc()}",
             cache=cache,
             cache_ttl=24 * 3600,
             domain="ratios",

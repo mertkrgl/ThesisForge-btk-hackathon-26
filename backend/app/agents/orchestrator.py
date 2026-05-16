@@ -49,6 +49,7 @@ from app.core.logging import log
 from app.db.repo import (
     count_tool_calls_for_thesis,
     create_thesis_skeleton,
+    update_thesis_squad,
     update_thesis_synthesis,
 )
 from app.db.session import session_scope
@@ -227,6 +228,12 @@ async def _run_thesis_inner(
 
         sector: SectorAssignment = await sector_task
         squad = sector.squad
+        # Defansif derinlik: skeleton'da squad='Generic' default'tu. Synthesizer
+        # fail ederse update_thesis_synthesis çağrılmaz ve DB'de Generic kalırdı.
+        # Sector router doğru squad'ı belirler belirlemez DB'ye yansıt.
+        if squad != "Generic":
+            await update_thesis_squad(session, thesis_id, squad)
+            await session.commit()
         await _safe_emit(
             emit, {"type": "stage", "stage": "workers_started", "squad": squad}
         )

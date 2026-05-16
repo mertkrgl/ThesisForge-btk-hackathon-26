@@ -340,15 +340,29 @@ async def run_technical_worker(ctx: AgentContext, ticker: str) -> TechnicalAnaly
         tech = _ensure_pattern_observation(tech, tool_results)
 
         # ───── Python post-processor: momentum_score ─────
-        ind_payload, rs_payload = await _fetch_indicator_payloads(ctx, upper)
-        new_score = _compute_momentum_from_tools(ind_payload, rs_payload)
-        if new_score != tech.momentum_score:
-            log.info(
-                "momentum_override",
+        # Deterministik formül LLM yorumunu HER ZAMAN override eder.
+        # Eski tezlerde technical=1.0 gibi anomaliler LLM'in keyfi puanından
+        # geliyordu; bu post-processor sayesinde confidence breakdown'ın
+        # technical bileşeni artık doğrudan RSI/MACD/RS verisinden hesaplanır.
+        try:
+            ind_payload, rs_payload = await _fetch_indicator_payloads(ctx, upper)
+            new_score = _compute_momentum_from_tools(ind_payload, rs_payload)
+        except Exception as e:
+            # Payload fetch fail ederse nötr 50; LLM'in 1.0 gibi keyfi değeri DB'ye
+            # gitmesin. log seviyesi warning — sessizce yutma yasak.
+            log.warning(
+                "momentum_post_processor_fail",
                 ticker=upper,
-                llm_value=tech.momentum_score,
-                computed=new_score,
+                error=str(e)[:200],
             )
+            new_score = 50
+        log.info(
+            "momentum_score_set",
+            ticker=upper,
+            llm_value=tech.momentum_score,
+            computed=new_score,
+            overridden=new_score != tech.momentum_score,
+        )
         return tech.model_copy(update={"momentum_score": new_score})
     except Exception as e:
         log.warning("technical_worker_fail", ticker=upper, error=str(e)[:200])

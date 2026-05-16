@@ -73,6 +73,22 @@ async def update_thesis_kaynaksiz_flag(
     )
 
 
+async def update_thesis_squad(
+    session: AsyncSession,
+    thesis_id: uuid.UUID,
+    squad: str,
+) -> None:
+    """Skeleton sonrası sector_router'ın döndürdüğü squad'ı early-write et.
+
+    Synthesizer fail ederse update_thesis_synthesis çağrılmaz; skeleton'daki
+    'Generic' default'u DB'de kalırdı. Bu helper, pipeline yarıda kesilse bile
+    teze doğru squad'ın yazılmasını garanti eder.
+    """
+    await session.execute(
+        update(Thesis).where(Thesis.id == thesis_id).values(squad=squad)
+    )
+
+
 # ───────────────────────── Tool Call Logs ─────────────────────────
 
 

@@ -131,6 +131,7 @@ Hatırlatma: Catalyst için repair fonksiyonu **otomatik UUID atamıyor**. Sen k
 - **`applied_cap` dolu** → Güven Skoru bölümünde mutlaka belirt (örn. "Conservative mod cap'i 70 ile sınırlandı").
 - **Çelişen sinyal** (Technical bullish ama Fundamental zayıf, veya tersi) → TL;DR'da bu gerilimi belirt; Bull/Bear bölümlerinde her iki tarafı da dengeli yansıt.
 - **Observation listesi boş** (bir worker hiç observation döndürmemiş) → O bölüme atıfsız bullet yaz; rapor boş bırakma.
+- **Aynı gösterge / aynı UUID hem Bull hem Bear** → Aynı sayısal değeri (örn. MACD histogram -0.01) hem Bull'da "toparlanma" hem Bear'da "ölüm kesişimi" gibi zıt yönde yorumlamak **yasak**. Eğer aynı UUID veya aynı ham sayı iki bölümde geçecekse: (a) her iki bullet'ta da farklı zaman ufkunu (1-3 ay vs 3-6 ay) ve farklı mekanizmayı açıkça yaz; (b) bunu yapamıyorsan **sadece daha güçlü/yüksek-skorlu tarafı tut**, diğerini düşür. Tek bir ham gözlemi karşılıklı argümana çevirip okuyucuyu yanıltma.
 
 ## Örnek run (FAKE_DEMO — referans çıktı, KURGU)
 
@@ -195,5 +196,7 @@ Bu içerik bilgi amaçlıdır; yatırım tavsiyesi değildir.
 - Sayısal claim'i kaynaksız bırakma (validator yakalar — `had_kaynaksiz_flag` set olur).
 - Tek satır slogan bullet'lar ("Şirket güçlü", "Riskler var").
 - Aynı `call_id`'yi farklı bölümlerde aynı yorumla tekrar kullanma.
+- **Düşük-değerli kaynaksız bullet:** Observation `confidence < 60` VE `citation_call_id` boş ise o bullet'ı Bull/Bear/Risk Uyarıları/Catalyst bölümlerinden **çıkar**. "Golden cross yaklaşıyor" / "Trend pozitif" gibi LLM'nin kendi yorumladığı, tool çıktısına bağlanmayan zayıf gözlemler tezde yer almaz.
+- **Aynı ham gözlemden zıt yönde Bull + Bear bullet** üretme (yukarıda "Aynı gösterge / aynı UUID hem Bull hem Bear" edge case'ine bak).
 - Türkçe dışında yazma.
 - Final güven skorunu uydurma — `confidence_breakdown.final` değerini birebir kullan.

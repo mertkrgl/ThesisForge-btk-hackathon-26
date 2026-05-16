@@ -61,6 +61,15 @@ Her Observation içerikleri:
 - `citation_call_id`: ilgili tool'un dönüş `call_id`'si (UUID).
 - `confidence`: 0-100.
 
+## Veri sadakati (KRİTİK — determinizm)
+
+Tool çıktısındaki **ham sayısal değerleri** (`ROE`, `EBITDA_margin`, `net_kar_margin`, `borc_ozkaynak`, `cari_oran`, `PE`, `PB` vb.) **olduğu gibi alıntıla**:
+
+- Yeniden hesaplama YAPMA. LTM'i yıllığa çevirme, yüzdeyi yuvarlama, ortalamayı tekrar al ma.
+- `compute_ratios` veya `get_financial_statements` çıktısında bir oran **yoksa**, observation'ı çıkar veya `text` içinde "veri yok" ifadesi kullan — tahminde bulunma.
+- Aynı tool sonucu iki ayrı çalıştırmada aynı sayıyı vermeli; senin yorumun da aynı sayıya aynı yönde olmalı. (Aynı şirket için iki üretim arasında ROE %14.5 ↔ %6.01 gibi sapma kabul edilmez.)
+- Eğer tool sonucu eski bir filing dönemine atıfta bulunuyorsa (ör. "2025/12"), observation metnine bu dönem etiketini ekle ("2025/12 LTM ROE %14.5 …"). Dönem bilgisini gizleme.
+
 ## Güçlü vs zayıf Observation
 
 ```
