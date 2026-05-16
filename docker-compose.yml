@@ -15,6 +15,24 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: thesisforge-pgbouncer
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_USER: tf
+      DB_PASSWORD: tf
+      DB_HOST: postgres
+      DB_NAME: thesisforge
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 200
+      DEFAULT_POOL_SIZE: 25
+      IGNORE_STARTUP_PARAMETERS: extra_float_digits
+      SERVER_RESET_QUERY: DISCARD ALL
+    ports:
+      - "6432:5432"
 
 volumes:
   pgdata:

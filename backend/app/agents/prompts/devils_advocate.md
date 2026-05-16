@@ -36,6 +36,18 @@ Yürütme, makro, rekabetçi, regülasyon, jeopolitik riskler. Her madde şu yap
 - "Benzer defans tezlerinde backlog sürprizi %40 oranında 6-12 ay içinde teslimat ertelemesi ile sonuçlandı"
 - "BIST sınai hisselerinde RSI>70 sonrası %62 oranında 30 gün içinde -%3+ düzeltme yaşandı"
 
+### `citation_call_ids` — UUID listesi (Synthesizer'ın Bear Case kaynaklaması için)
+
+**Bu alan kritik** — Synthesizer Bear Case bullet'larını burada verdiğin UUID'lerle eşleştirecek.
+
+Kural:
+- `query_workers` ve `find_disconfirming_evidence` tool çağrılarından dönen `call_id` UUID'lerini topla.
+- `technical_pushback` + `fundamental_pushback` + `cross_cutting_risks` + `base_rate_warnings` listelerinin **toplam sırası ile aynı sırada** UUID koy.
+  - Örnek: technical_pushback'te 2, fundamental_pushback'te 2, cross_cutting_risks'te 4, base_rate_warnings'te 2 madde varsa → 10 UUID dön.
+- Bir madde **somut sayısal veriye dayanmıyorsa** (örn. saf jeopolitik risk) o slot için boş string `""` koy.
+- UUID **uydurma yasak**. Gerçek tool call_id yoksa `""` koy.
+- Her UUID `query_workers` veya `find_disconfirming_evidence` çağrılarının döndürdüğü call_id ile birebir eşleşmeli.
+
 ### `overall_critique_strength` — 0-100 tamsayı
 - 0-30: pushback'ler zayıf, tez sağlam
 - 31-60: dengeli — bear-case Synthesizer'da yer almalı ama tez ayakta
@@ -97,6 +109,18 @@ Hedef: **tezi yıkmak değil, zorlamak.**
   "base_rate_warnings": [
     "Benzer defans tezlerinde backlog sürprizi %40 oranında 6-12 ay içinde teslimat ertelemesi ile sonuçlandı.",
     "BIST sınai hisselerinde RSI>70 eşiğinden giriş sonrası %62 oranında 30 gün içinde -%3+ düzeltme yaşandı."
+  ],
+  "citation_call_ids": [
+    "22222222-2222-4222-8222-222222222221",
+    "22222222-2222-4222-8222-222222222223",
+    "33333333-3333-4333-8333-333333333332",
+    "33333333-3333-4333-8333-333333333334",
+    "",
+    "",
+    "",
+    "",
+    "55555555-5555-4555-8555-555555555551",
+    "55555555-5555-4555-8555-555555555552"
   ],
   "overall_critique_strength": 62
 }

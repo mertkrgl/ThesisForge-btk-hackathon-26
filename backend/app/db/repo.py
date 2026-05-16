@@ -156,16 +156,25 @@ async def similarity_search(
     embedding: list[float],
     ticker: str | None = None,
     squad: str | None = None,
+    exclude_thesis_id: uuid.UUID | None = None,
+    include_pending: bool = False,
     top_k: int = 3,
     horizon_days: int = 730,
 ) -> list[dict[str, Any]]:
     """pgvector cosine search — aynı ticker VEYA aynı squad.
 
-    Tez henüz embedding'i yazılmamışsa skip; outcome != 'pending'.
+    Tez henüz embedding'i yazılmamışsa skip. `include_pending=False` iken
+    yalnızca outcome'u kapanmış tezler döner; memory kıyaslaması için pending
+    önceki tezler de istenebilir.
     """
     cutoff = datetime.now(timezone.utc) - timedelta(days=horizon_days)
-    filters = ["embedding IS NOT NULL", "outcome != 'pending'", "thesis_date >= :cutoff"]
+    filters = ["embedding IS NOT NULL", "thesis_date >= :cutoff"]
     params: dict[str, Any] = {"cutoff": cutoff, "top_k": top_k, "emb": _vec_to_pg(embedding)}
+    if not include_pending:
+        filters.append("outcome != 'pending'")
+    if exclude_thesis_id is not None:
+        filters.append("id != :exclude_thesis_id")
+        params["exclude_thesis_id"] = exclude_thesis_id
     or_clause = []
     if ticker:
         or_clause.append("ticker = :ticker")
@@ -178,7 +187,8 @@ async def similarity_search(
 
     sql = sql_text(
         f"""
-        SELECT id, ticker, squad, thesis_date, thesis_md, outcome, ground_truth_return,
+        SELECT id, ticker, squad, thesis_date, thesis_md, outcome,
+               ground_truth_return, confidence,
                (embedding <=> CAST(:emb AS vector)) AS distance
         FROM theses
         WHERE {' AND '.join(filters)}
@@ -242,6 +252,7 @@ async def update_thesis_synthesis(
     catalysts: list[dict] | None,
     confidence: float | None,
     confidence_breakdown: dict | None,
+    memory_hits: list[dict] | None = None,
     squad: str | None = None,
 ) -> None:
     values: dict[str, Any] = {
@@ -251,6 +262,7 @@ async def update_thesis_synthesis(
         "catalysts": catalysts,
         "confidence": confidence,
         "confidence_breakdown": confidence_breakdown,
+        "memory_hits": memory_hits,
     }
     if squad:
         values["squad"] = squad

@@ -19,7 +19,7 @@ from typing import Any, TypeVar
 from pydantic import BaseModel
 from strands import Agent
 from strands.models.gemini import GeminiModel
-from strands.tools.executors import SequentialToolExecutor
+from strands.tools.executors import ConcurrentToolExecutor
 
 from app.agents.tools import AgentContext, use_agent_context
 from app.core.config import settings
@@ -110,9 +110,10 @@ def build_agent(
     return Agent(
         model=model,
         tools=tools,
-        # SequentialToolExecutor — paralel tool çağrılarında aynı SQLAlchemy
-        # AsyncSession'ı yarıştırmasın (insert_tool_call_log INSERT'leri çakışıyor).
-        tool_executor=SequentialToolExecutor(),
+        # Gün 4A: tool-level paralelizasyon.
+        # DB session çakışması `tools.py` ve `strands_tools.py` içinde her tool
+        # çağrısına fresh session vererek çözüldü.
+        tool_executor=ConcurrentToolExecutor(),
         system_prompt=system_prompt,
         structured_output_model=structured_output_model,
         name=name,

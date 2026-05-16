@@ -12,11 +12,44 @@ from app.db.repo import similarity_search as _repo_search
 from app.db.session import session_scope
 
 
+def _rows_to_hits(rows: list[dict]) -> list[MemoryHit]:
+    hits: list[MemoryHit] = []
+    for r in rows:
+        outcome = r.get("outcome")
+        if outcome not in ("correct", "partial", "wrong", "pending"):
+            continue
+        hits.append(
+            MemoryHit(
+                thesis_id=r["id"],
+                ticker=r["ticker"],
+                thesis_date=(
+                    r["thesis_date"].isoformat() if r["thesis_date"] else ""
+                ),
+                distance=float(r["distance"]) if r["distance"] is not None else 0.0,
+                outcome=outcome,  # type: ignore[arg-type]
+                ground_truth_return=(
+                    float(r["ground_truth_return"])
+                    if r["ground_truth_return"] is not None
+                    else None
+                ),
+                confidence=(
+                    float(r["confidence"])
+                    if r.get("confidence") is not None
+                    else None
+                ),
+                squad=r.get("squad"),
+                summary=(r.get("thesis_md") or "")[:500],
+            )
+        )
+    return hits
+
+
 async def search_memory(
     ctx: AgentContext,
     ticker: str,
     query_text: str | None = None,
     top_k: int = 3,
+    include_pending: bool = True,
 ) -> list[MemoryHit]:
     """Geçmiş tezler arasında semantic search.
 
@@ -26,36 +59,32 @@ async def search_memory(
     qtext = query_text or f"{ticker} yatırım tezi"
     try:
         emb = await _embed(qtext)
-        rows = await _repo_search(
+        resolved_limit = min(2, max(1, top_k - 1)) if include_pending else top_k
+        resolved_rows = await _repo_search(
             ctx.session,
             embedding=emb["vector"],
             ticker=ticker.upper(),
             squad=squad_for_ticker(ticker),
-            top_k=top_k,
+            exclude_thesis_id=ctx.thesis_id,
+            include_pending=False,
+            top_k=resolved_limit,
         )
-        hits: list[MemoryHit] = []
-        for r in rows:
-            outcome = r.get("outcome")
-            if outcome not in ("correct", "partial", "wrong"):
-                continue
-            hits.append(
-                MemoryHit(
-                    thesis_id=r["id"],
-                    ticker=r["ticker"],
-                    thesis_date=(
-                        r["thesis_date"].isoformat() if r["thesis_date"] else ""
-                    ),
-                    distance=float(r["distance"]) if r["distance"] is not None else 0.0,
-                    outcome=outcome,  # type: ignore[arg-type]
-                    ground_truth_return=(
-                        float(r["ground_truth_return"])
-                        if r["ground_truth_return"] is not None
-                        else None
-                    ),
-                    summary=(r.get("thesis_md") or "")[:500],
-                )
+
+        rows = list(resolved_rows)
+        if include_pending:
+            pending_rows = await _repo_search(
+                ctx.session,
+                embedding=emb["vector"],
+                ticker=ticker.upper(),
+                squad=squad_for_ticker(ticker),
+                exclude_thesis_id=ctx.thesis_id,
+                include_pending=True,
+                top_k=top_k,
             )
-        return hits
+            seen = {r["id"] for r in rows}
+            rows.extend(r for r in pending_rows if r["id"] not in seen)
+
+        return _rows_to_hits(rows)[:top_k]
     except Exception as e:
         log.warning("memory_search_fail", ticker=ticker, error=str(e)[:200])
         return []

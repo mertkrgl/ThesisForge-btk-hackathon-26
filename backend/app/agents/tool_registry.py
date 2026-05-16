@@ -357,6 +357,8 @@ async def similarity_search(
         embedding=emb["vector"],
         ticker=ticker,
         squad=squad,
+        exclude_thesis_id=ctx.thesis_id,
+        include_pending=True,
         top_k=top_k,
     )
     hits = [
@@ -369,6 +371,8 @@ async def similarity_search(
             "ground_truth_return": (
                 float(r["ground_truth_return"]) if r["ground_truth_return"] is not None else None
             ),
+            "confidence": float(r["confidence"]) if r.get("confidence") is not None else None,
+            "squad": r.get("squad"),
             "summary": (r["thesis_md"] or "")[:600],
         }
         for r in rows

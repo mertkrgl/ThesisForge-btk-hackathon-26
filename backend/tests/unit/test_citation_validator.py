@@ -49,12 +49,12 @@ def test_split_into_claims_extracts_uuid_per_line():
         "Genel olarak görünüm pozitif.\n"
     )
     claims = _split_into_claims(md)
-    # Başlık atılır; 2 UUID'li claim + 1 kaynaksız cümle
+    # Başlık ve paragraf atılır; sadece markdown bullet'ları claim sayılır.
     texts = [c[0] for c in claims]
     cids = [c[1] for c in claims]
     assert "RSI 67, aşırı alım sınırı" in texts
     assert "11111111-1111-1111-1111-111111111111" in cids
-    assert None in cids  # Genel olarak ...
+    assert None not in cids
 
 
 # ─── End-to-end (DB) senaryolar ───────────────────────────────────────
@@ -104,7 +104,7 @@ async def test_validator_pass_all_valid(pg_session):
 
 async def test_validator_regex_fail_no_uuids(pg_session):
     thesis_id = await create_thesis_skeleton(pg_session, ticker="TUPRS", squad="Energy")
-    md = "Bu tez tamamen kaynaksız.\nRafineri marjı düştü.\n"
+    md = "## Bull Case\n- Rafineri marjı %12 seviyesine çıktı.\n"
 
     report = await validate_citations(md, thesis_id, pg_session)
     assert report.had_kaynaksiz is True
@@ -116,7 +116,7 @@ async def test_validator_regex_fail_no_uuids(pg_session):
 async def test_validator_id_fail_uuid_not_in_db(pg_session):
     thesis_id = await create_thesis_skeleton(pg_session, ticker="BIMAS", squad="Retail")
     fake = uuid.uuid4()
-    md = f"- LFL büyüme %12 [kaynak: {fake}]\n"
+    md = f"## Bull Case\n- LFL büyüme %12 [kaynak: {fake}]\n"
 
     report = await validate_citations(md, thesis_id, pg_session)
     assert str(fake) in report.missing_uuids
@@ -128,6 +128,22 @@ async def test_validator_id_fail_uuid_not_in_db(pg_session):
     assert any(r.is_kaynaksiz for r in rows)
 
 
+async def test_validator_memory_claim_does_not_flip_kaynaksiz_flag(pg_session):
+    thesis_id = await create_thesis_skeleton(pg_session, ticker="GARAN", squad="Banking")
+    md = (
+        "## Bull Case\n"
+        "- 2025-Şubat tarihli HALKB tezimiz +%18.2 getiri ile doğru sonuçlanmıştı; "
+        "bu, bankacılık sektöründe katalizör seçiminin önemli olduğunu gösterir.\n"
+    )
+
+    report = await validate_citations(md, thesis_id, pg_session)
+
+    assert report.had_kaynaksiz is False
+    assert report.citations[0].is_kaynaksiz is True
+    t = (await pg_session.execute(select(Thesis).where(Thesis.id == thesis_id))).scalar_one()
+    assert t.had_kaynaksiz_flag is False
+
+
 async def test_validator_numeric_fail_unsupported_number(pg_session):
     thesis_id = await create_thesis_skeleton(pg_session, ticker="GARAN", squad="Banking")
     # Tool result sadece RSI 67 içeriyor ama claim 99 diyor
@@ -137,8 +153,8 @@ async def test_validator_numeric_fail_unsupported_number(pg_session):
     report = await validate_citations(md, thesis_id, pg_session)
 
     assert len(report.numeric_issues) >= 1
-    # retry fn yok → soft flag
-    assert report.had_kaynaksiz is True
+    # Numeric mismatch soft signal olarak raporlanır; UUID gerçekse flag karartmaz.
+    assert report.had_kaynaksiz is False
 
 
 async def test_validator_retry_fn_called_on_failure(pg_session):

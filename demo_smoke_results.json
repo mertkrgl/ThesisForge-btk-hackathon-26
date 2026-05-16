@@ -1,0 +1,63 @@
+[
+  {
+    "ticker": "ASELS",
+    "mode": "default",
+    "ok": false,
+    "errors": [
+      "had_kaynaksiz_flag=True (validator unhappy)"
+    ],
+    "duration_sec": 169.25,
+    "confidence": 72.7,
+    "had_kaynaksiz_flag": true,
+    "bull_count": 5,
+    "bear_count": 5
+  },
+  {
+    "ticker": "GARAN",
+    "mode": "default",
+    "ok": true,
+    "errors": [],
+    "duration_sec": 147.03,
+    "confidence": 53.9,
+    "had_kaynaksiz_flag": false,
+    "bull_count": 5,
+    "bear_count": 6
+  },
+  {
+    "ticker": "TUPRS",
+    "mode": "default",
+    "ok": false,
+    "errors": [
+      "had_kaynaksiz_flag=True (validator unhappy)"
+    ],
+    "duration_sec": 176.62,
+    "confidence": 70.8,
+    "had_kaynaksiz_flag": true,
+    "bull_count": 5,
+    "bear_count": 5
+  },
+  {
+    "ticker": "MGROS",
+    "mode": "default",
+    "ok": true,
+    "errors": [],
+    "duration_sec": 148.98,
+    "confidence": 65.7,
+    "had_kaynaksiz_flag": false,
+    "bull_count": 5,
+    "bear_count": 6
+  },
+  {
+    "ticker": "EREGL",
+    "mode": "default",
+    "ok": false,
+    "errors": [
+      "had_kaynaksiz_flag=True (validator unhappy)"
+    ],
+    "duration_sec": 143.44,
+    "confidence": 72.5,
+    "had_kaynaksiz_flag": true,
+    "bull_count": 5,
+    "bear_count": 5
+  }
+]

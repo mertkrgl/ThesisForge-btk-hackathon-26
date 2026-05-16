@@ -28,6 +28,7 @@ def _thesis_to_dict(t) -> dict[str, Any]:
         "catalysts": t.catalysts,
         "confidence": float(t.confidence) if t.confidence is not None else None,
         "confidence_breakdown": t.confidence_breakdown,
+        "memory_hits": t.memory_hits or [],
         "price_at_thesis": float(t.price_at_thesis) if t.price_at_thesis is not None else None,
         "price_7d": float(t.price_7d) if t.price_7d is not None else None,
         "price_30d": float(t.price_30d) if t.price_30d is not None else None,

@@ -52,6 +52,26 @@ def _has_factual_number(text: str) -> bool:
     return bool(_FACTUAL_NUMBER_RE.search(text))
 
 
+def _is_memory_claim(text: str) -> bool:
+    """Internal memory comparisons are sourced from stored theses, not tool logs."""
+    lower = text.lower()
+    has_thesis_word = "tez" in lower or "memory" in lower
+    has_outcome_word = any(
+        word in lower
+        for word in (
+            "correct",
+            "partial",
+            "wrong",
+            "pending",
+            "doğru sonuç",
+            "yanlış sonuç",
+            "sonuçlan",
+            "getiri",
+        )
+    )
+    return has_thesis_word and has_outcome_word
+
+
 @dataclass
 class ValidationReport:
     md: str
@@ -112,7 +132,11 @@ async def validate_citations(
         if not missing and not invalid and not numeric_issues:
             break
 
-        if attempt == 0 and synthesizer_retry_fn is not None:
+        # Retry yalnızca UUID eşleşme/format hatalarında faydalı.
+        # Numeric mismatch çoğu durumda türetilmiş-metrik false positive;
+        # ikinci LLM turu süreyi 20-30s uzatıyor.
+        needs_retry = bool(missing or invalid)
+        if attempt == 0 and needs_retry and synthesizer_retry_fn is not None:
             feedback = _build_feedback(missing, invalid, numeric_issues)
             log.warning(
                 "citation_retry",
@@ -135,7 +159,7 @@ async def validate_citations(
     citation_records: list[CitationRecord] = []
     had_kaynaksiz = False
 
-    for claim_text, call_id_str in citations:
+    for claim_text, call_id_str, section_name in citations:
         if call_id_str is None or call_id_str in invalid_set:
             await insert_citation(
                 session,
@@ -151,7 +175,11 @@ async def validate_citations(
             # Gelecek tarihli catalyst (2026-Q3) veya soyut risk maddesi
             # (jeopolitik, regülasyon) için worker pool'unda eşleşecek UUID
             # yok — bunlar audit'te kaynaksız görünür ama flag karartmaz.
-            if _has_factual_number(claim_text):
+            if (
+                section_name in _FLAG_SECTIONS
+                and _has_factual_number(claim_text)
+                and not _is_memory_claim(claim_text)
+            ):
                 had_kaynaksiz = True
         else:
             await insert_citation(
@@ -185,7 +213,10 @@ async def validate_citations(
 # ───────────────────────── Helpers ─────────────────────────
 
 
-def _split_into_claims(md: str) -> list[tuple[str, str | None]]:
+_FLAG_SECTIONS = {"bull case", "bear case", "anahtar katalizörler"}
+
+
+def _split_into_claims(md: str) -> list[tuple[str, str | None, str]]:
     """Markdown'u claim'lere böl, her claim için (text, call_id_or_None) çek.
 
     Sadece **markdown bullet'ları** claim olarak işlenir. Paragraf cümleleri
@@ -193,13 +224,16 @@ def _split_into_claims(md: str) -> list[tuple[str, str | None]]:
     sistem mesajı vb.) yapısal olarak kaynak gerektirmediği için atlanır —
     aksi halde `had_kaynaksiz_flag` her tezde true çıkıyor.
     """
-    claims: list[tuple[str, str | None]] = []
+    claims: list[tuple[str, str | None, str]] = []
+    section_name = ""
     for raw in md.split("\n"):
         line = raw.strip()
         if not line:
             continue
-        # Başlıkları (# ##) atla
+        # Başlıkları (# ##) atla; aktif section'ı takip et.
         if line.startswith("#"):
+            if line.startswith("##"):
+                section_name = line.lstrip("#").strip().lower()
             continue
         # Yalnızca bullet'lar: Bull/Bear/Catalyst/Risk Uyarıları bölümleri.
         # Paragraf cümleleri claim sayılmaz.
@@ -211,11 +245,11 @@ def _split_into_claims(md: str) -> list[tuple[str, str | None]]:
             claim = UUID_RE.sub("", line).strip()
             claim = _strip_bullet_prefix(claim)
             if claim:
-                claims.append((claim, m.group(1)))
+                claims.append((claim, m.group(1), section_name))
         else:
             stripped = _strip_bullet_prefix(line)
             if stripped:
-                claims.append((stripped, None))
+                claims.append((stripped, None, section_name))
     return claims
 
 

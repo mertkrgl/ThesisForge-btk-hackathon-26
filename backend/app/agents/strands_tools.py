@@ -20,13 +20,28 @@ from strands import tool as strands_tool
 
 from app.agents import tool_registry as tr
 from app.agents.tools import get_current_context
+from app.db.session import session_scope
 
 
 async def _invoke(name: str, **kwargs) -> dict[str, Any]:
-    """Tüm Strands wrapper'larının ortak entry'si."""
-    ctx = get_current_context()
+    """Tüm Strands wrapper'larının ortak entry'si.
+
+    Gün 4A: Paralel executor altında shared AsyncSession çakışmasını önlemek
+    için her tool çağrısında izole bir session/context kullan.
+    """
+    parent_ctx = get_current_context()
     fn = tr.TOOLS[name]
-    return await fn(ctx, **kwargs)
+    async with session_scope() as tool_session:
+        child_ctx = parent_ctx.with_agent(parent_ctx.agent_id)
+        child_ctx.session = tool_session
+        child_ctx.last_call_id = None
+        try:
+            result = await fn(child_ctx, **kwargs)
+            await tool_session.commit()
+            return result
+        except Exception:
+            await tool_session.rollback()
+            raise
 
 
 # ───────────────────────── Macro Context tools ─────────────────────────
@@ -214,6 +229,8 @@ MACRO_TOOLS = [
     get_recent_macro_news,
 ]
 
+# DEPRECATED: Sector Router artık LLM kullanmıyor (sector_router.py rule-based).
+# Bu tool listesi tutuluyor — başka ajan ileride manuel squad lookup yapmak isteyebilir.
 SECTOR_ROUTER_TOOLS = [lookup_sector, select_squad]
 
 TECHNICAL_TOOLS = [

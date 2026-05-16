@@ -64,6 +64,7 @@ class MacroContextOutput(BaseModel):
     tufe_yoy: float | None = None
     policy_rate: float | None = None
     bist100_change_pct: float | None = None
+    sentiment_score: float = Field(default=0.0, ge=-100.0, le=100.0)
     observations: list[Observation] = Field(default_factory=list)
 
 
@@ -121,6 +122,15 @@ class Critique(BaseModel):
     fundamental_pushback: list[str] = Field(default_factory=list)
     cross_cutting_risks: list[str] = Field(default_factory=list)
     base_rate_warnings: list[str] = Field(default_factory=list)
+    citation_call_ids: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Devil's Advocate'in pushback maddeleri için kaynak UUID listesi. "
+            "Sıra: technical_pushback + fundamental_pushback + cross_cutting_risks + "
+            "base_rate_warnings maddelerinin görüldüğü sırayla; eşleşmeyen madde için "
+            "boş string ('') koyulabilir. Synthesizer Bear Case kaynaklamasında kullanır."
+        ),
+    )
     overall_critique_strength: int = Field(ge=0, le=100)
 
 
@@ -132,8 +142,10 @@ class MemoryHit(BaseModel):
     ticker: str
     thesis_date: str
     distance: float
-    outcome: Literal["correct", "partial", "wrong"]
+    outcome: Literal["correct", "partial", "wrong", "pending"]
     ground_truth_return: float | None = None
+    confidence: float | None = None
+    squad: SquadType | None = None
     summary: str
 
 

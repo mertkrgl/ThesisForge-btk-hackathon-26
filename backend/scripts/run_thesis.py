@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -20,8 +21,8 @@ import httpx
 import websockets
 
 
-BASE = "http://127.0.0.1:8000"
-WS_BASE = "ws://127.0.0.1:8000"
+BASE = os.getenv("THESIS_API_BASE", "http://127.0.0.1:8000").rstrip("/")
+WS_BASE = os.getenv("THESIS_WS_BASE", "ws://127.0.0.1:8000").rstrip("/")
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -158,8 +159,28 @@ def _render_markdown(
     lines.append("")
 
     lines.append("---\n")
+    memory_hits = d.get("memory_hits") or []
+    lines.append(f"## 3. Memory Hits ({len(memory_hits)})\n")
+    if memory_hits:
+        lines.append("| Ticker | Tarih | Outcome | Return | Confidence | Distance | Summary |")
+        lines.append("|---|---:|---|---:|---:|---:|---|")
+        for h in memory_hits:
+            summary = str(h.get("summary") or "").replace("\n", " ")[:160]
+            ret = h.get("ground_truth_return")
+            conf = h.get("confidence")
+            dist = h.get("distance")
+            lines.append(
+                f"| {h.get('ticker')} | {h.get('thesis_date')} | {h.get('outcome')} | "
+                f"{'' if ret is None else ret} | {'' if conf is None else conf} | "
+                f"{'' if dist is None else round(float(dist), 4)} | {summary} |"
+            )
+    else:
+        lines.append("_(Eşleşen geçmiş tez bulunmadı.)_")
+    lines.append("")
+
+    lines.append("---\n")
     bull = d.get("bull_points") or []
-    lines.append(f"## 3. Bull Points ({len(bull)})\n")
+    lines.append(f"## 4. Bull Points ({len(bull)})\n")
     for i, b in enumerate(bull, 1):
         lines.append(
             f"### Bull #{i}  —  score `{b.get('score','?')}`  —  call_id `{b.get('call_id')}`"
@@ -168,7 +189,7 @@ def _render_markdown(
 
     lines.append("---\n")
     bear = d.get("bear_points") or []
-    lines.append(f"## 4. Bear Points ({len(bear)})\n")
+    lines.append(f"## 5. Bear Points ({len(bear)})\n")
     for i, b in enumerate(bear, 1):
         lines.append(
             f"### Bear #{i}  —  score `{b.get('score','?')}`  —  call_id `{b.get('call_id')}`"
@@ -177,7 +198,7 @@ def _render_markdown(
 
     lines.append("---\n")
     cats = d.get("catalysts") or []
-    lines.append(f"## 5. Catalysts ({len(cats)})\n")
+    lines.append(f"## 6. Catalysts ({len(cats)})\n")
     for i, c in enumerate(cats, 1):
         lines.append(
             f"### Catalyst #{i}  —  date `{c.get('date')}`  —  impact `{c.get('impact')}`  —  call_id `{c.get('call_id')}`"
@@ -186,7 +207,7 @@ def _render_markdown(
 
     lines.append("---\n")
     if critique:
-        lines.append("## 6. Devil's Advocate — Ham Counter-Argümanlar\n")
+        lines.append("## 7. Devil's Advocate — Ham Counter-Argümanlar\n")
         strength = critique.get("overall_critique_strength")
         lines.append(
             f"**overall_critique_strength**: `{strength}/100`  "
@@ -233,11 +254,11 @@ def _render_markdown(
         )
         lines.append("---\n")
     else:
-        lines.append("## 6. Devil's Advocate — Ham Counter-Argümanlar\n")
+        lines.append("## 7. Devil's Advocate — Ham Counter-Argümanlar\n")
         lines.append("_(critique event yakalanamadı — pipeline kesintiye uğramış olabilir)_\n")
         lines.append("---\n")
 
-    lines.append("## 7. Citation Audit\n")
+    lines.append("## 8. Citation Audit\n")
     cits = citations if citations is not None else (d.get("citations") or [])
     ok = sum(1 for c in cits if not c.get("is_kaynaksiz"))
     ks = len(cits) - ok

@@ -161,6 +161,9 @@ async def test_orchestrator_happy_path(pg_session, monkeypatch):
     assert row.squad == "Defense"
     assert row.confidence is not None and row.confidence > 0
     assert row.thesis_md and "TL;DR" in row.thesis_md
+    assert row.memory_hits is not None
+    assert row.memory_hits[0]["ticker"] == "ASELS"
+    assert row.memory_hits[0]["outcome"] == "correct"
     assert row.confidence_breakdown is not None
     assert "weights" in row.confidence_breakdown
 

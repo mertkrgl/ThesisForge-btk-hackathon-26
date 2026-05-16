@@ -52,12 +52,15 @@ def _build_prompt(
         for h in memory_hits[:3]:
             parts.append(
                 f"- {h.ticker} {h.thesis_date} outcome={h.outcome} "
-                f"ret={h.ground_truth_return} :: {h.summary[:160]}"
+                f"ret={h.ground_truth_return} confidence={h.confidence} "
+                f"distance={h.distance:.4f} :: {h.summary[:160]}"
             )
     parts.append("")
     parts.append(
         "Yukarıdaki tezin zayıf taraflarını ve geçmiş base rate verisiyle "
-        "olası tuzakları öne çıkar. 3 tool'u kullanmayı unutma."
+        "olası tuzakları öne çıkar. Geçmiş benzer tezlerde outcome=pending "
+        "olanları başarı kanıtı gibi sunma; sadece benzer açık risk/tema olarak "
+        "kullan. 3 tool'u kullanmayı unutma."
     )
     return "\n".join(parts)
 

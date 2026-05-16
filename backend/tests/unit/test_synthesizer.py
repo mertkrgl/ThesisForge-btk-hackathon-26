@@ -104,6 +104,30 @@ def test_memory_base_rate_mixed_outcomes():
     assert memory_base_rate(hits) == 50.0
 
 
+def test_memory_base_rate_ignores_pending_hits():
+    hits = [
+        MemoryHit(
+            thesis_id=uuid.uuid4(),
+            ticker="X",
+            thesis_date="2025-01-01",
+            distance=0.1,
+            outcome="pending",
+            ground_truth_return=None,
+            summary="Henüz sonuçlanmamış benzer tez.",
+        ),
+        MemoryHit(
+            thesis_id=uuid.uuid4(),
+            ticker="X",
+            thesis_date="2025-02-01",
+            distance=0.2,
+            outcome="correct",
+            ground_truth_return=12.0,
+            summary="Başarılı geçmiş tez.",
+        ),
+    ]
+    assert memory_base_rate(hits) == 100.0
+
+
 # ─── Synthesizer mocked ──────────────────────────────────────────────
 
 
@@ -176,7 +200,8 @@ async def test_synthesizer_returns_markdown_with_citation(monkeypatch):
     assert re.search(r"\[kaynak:\s*[a-f0-9-]{36}\]", md)
 
 
-async def test_synthesizer_fallback_on_exception(monkeypatch):
+async def test_synthesizer_raises_on_exception(monkeypatch):
+    """Rapor §4.2: fallback markdown stream etmemek için SynthesizerError raise."""
     _, macro, tech, fund, critique, conf = _make_inputs()
 
     async def boom(*a, **kw):
@@ -185,34 +210,51 @@ async def test_synthesizer_fallback_on_exception(monkeypatch):
     monkeypatch.setattr(synth, "run_agent_with_context", boom)
     monkeypatch.setattr(synth, "_synth_agent", lambda mode: object())
 
-    md = await synth.run_synthesizer(
-        _ctx(),
-        ticker="X",
-        macro=macro,
-        tech=tech,
-        fund=fund,
-        critique=critique,
-        memory_hits=[],
-        confidence_breakdown=conf,
+    with pytest.raises(synth.SynthesizerError):
+        await synth.run_synthesizer(
+            _ctx(),
+            ticker="X",
+            macro=macro,
+            tech=tech,
+            fund=fund,
+            critique=critique,
+            memory_hits=[],
+            confidence_breakdown=conf,
+        )
+
+
+async def test_extract_structured_parses_markdown_with_regex():
+    """Rapor §2.2: extract_structured artık deterministic regex parser."""
+    md = (
+        "## TL;DR\nÖzet metin\n\n"
+        "## Bull Case\n"
+        "- ASELS backlog 9.8 milyar USD seviyesinde [kaynak: 11111111-1111-1111-1111-111111111111].\n"
+        "- EBITDA marjı sektör ortalamasının üstünde.\n"
+        "\n"
+        "## Bear Case\n"
+        "- EBITDA marjı %18.4, sektör medyanı %22'nin altında [kaynak: 22222222-2222-2222-2222-222222222222].\n"
+        "\n"
+        "## Anahtar Katalizörler\n"
+        "- 2026-Q3: Backlog güncellemesi — kritik tetikleyici [kaynak: 33333333-3333-3333-3333-333333333333].\n"
+        "- 2026-08-15: Q2 finansal sonuçları açıklanacak.\n"
+        "\n"
+        "## Disclaimer\nBilgi amaçlıdır.\n"
     )
-    assert "Disclaimer" in md
 
+    out = await synth.extract_structured(_ctx(), ticker="ASELS", thesis_md=md)
 
-async def test_extract_structured_returns_bull_bear_catalysts(monkeypatch):
-    expected = ThesisStructured(
-        bull_points=[BullBearPoint(point="Backlog güçlü", score=8)],
-        bear_points=[BullBearPoint(point="Makro risk", score=5)],
-        catalysts=[Catalyst(date="2026-06-15", event="Q2 earnings", impact="high")],
-    )
+    assert len(out.bull_points) == 2
+    assert out.bull_points[0].call_id == "11111111-1111-1111-1111-111111111111"
+    assert out.bull_points[0].score == 9  # kaynaklı + finansal sayı
+    assert out.bull_points[1].call_id is None
+    # ikinci bullet "sektör ortalamasının üstünde" finansal sayı yok → 4
+    assert out.bull_points[1].score == 4
 
-    async def fake_run(agent, prompt, ctx, *, output_model=None):
-        return expected
+    assert len(out.bear_points) == 1
+    assert out.bear_points[0].score == 9
 
-    monkeypatch.setattr(synth, "run_agent_with_context", fake_run)
-    monkeypatch.setattr(synth, "_extractor_agent", lambda: object())
-
-    out = await synth.extract_structured(
-        _ctx(), ticker="ASELS", thesis_md="## TL;DR\nx"
-    )
-    assert out.bull_points and out.bull_points[0].score == 8
-    assert out.catalysts and out.catalysts[0].impact == "high"
+    assert len(out.catalysts) == 2
+    assert out.catalysts[0].date == "2026-Q3"
+    assert out.catalysts[0].impact == "high"  # "kritik tetikleyici" keyword
+    assert out.catalysts[1].date == "2026-08-15"
+    assert out.catalysts[1].impact == "medium"

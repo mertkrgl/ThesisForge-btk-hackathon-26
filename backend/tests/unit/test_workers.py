@@ -37,7 +37,7 @@ async def test_technical_worker_returns_pydantic(monkeypatch):
         trend_short="bullish",
         trend_long="neutral",
         key_levels=KeyLevels(support=[140.0], resistance=[160.0]),
-        momentum_score=72,
+        momentum_score=0,  # LLM artık baseline 0 verir; Python override eder
         patterns_detected=["golden_cross_yaklaşıyor"],
         notable_observations=[
             Observation(
@@ -51,13 +51,53 @@ async def test_technical_worker_returns_pydantic(monkeypatch):
     async def fake_run(agent, prompt, ctx, *, output_model=None):
         return expected
 
+    # Rapor §1.2: momentum DB tool sonuçlarından Python ile hesaplanıyor.
+    # RSI 67 (delta +17), MACD pozitif (+10), RS +6% (+15) → 50+42 = 92
+    async def fake_fetch(ctx, ticker):
+        return (
+            {"indicators": {"rsi_14": 67.0, "macd_hist": 0.5}},
+            {"relative_strength_pct": 6.0},
+        )
+
     monkeypatch.setattr(tw, "run_agent_with_context", fake_run)
     monkeypatch.setattr(tw, "_agent", lambda: object())
+    monkeypatch.setattr(tw, "_fetch_indicator_payloads", fake_fetch)
 
     out = await tw.run_technical_worker(_ctx(), "ASELS")
     assert out.ticker == "ASELS"
-    assert out.momentum_score == 72
+    assert out.momentum_score == 92  # 50 + 17 + 10 + 15
     assert out.trend_short == "bullish"
+
+
+async def test_technical_worker_momentum_bearish(monkeypatch):
+    """Bearish hisse: RSI 36 (-14), MACD negatif (-10), RS -8% (-15) → 50-39 = 11."""
+    expected = TechnicalAnalysis(
+        ticker="MEPET",
+        trend_short="bearish",
+        trend_long="bearish",
+        key_levels=KeyLevels(),
+        momentum_score=0,
+        patterns_detected=[],
+        notable_observations=[],
+    )
+
+    async def fake_run(agent, prompt, ctx, *, output_model=None):
+        return expected
+
+    async def fake_fetch(ctx, ticker):
+        return (
+            {"indicators": {"rsi_14": 36.0, "macd_hist": -0.3}},
+            {"relative_strength_pct": -8.0},
+        )
+
+    monkeypatch.setattr(tw, "run_agent_with_context", fake_run)
+    monkeypatch.setattr(tw, "_agent", lambda: object())
+    monkeypatch.setattr(tw, "_fetch_indicator_payloads", fake_fetch)
+
+    out = await tw.run_technical_worker(_ctx(), "MEPET")
+    # Rapor §1.2 düzeltmesi: bearish patolojik 0-1 yerine makul 11
+    assert out.momentum_score == 11
+    assert out.momentum_score > 0  # patolojik dipleme yok
 
 
 async def test_technical_worker_fallback_on_exception(monkeypatch):

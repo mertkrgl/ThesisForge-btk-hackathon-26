@@ -114,6 +114,34 @@ async def test_similarity_search_filters_pending(pg_session, monkeypatch):
     assert pending_id not in hit_ids
 
 
+async def test_similarity_search_can_include_pending(pg_session, monkeypatch):
+    from app.core import config
+
+    monkeypatch.setattr(config.settings, "GEMINI_API_KEY", "")
+    from app.agents import embedding as e
+
+    e._client.cache_clear()
+
+    base_vec = [0.1] * 768
+    pending_id = await _seed_thesis(
+        pg_session,
+        ticker="ASELS",
+        squad="Defense",
+        outcome="pending",
+        embedding=[0.1] * 768,
+    )
+
+    hits = await similarity_search(
+        pg_session,
+        embedding=base_vec,
+        ticker="ASELS",
+        squad="Defense",
+        top_k=5,
+        include_pending=True,
+    )
+    assert pending_id in [h["id"] for h in hits]
+
+
 async def test_similarity_search_by_squad_when_ticker_different(pg_session):
     base_vec = [0.2] * 768
     # GARAN aynı squad'da (Banking) ama farklı ticker
@@ -151,7 +179,46 @@ async def test_memory_agent_search_returns_typed_hits(pg_session, monkeypatch):
         embedding=(await embed_text("TUPRS yatırım tezi"))["vector"],
         return_pct=18.0,
     )
-    ctx = AgentContext(thesis_id=tid, agent_id="x", session=pg_session)
+    ctx = AgentContext(thesis_id=uuid.uuid4(), agent_id="x", session=pg_session)
     hits = await search_memory(ctx, "TUPRS", "TUPRS yatırım tezi", top_k=3)
     assert any(h.ticker == "TUPRS" and h.outcome == "correct" for h in hits)
     assert hits[0].ground_truth_return == 18.0
+    assert hits[0].thesis_id == tid
+
+
+async def test_memory_agent_reserves_resolved_hits_when_pending_is_closer(
+    pg_session, monkeypatch
+):
+    from app.core import config
+
+    monkeypatch.setattr(config.settings, "GEMINI_API_KEY", "")
+    from app.agents import embedding as e
+
+    e._client.cache_clear()
+
+    query_vec = (await embed_text("GARAN banka temettü tezi"))["vector"]
+    resolved_id = await _seed_thesis(
+        pg_session,
+        ticker="GARAN",
+        squad="Banking",
+        outcome="correct",
+        embedding=[x + 0.001 for x in query_vec],
+        return_pct=14.8,
+        thesis_md="Sonuçlanmış GARAN tezi",
+    )
+    pending_id = await _seed_thesis(
+        pg_session,
+        ticker="GARAN",
+        squad="Banking",
+        outcome="pending",
+        embedding=query_vec,
+        return_pct=0.0,
+        thesis_md="Henüz sonuçlanmamış GARAN tezi",
+    )
+
+    ctx = AgentContext(thesis_id=uuid.uuid4(), agent_id="x", session=pg_session)
+    hits = await search_memory(ctx, "GARAN", "GARAN banka temettü tezi", top_k=2)
+
+    hit_ids = [h.thesis_id for h in hits]
+    assert resolved_id in hit_ids
+    assert pending_id in hit_ids

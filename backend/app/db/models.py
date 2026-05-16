@@ -104,6 +104,7 @@ class Thesis(Base):
     catalysts: Mapped[list | dict | None] = mapped_column(JSONB, nullable=True)
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     confidence_breakdown: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    memory_hits: Mapped[list | dict | None] = mapped_column(JSONB, nullable=True)
     embedding: Mapped[list[float] | None] = mapped_column(Vector(768), nullable=True)
     price_at_thesis: Mapped[float | None] = mapped_column(Numeric, nullable=True)
     price_7d: Mapped[float | None] = mapped_column(Numeric, nullable=True)

@@ -102,15 +102,16 @@ def tool(
                 result=result_for_db,
                 latency_ms=latency_ms,
             )
-            ctx.last_call_id = str(call_id)
+            call_id_str = str(call_id)
+            ctx.last_call_id = call_id_str
             log.info(
                 "tool_call_ok",
                 tool=name,
                 agent=ctx.agent_id,
-                call_id=str(call_id),
+                call_id=call_id_str,
                 latency_ms=latency_ms,
             )
-            return {"call_id": str(call_id), "result": result}
+            return {"call_id": call_id_str, "result": result}
 
         wrapper.__tool_name__ = name  # type: ignore[attr-defined]
         return wrapper

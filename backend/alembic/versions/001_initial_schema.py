@@ -101,6 +101,7 @@ def upgrade() -> None:
         sa.Column("catalysts", JSONB, nullable=True),
         sa.Column("confidence", sa.Float, nullable=True),
         sa.Column("confidence_breakdown", JSONB, nullable=True),
+        sa.Column("memory_hits", JSONB, nullable=True),
         sa.Column("embedding", Vector(768), nullable=True),
         sa.Column("price_at_thesis", sa.Numeric, nullable=True),
         sa.Column("price_7d", sa.Numeric, nullable=True),

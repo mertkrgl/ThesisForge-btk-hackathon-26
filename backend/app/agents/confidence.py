@@ -14,6 +14,16 @@ WEIGHTS: dict[str, float] = {
 
 CONSERVATIVE_CAP: float = 70.0
 
+# Beklenen toplam tool çağrısı sayısı (data_quality denominator).
+# Pipeline boyunca her ajanın çağırması gereken tool sayısı:
+#   technical_worker: 5 (ohlcv, indicators, patterns, support_resistance, relative_strength)
+#   fundamental_worker: 6 (kap, financials, ratios, peers, peer_compare, dividends)
+#   macro_context: 3 (tcmb, bist_index, global_signals) — recent_macro_news opsiyonel
+#   devils_advocate: 3 (query_workers, disconfirming_evidence, base_rate_check)
+#   memory_agent: 1 (similarity_search, deterministic)
+#   sector_router: 0 (rule-based, LLM kaldırıldı — Rapor §1.4)
+EXPECTED_TOOL_TOTAL: int = 18
+
 
 def _clip(v: float) -> float:
     return max(0.0, min(100.0, float(v)))
@@ -67,8 +77,12 @@ def compute_confidence(
 
 
 def memory_base_rate(memory_hits: list) -> float:
-    """MemoryHit listesinden correct oranı yüzdesi; hit yoksa nötr 50."""
-    if not memory_hits:
+    """Resolved MemoryHit listesinden correct oranı; resolved hit yoksa nötr 50."""
+    resolved = [
+        h for h in memory_hits
+        if getattr(h, "outcome", None) in {"correct", "partial", "wrong"}
+    ]
+    if not resolved:
         return 50.0
-    correct = sum(1 for h in memory_hits if getattr(h, "outcome", None) == "correct")
-    return (correct / len(memory_hits)) * 100.0
+    correct = sum(1 for h in resolved if getattr(h, "outcome", None) == "correct")
+    return (correct / len(resolved)) * 100.0

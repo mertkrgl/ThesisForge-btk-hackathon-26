@@ -29,7 +29,11 @@ from app.agents import (
     synthesizer as synth_mod,
     technical_worker as tech_mod,
 )
-from app.agents.confidence import compute_confidence, memory_base_rate
+from app.agents.confidence import (
+    EXPECTED_TOOL_TOTAL,
+    compute_confidence,
+    memory_base_rate,
+)
 from app.agents.schemas import (
     ConfidenceBreakdown,
     Critique,
@@ -67,16 +71,19 @@ async def _safe_emit(emit: EmitFn | None, event: dict[str, Any]) -> None:
 
 
 async def _chunked_emit(
-    md: str, emit: EmitFn | None, chunk_size: int = 60
+    md: str, emit: EmitFn | None, chunk_size: int = 250
 ) -> None:
-    """Onaylı markdown'ı küçük token event'leri olarak parça parça yolla."""
+    """Onaylı markdown'ı küçük token event'leri olarak parça parça yolla.
+
+    Rapor §2.4: önceki konfig (chunk=60, sleep=0.04) 5400 char md için 3.6s
+    yapay bekleme yaratıyordu. Yeni: chunk=250 + sleep=0.015 → ~0.3s.
+    """
     if emit is None or not md:
         return
     for i in range(0, len(md), chunk_size):
         chunk = md[i : i + chunk_size]
         await _safe_emit(emit, {"type": "token", "content": chunk})
-        # küçük bir yapay aralık — UI'de "yazılıyor" hissi
-        await asyncio.sleep(0.04)
+        await asyncio.sleep(0.015)
 
 
 async def _run_isolated(
@@ -102,13 +109,15 @@ async def _run_isolated(
 
 
 def _news_macro_score(macro: MacroContextOutput) -> float:
-    """Aşama 7 baseline: makro paragraf üretildiyse 60, üretilmediyse 40.
+    """Macro paragrafının `sentiment_score`'unu 0-100 bandına eşle.
 
-    Aşama 13+ news sentiment provider eklendiğinde burası incelenir.
+    macro.sentiment_score ∈ [-100, +100]; lineer dönüşüm: 50 + sentiment*0.5.
+    Paragraf üretilemediyse (degrade path) sabit 40.
     """
-    if macro.paragraph and "alınamadı" not in macro.paragraph:
-        return 60.0
-    return 40.0
+    if not macro.paragraph or "alınamadı" in macro.paragraph:
+        return 40.0
+    score = 50.0 + macro.sentiment_score * 0.5
+    return max(0.0, min(100.0, score))
 
 
 # ───────────────────────── Public entry ─────────────────────────
@@ -121,7 +130,7 @@ async def run_thesis(
     user_mode: str = "default",
     thesis_id: uuid.UUID | None = None,
     websocket_emit: EmitFn | None = None,
-    timeout_sec: float = 120.0,
+    timeout_sec: float = 200.0,
 ) -> uuid.UUID:
     """Tek bir tezi uçtan uca üret. thesis_id döndürür.
 
@@ -250,8 +259,11 @@ async def _run_thesis_inner(
         )
 
         # ───── 5. data_quality + 6. confidence ─────
-        total, success = await count_tool_calls_for_thesis(session, thesis_id)
-        data_quality = (success / total * 100.0) if total else 0.0
+        # Rapor §1.1: total == success her zaman (hata path'inde INSERT atılmıyor).
+        # Bu yüzden beklenen toplam (EXPECTED_TOOL_TOTAL) denominator olarak kullanıyoruz.
+        # Tool fail olursa success<beklenen → data_quality düşer.
+        _, success = await count_tool_calls_for_thesis(session, thesis_id)
+        data_quality = min(success / EXPECTED_TOOL_TOTAL * 100.0, 100.0)
         breakdown: ConfidenceBreakdown = compute_confidence(
             data_quality=data_quality,
             technical=float(tech.momentum_score),
@@ -280,17 +292,39 @@ async def _run_thesis_inner(
                 feedback=feedback,
             )
 
-        thesis_md = await synth_mod.run_synthesizer(
-            ctx,
-            ticker=upper,
-            macro=macro,
-            tech=tech,
-            fund=fund,
-            critique=critique,
-            memory_hits=memory_hits,
-            confidence_breakdown=breakdown,
-            user_mode=user_mode,
-        )
+        try:
+            thesis_md = await synth_mod.run_synthesizer(
+                ctx,
+                ticker=upper,
+                macro=macro,
+                tech=tech,
+                fund=fund,
+                critique=critique,
+                memory_hits=memory_hits,
+                confidence_breakdown=breakdown,
+                user_mode=user_mode,
+            )
+        except synth_mod.SynthesizerError as e:
+            # Rapor §4.2: önceki davranış `_FALLBACK_MD`'yi stream ediyordu
+            # ("Sentez ajanı çalışamadı..."). Artık kullanıcıya placeholder yazmak yerine
+            # explicit error event yayınla ve pipeline'ı sonlandır.
+            log.error(
+                "synthesizer_unrecoverable",
+                ticker=upper,
+                thesis_id=str(thesis_id),
+                error=str(e)[:200],
+            )
+            await _safe_emit(
+                emit,
+                {
+                    "type": "error",
+                    "msg": (
+                        "Sentez ajanı geçici olarak çalışmıyor "
+                        "(Gemini Pro 503/429). Lütfen 1 dakika sonra tekrar deneyin."
+                    ),
+                },
+            )
+            raise
 
         await _safe_emit(emit, {"type": "stage", "stage": "validator"})
         report = await validate_citations(
@@ -317,6 +351,7 @@ async def _run_thesis_inner(
             catalysts=[c.model_dump(mode="json") for c in structured.catalysts],
             confidence=breakdown.final,
             confidence_breakdown=breakdown.model_dump(mode="json"),
+            memory_hits=[h.model_dump(mode="json") for h in memory_hits],
             squad=squad,
         )
         await session.commit()
