@@ -1,18 +1,18 @@
 """Orchestrator — uçtan uca tez üretimi.
 
-Akış:
+Akış (DAG — sıralı bariyer yerine fine-grained dependency):
   1. create_thesis_skeleton → thesis_id
-  2. PARALLEL: sector_router | macro_context | memory_search
-  3. PARALLEL: technical_worker | fundamental_worker
-  4. devils_advocate
-  5. data_quality = (başarılı tool çağrısı / toplam) * 100
-  6. compute_confidence(...) → ConfidenceBreakdown
-  7. synthesizer → markdown
-  8. validate_citations(retry_fn=...) → onaylı md
-  9. extract_structured → bull/bear/catalysts
- 10. update_thesis_synthesis (persist)
- 11. asyncio.create_task(write_thesis_embedding_async)
- 12. websocket_emit ile final markdown chunked stream
+  2. dispatch: sector_router | macro_context | memory_agent | technical_worker (paralel)
+     sector_router biter bitmez → fundamental_worker da kuyruğa girer
+  3. devils_advocate (tech + fund + memory hazır olur olmaz; macro'yu beklemez)
+  4. macro'yu burada bekle (synthesizer'a gerekli)
+  5. data_quality + compute_confidence
+  6. synthesizer → markdown
+  7. validate_citations(retry_fn=...) → onaylı md
+  8. extract_structured ‖ chunked WS stream (paralel)
+  9. update_thesis_synthesis (persist)
+ 10. asyncio.create_task(write_thesis_embedding_async)
+ 11. done event
 """
 from __future__ import annotations
 
@@ -191,51 +191,58 @@ async def _run_thesis_inner(
             },
         )
 
-        # ───── 2. PARALLEL 3-bacak (her birine fresh session) ─────
-        await _safe_emit(emit, {"type": "stage", "stage": "parallel_3_bacak"})
-        sector, macro, memory_hits = await asyncio.gather(
-            _run_isolated(
-                thesis_id, "sector_router",
-                lambda c: sec_mod.run_sector_router(c, upper),
-            ),
-            _run_isolated(
-                thesis_id, "macro_context",
-                lambda c: macro_mod.run_macro_context(c),
-            ),
-            _run_isolated(
-                thesis_id, "memory_agent",
-                lambda c: mem_mod.search_memory(c, upper, top_k=3),
-            ),
-            return_exceptions=False,
-        )
-        sector: SectorAssignment
-        macro: MacroContextOutput
-        memory_hits: list[MemoryHit]
-        squad = sector.squad
+        # ───── 2. Geniş DAG: bağımsız ajanları aynı anda başlat ─────
+        # technical_worker hiçbir önceki çıktıya bağımlı değil; sector/macro/memory
+        # ile aynı anda başlatılabilir. fundamental_worker sadece sector.squad'a
+        # bağımlı — sector_router (genelde rule-based ~0ms) biter bitmez kuyruğa
+        # girer. Devil's Advocate macro'yu kullanmıyor; macro yalnızca
+        # synthesizer'dan hemen önce bekleniyor.
+        await _safe_emit(emit, {"type": "stage", "stage": "agents_dispatched"})
 
-        # ───── 3. PARALLEL 2-worker (fresh session per worker) ─────
+        sector_task = asyncio.create_task(_run_isolated(
+            thesis_id, "sector_router",
+            lambda c: sec_mod.run_sector_router(c, upper),
+        ))
+        macro_task = asyncio.create_task(_run_isolated(
+            thesis_id, "macro_context",
+            lambda c: macro_mod.run_macro_context(c),
+        ))
+        memory_task = asyncio.create_task(_run_isolated(
+            thesis_id, "memory_agent",
+            lambda c: mem_mod.search_memory(c, upper, top_k=3),
+        ))
+        tech_task = asyncio.create_task(_run_isolated(
+            thesis_id, "technical_worker",
+            lambda c: tech_mod.run_technical_worker(c, upper),
+        ))
+
+        sector: SectorAssignment = await sector_task
+        squad = sector.squad
         await _safe_emit(
-            emit, {"type": "stage", "stage": "parallel_workers", "squad": squad}
+            emit, {"type": "stage", "stage": "workers_started", "squad": squad}
         )
-        tech, fund = await asyncio.gather(
-            _run_isolated(
-                thesis_id, "technical_worker",
-                lambda c: tech_mod.run_technical_worker(c, upper),
-            ),
-            _run_isolated(
-                thesis_id, "fundamental_worker",
-                lambda c: fund_mod.run_fundamental_worker(c, upper, squad=squad),
-            ),
-            return_exceptions=False,
+
+        fund_task = asyncio.create_task(_run_isolated(
+            thesis_id, "fundamental_worker",
+            lambda c: fund_mod.run_fundamental_worker(c, upper, squad=squad),
+        ))
+
+        # Devil's Advocate için gerekli üçlü: tech + fund + memory
+        tech, fund, memory_hits = await asyncio.gather(
+            tech_task, fund_task, memory_task, return_exceptions=False,
         )
         tech: TechnicalAnalysis
         fund: FundamentalAnalysis
+        memory_hits: list[MemoryHit]
 
-        # ───── 4. Devil's Advocate (orchestrator session OK — sıralı) ─────
+        # ───── 3. Devil's Advocate (macro'yu beklemiyor) ─────
         await _safe_emit(emit, {"type": "stage", "stage": "devils_advocate"})
         critique: Critique = await devil_mod.run_devils_advocate(
             ctx, upper, tech, fund, memory_hits=memory_hits
         )
+
+        # Macro yalnızca synthesizer'a girmeden hemen önce beklenir.
+        macro: MacroContextOutput = await macro_task
         # Critique persist edilmiyor; tüketicilerin (run_thesis.py vs UI)
         # ham counter-argümanları görebilmesi için WS üzerinden yayınla.
         await _safe_emit(
@@ -290,9 +297,14 @@ async def _run_thesis_inner(
             thesis_md, thesis_id, session, synthesizer_retry_fn=_retry_fn
         )
 
-        # ───── 9. Structured extract (bull/bear/catalysts) ─────
-        structured = await synth_mod.extract_structured(
-            ctx, ticker=upper, thesis_md=report.md
+        # ───── 9. Structured extract + WS stream PARALEL ─────
+        # extract_structured ayrı bir LLM çağrısı (~5-15s). Kullanıcının
+        # markdown'ı görmek için bunu beklemesine gerek yok — chunked emit'i
+        # paralel başlat. Her iki coroutine de bağımsız (extract sadece
+        # report.md okur, emit yalnızca WS'e yazar).
+        structured, _ = await asyncio.gather(
+            synth_mod.extract_structured(ctx, ticker=upper, thesis_md=report.md),
+            _chunked_emit(report.md, emit),
         )
 
         # ───── 10. Persist ─────
@@ -314,8 +326,7 @@ async def _run_thesis_inner(
             mem_mod.write_thesis_embedding_async(thesis_id, report.md)
         )
 
-        # ───── 12. WS final stream + done ─────
-        await _chunked_emit(report.md, emit)
+        # ───── 12. done event ─────
         await _safe_emit(
             emit,
             {
