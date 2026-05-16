@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { cn } from "@/lib/utils";
+import { StaggerContainer, StaggerItem, HoverCard } from "@/components/shared/MotionWrappers";
 
 const FEATURES = [
   {
@@ -66,35 +67,41 @@ export function FeatureGrid() {
           title="Premium karar destek katmanı."
           subtitle="Sinyal değil. Gerekçesi okunabilir, kaynağı doğrulanabilir bir tez ekosistemi."
         />
-        <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <StaggerContainer
+          stagger={0.07}
+          className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+        >
           {FEATURES.map((f) => {
             const Icon = f.icon;
             const t = TONE[f.tone];
             return (
-              <div
-                key={f.title}
-                className="group rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-6 transition-all hover:-translate-y-0.5 hover:border-line-2"
-              >
-                <div
-                  className={cn(
-                    "inline-flex h-11 w-11 items-center justify-center rounded-xl border",
-                    t.ring,
-                    t.bg,
-                    t.text
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                </div>
-                <h3 className="mt-4 text-[15px] font-semibold text-white">
-                  {f.title}
-                </h3>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-text-2">
-                  {f.body}
-                </p>
-              </div>
+              <StaggerItem key={f.title}>
+                <HoverCard>
+                  <div
+                    className="group rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-6 transition-all hover:border-line-2"
+                  >
+                    <div
+                      className={cn(
+                        "inline-flex h-11 w-11 items-center justify-center rounded-xl border",
+                        t.ring,
+                        t.bg,
+                        t.text
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="mt-4 text-[15px] font-semibold text-white">
+                      {f.title}
+                    </h3>
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-text-2">
+                      {f.body}
+                    </p>
+                  </div>
+                </HoverCard>
+              </StaggerItem>
             );
           })}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   );

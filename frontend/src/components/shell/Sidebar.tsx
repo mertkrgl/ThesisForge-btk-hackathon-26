@@ -13,6 +13,7 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 type NavItem = {
   label: string;
@@ -113,13 +114,22 @@ export function Sidebar() {
                 key={item.label}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] text-text-2 transition-all hover:bg-[#0F1A30] hover:text-white",
+                  "relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] text-text-2 transition-all hover:bg-[#0F1A30] hover:text-white",
                   active &&
-                    "bg-[linear-gradient(90deg,#13213F_0%,#0E1830_100%)] text-white shadow-[inset_0_0_0_1px_#1E2A44,inset_2px_0_0_#3B82F6]"
+                    "bg-[linear-gradient(90deg,#13213F_0%,#0E1830_100%)] text-white shadow-[inset_0_0_0_1px_#1E2A44]"
                 )}
               >
-                <Icon className="h-4 w-4 opacity-90" />
-                <span>{item.label}</span>
+                {active && (
+                  <motion.div
+                    layoutId="sidebar-active-indicator"
+                    className="absolute inset-y-0 left-0 w-[2px] rounded-r-full bg-primary"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  />
+                )}
+                <Icon className="relative z-10 h-4 w-4 opacity-90" />
+                <span className="relative z-10">{item.label}</span>
                 {item.badge && (
                   <span
                     className={cn(

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Bell, CheckCheck, Sparkles, TrendingUp, AlertTriangle } from "lucide-react";
 import { useClickOutside } from "@/components/shared/useClickOutside";
+import { DropdownReveal } from "@/components/shared/MotionWrappers";
 import { cn } from "@/lib/utils";
 
 const NOTIFS = [
@@ -64,58 +65,59 @@ export function NotificationPanel() {
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-40 w-[340px] overflow-hidden rounded-xl border border-line bg-[#0B1220]/95 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] glass-strong tf-rise">
-          <div className="flex items-center justify-between border-b border-line px-4 py-3">
-            <span className="text-[13px] font-semibold text-white">
-              Bildirimler
-            </span>
-            <button className="inline-flex items-center gap-1 text-[11px] text-text-2 transition-colors hover:text-white">
-              <CheckCheck className="h-3 w-3" />
-              Tümünü okundu işaretle
-            </button>
-          </div>
-          <ul className="max-h-[60vh] overflow-y-auto">
-            {NOTIFS.map((n) => {
-              const Icon = n.icon;
-              return (
-                <li
-                  key={n.id}
+      <DropdownReveal
+        open={open}
+        className="absolute right-0 top-[calc(100%+8px)] z-40 w-[340px] overflow-hidden rounded-xl border border-line bg-[#0B1220]/95 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] glass-strong"
+      >
+        <div className="flex items-center justify-between border-b border-line px-4 py-3">
+          <span className="text-[13px] font-semibold text-white">
+            Bildirimler
+          </span>
+          <button className="inline-flex items-center gap-1 text-[11px] text-text-2 transition-colors hover:text-white">
+            <CheckCheck className="h-3 w-3" />
+            Tümünü okundu işaretle
+          </button>
+        </div>
+        <ul className="max-h-[60vh] overflow-y-auto">
+          {NOTIFS.map((n) => {
+            const Icon = n.icon;
+            return (
+              <li
+                key={n.id}
+                className={cn(
+                  "flex gap-3 border-b border-line/60 px-4 py-3 transition-colors hover:bg-white/[0.02]",
+                  n.unread && "bg-white/[0.012]"
+                )}
+              >
+                <div
                   className={cn(
-                    "flex gap-3 border-b border-line/60 px-4 py-3 transition-colors hover:bg-white/[0.02]",
-                    n.unread && "bg-white/[0.012]"
+                    "grid h-9 w-9 shrink-0 place-items-center rounded-lg border",
+                    TONE[n.tone]
                   )}
                 >
-                  <div
-                    className={cn(
-                      "grid h-9 w-9 shrink-0 place-items-center rounded-lg border",
-                      TONE[n.tone]
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[12.5px] font-semibold text-white">
-                        {n.title}
-                      </span>
-                      {n.unread && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                      )}
-                    </div>
-                    <p className="mt-0.5 text-[12px] leading-relaxed text-text-2">
-                      {n.body}
-                    </p>
-                    <span className="mt-1 inline-block text-[10.5px] text-muted-foreground">
-                      {n.when}
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[12.5px] font-semibold text-white">
+                      {n.title}
                     </span>
+                    {n.unread && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    )}
                   </div>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+                  <p className="mt-0.5 text-[12px] leading-relaxed text-text-2">
+                    {n.body}
+                  </p>
+                  <span className="mt-1 inline-block text-[10.5px] text-muted-foreground">
+                    {n.when}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </DropdownReveal>
     </div>
   );
 }

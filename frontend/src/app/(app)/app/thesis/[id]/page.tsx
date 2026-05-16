@@ -9,6 +9,12 @@ import { VerdictBadge } from "@/components/app/VerdictBadge";
 import { DisclaimerBlock } from "@/components/shared/DisclaimerBlock";
 import { cn } from "@/lib/utils";
 import type { AgentTone, ThesisPoint } from "@/lib/mock/types";
+import {
+  PageTransition,
+  FadeIn,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/shared/MotionWrappers";
 
 const KPI_TONE: Record<AgentTone, string> = {
   bull: "text-[#86EFAC]",
@@ -34,18 +40,22 @@ export default async function ThesisViewerPage({
   });
 
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-6 py-8">
-      <Link
-        href="/app/history"
-        className="mb-4 inline-flex items-center gap-1.5 text-[12px] text-text-2 transition-colors hover:text-white"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Tüm tezler
-      </Link>
+    <PageTransition>
+      <div className="mx-auto w-full max-w-[1280px] px-6 py-8">
+        <FadeIn>
+          <Link
+            href="/app/history"
+            className="mb-4 inline-flex items-center gap-1.5 text-[12px] text-text-2 transition-colors hover:text-white"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Tüm tezler
+          </Link>
+        </FadeIn>
 
       {/* header */}
-      <div className="overflow-hidden rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-6">
-        <div className="flex flex-wrap items-start justify-between gap-5">
+      <FadeIn delay={0.05}>
+        <div className="overflow-hidden rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-6">
+          <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <div className="flex items-center gap-3">
               <span className="grid h-12 w-12 place-items-center rounded-xl bg-[linear-gradient(135deg,#3B82F6,#A78BFA)] font-mono text-[14px] font-bold text-white">
@@ -117,9 +127,11 @@ export default async function ThesisViewerPage({
           ))}
         </div>
       </div>
+      </FadeIn>
 
       {/* bull / bear / catalyst */}
-      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+      <FadeIn delay={0.1}>
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
         <Column
           title="Bull"
           tone="bull"
@@ -138,10 +150,12 @@ export default async function ThesisViewerPage({
           items={thesis.catalysts}
           sources={thesis.sources}
         />
-      </div>
+        </div>
+      </FadeIn>
 
       {/* agent breakdown */}
-      <div className="mt-6 rounded-2xl border border-line bg-card p-6">
+      <FadeIn delay={0.15}>
+        <div className="mt-6 rounded-2xl border border-line bg-card p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[15px] font-semibold text-white">
             Ajan Kırılımı
@@ -177,30 +191,36 @@ export default async function ThesisViewerPage({
             );
           })}
         </div>
-      </div>
+        </div>
+      </FadeIn>
 
       {/* citations */}
-      <div className="mt-6 rounded-2xl border border-line bg-card p-6">
-        <h2 className="mb-3 text-[15px] font-semibold text-white">Kaynaklar</h2>
-        <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
-          {thesis.sources.map((s) => (
-            <li
-              key={s.id}
-              className="flex items-center gap-2.5 rounded-lg border border-line bg-[#0A1122] px-3 py-2"
-            >
-              <SourceChip source={s} />
-              <span className="truncate text-[12.5px] text-text-2">
-                {s.label}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <FadeIn delay={0.2}>
+        <div className="mt-6 rounded-2xl border border-line bg-card p-6">
+          <h2 className="mb-3 text-[15px] font-semibold text-white">Kaynaklar</h2>
+          <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            {thesis.sources.map((s) => (
+              <li
+                key={s.id}
+                className="flex items-center gap-2.5 rounded-lg border border-line bg-[#0A1122] px-3 py-2"
+              >
+                <SourceChip source={s} />
+                <span className="truncate text-[12.5px] text-text-2">
+                  {s.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </FadeIn>
 
-      <div className="mt-6">
-        <DisclaimerBlock />
-      </div>
+      <FadeIn delay={0.25}>
+        <div className="mt-6">
+          <DisclaimerBlock />
+        </div>
+      </FadeIn>
     </div>
+    </PageTransition>
   );
 }
 

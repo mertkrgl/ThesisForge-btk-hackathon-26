@@ -12,6 +12,12 @@ import { ConfidenceBar } from "./ConfidenceBar";
 import { SourceChip } from "./SourceChip";
 import { Stepper } from "./Stepper";
 import { cn } from "@/lib/utils";
+import {
+  PageTransition,
+  FadeIn,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/shared/MotionWrappers";
 
 type AgentState = {
   status: AgentCardStatus;
@@ -35,8 +41,14 @@ const initAgents = (): Record<string, AgentState> =>
 
 export function LiveThesisRunner({
   defaultSymbol = "TUPRS",
+  title = "Yeni Tez",
+  subtitle = "Canlı Komite",
+  autoStart = false,
 }: {
   defaultSymbol?: string;
+  title?: string;
+  subtitle?: string;
+  autoStart?: boolean;
 }) {
   const router = useRouter();
   const [symbol, setSymbol] = useState(defaultSymbol);
@@ -114,8 +126,17 @@ export function LiveThesisRunner({
   };
 
   useEffect(() => {
-    return () => handleRef.current?.stop();
-  }, []);
+    let t: NodeJS.Timeout;
+    if (autoStart) {
+      // UI yüklendikten hemen sonra başlatmak için ufak bir gecikme
+      t = setTimeout(() => start(), 300);
+    }
+    return () => {
+      if (t) clearTimeout(t);
+      handleRef.current?.stop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
 
   const finishedAgents = useMemo(
     () => Object.values(agents).filter((a) => a.status === "done").length,
@@ -128,157 +149,168 @@ export function LiveThesisRunner({
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-6 py-8">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
-        <div>
-          <div className="text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
-            Canlı Komite
+    <PageTransition>
+      <div className="mx-auto w-full max-w-[1440px] px-6 py-8">
+        <FadeIn>
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <div className="text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
+                {subtitle}
+              </div>
+              <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-white">
+                {title}
+              </h1>
+              <p className="mt-1 max-w-2xl text-[13px] text-text-2">
+                BIST sembolü seçin veya doğal dilde bir soru sorun. 8 ajan paralel
+                çalışacak; her token, her kaynak ve güven skoru canlı akacak.
+              </p>
+            </div>
+            <Stepper steps={STEPS} current={phase} />
           </div>
-          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-white">
-            Yeni Tez
-          </h1>
-          <p className="mt-1 max-w-2xl text-[13px] text-text-2">
-            BIST sembolü seçin veya doğal dilde bir soru sorun. 8 ajan paralel
-            çalışacak; her token, her kaynak ve güven skoru canlı akacak.
-          </p>
-        </div>
-        <Stepper steps={STEPS} current={phase} />
-      </div>
+        </FadeIn>
 
       {/* control row */}
-      <div className="mb-6 grid grid-cols-1 gap-3 rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-4 md:grid-cols-[180px_1fr_auto]">
-        <SymbolPicker value={symbol} onChange={setSymbol} disabled={running} />
-        <input
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder={`Örn: ${symbol} için 4Ç katalist takvimi nasıl?`}
-          disabled={running}
-          className="h-11 rounded-lg border border-line bg-[#0E1830] px-3 text-[13px] text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/20 disabled:opacity-60"
-        />
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={start}
+      <FadeIn delay={0.05}>
+        <div className="mb-6 grid grid-cols-1 gap-3 rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-4 md:grid-cols-[180px_1fr_auto]">
+          <SymbolPicker value={symbol} onChange={setSymbol} disabled={running} />
+          <input
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder={`Örn: ${symbol} için 4Ç katalist takvimi nasıl?`}
             disabled={running}
-            className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-[13px] font-semibold text-primary-foreground shadow-[0_10px_25px_-10px_#3B82F6] transition-all hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {running ? (
-              <>
-                <span
-                  className="h-2 w-2 rounded-full bg-white"
-                  style={{ animation: "tf-pulse-dot 1.2s ease-in-out infinite" }}
-                />
-                Komite çalışıyor…
-              </>
-            ) : (
-              <>
-                <Play className="h-4 w-4" />
-                Komiteyi Başlat
-              </>
-            )}
-          </button>
-          {done && (
+            className="h-11 rounded-lg border border-line bg-[#0E1830] px-3 text-[13px] text-white placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/20 disabled:opacity-60"
+          />
+          <div className="flex gap-2">
             <button
               type="button"
               onClick={start}
-              className="inline-flex h-11 items-center gap-2 rounded-lg border border-line bg-white/[0.02] px-3 text-[13px] font-medium text-text-2 transition-colors hover:border-line-2 hover:text-white"
-              title="Yeniden çalıştır"
+              disabled={running}
+              className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-[13px] font-semibold text-primary-foreground shadow-[0_10px_25px_-10px_#3B82F6] transition-all hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <RotateCcw className="h-4 w-4" />
+              {running ? (
+                <>
+                  <span
+                    className="h-2 w-2 rounded-full bg-white"
+                    style={{ animation: "tf-pulse-dot 1.2s ease-in-out infinite" }}
+                  />
+                  Komite çalışıyor…
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4" />
+                  Komiteyi Başlat
+                </>
+              )}
             </button>
-          )}
+            {done && (
+              <button
+                type="button"
+                onClick={start}
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-line bg-white/[0.02] px-3 text-[13px] font-medium text-text-2 transition-colors hover:border-line-2 hover:text-white"
+                title="Yeniden çalıştır"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      </FadeIn>
 
       {/* main */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-        <div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <FadeIn delay={0.1}>
+          <StaggerContainer stagger={0.05} className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {AGENT_REGISTRY.map((meta) => (
-              <AgentCard
-                key={meta.id}
-                meta={meta}
-                status={agents[meta.id]?.status ?? "idle"}
-                text={agents[meta.id]?.text}
-                confidence={agents[meta.id]?.confidence}
-              />
+              <StaggerItem key={meta.id}>
+                <AgentCard
+                  meta={meta}
+                  status={agents[meta.id]?.status ?? "idle"}
+                  text={agents[meta.id]?.text}
+                  confidence={agents[meta.id]?.confidence}
+                />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
 
           {done && (
-            <div className="mt-5 overflow-hidden rounded-2xl border border-violet/30 bg-[linear-gradient(180deg,rgba(167,139,250,0.10),rgba(167,139,250,0.03))] p-5 tf-rise">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-violet" />
-                <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-violet">
-                  Sentez
-                </span>
+            <FadeIn>
+              <div className="mt-5 overflow-hidden rounded-2xl border border-violet/30 bg-[linear-gradient(180deg,rgba(167,139,250,0.10),rgba(167,139,250,0.03))] p-5">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-violet" />
+                  <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-violet">
+                    Sentez
+                  </span>
+                </div>
+                <h3 className="mt-3 text-[18px] font-bold text-white">
+                  {symbol} · Komite Sentezi
+                </h3>
+                <p className="mt-2 text-[13.5px] leading-relaxed text-text-2">
+                  Bull argümanları (FAVÖK toparlanması, düşük kaldıraç) ile bear
+                  argümanları (global spread riski) dengelendi. Katalist takvimi
+                  pozitif yönde ağır basıyor.{" "}
+                  <span className="text-white">Net pozisyon: tutmaya değer.</span>
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={openViewer}
+                    className="group inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-[12.5px] font-semibold text-primary-foreground transition-all hover:bg-[#2563EB]"
+                  >
+                    Tezi Görüntüle
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                  <Link
+                    href="/app/history"
+                    className="text-[12px] text-text-2 hover:text-white"
+                  >
+                    Geçmiş tezlere ekle →
+                  </Link>
+                </div>
               </div>
-              <h3 className="mt-3 text-[18px] font-bold text-white">
-                {symbol} · Komite Sentezi
-              </h3>
-              <p className="mt-2 text-[13.5px] leading-relaxed text-text-2">
-                Bull argümanları (FAVÖK toparlanması, düşük kaldıraç) ile bear
-                argümanları (global spread riski) dengelendi. Katalist takvimi
-                pozitif yönde ağır basıyor.{" "}
-                <span className="text-white">Net pozisyon: tutmaya değer.</span>
-              </p>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={openViewer}
-                  className="group inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-[12.5px] font-semibold text-primary-foreground transition-all hover:bg-[#2563EB]"
-                >
-                  Tezi Görüntüle
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                </button>
-                <Link
-                  href="/app/history"
-                  className="text-[12px] text-text-2 hover:text-white"
-                >
-                  Geçmiş tezlere ekle →
-                </Link>
-              </div>
-            </div>
+            </FadeIn>
           )}
-        </div>
+        </FadeIn>
 
         {/* side rail */}
-        <aside className="flex flex-col gap-3">
-          <div className="rounded-2xl border border-line bg-card p-4">
-            <ConfidenceBar value={confidence} size="lg" />
-            <div className="mt-4 grid grid-cols-2 gap-3 text-[11.5px]">
-              <SideStat label="Faz" value={phase} />
-              <SideStat label="Tamamlanan" value={`${finishedAgents}/8`} />
-              <SideStat label="Kaynak" value={`${sources.length}`} />
-              <SideStat label="Sembol" value={symbol} mono />
+        <FadeIn delay={0.15}>
+          <aside className="flex flex-col gap-3">
+            <div className="rounded-2xl border border-line bg-card p-4">
+              <ConfidenceBar value={confidence} size="lg" />
+              <div className="mt-4 grid grid-cols-2 gap-3 text-[11.5px]">
+                <SideStat label="Faz" value={phase} />
+                <SideStat label="Tamamlanan" value={`${finishedAgents}/8`} />
+                <SideStat label="Kaynak" value={`${sources.length}`} />
+                <SideStat label="Sembol" value={symbol} mono />
+              </div>
             </div>
-          </div>
 
-          <div className="rounded-2xl border border-line bg-card p-4">
-            <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Toplanan Kaynaklar
+            <div className="rounded-2xl border border-line bg-card p-4">
+              <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Toplanan Kaynaklar
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {sources.length === 0 ? (
+                  <span className="text-[12px] text-muted-foreground/70">
+                    henüz yok
+                  </span>
+                ) : (
+                  sources.map((s) => (
+                    <SourceChip key={s} source={{ id: s, kind: "filing" }} />
+                  ))
+                )}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {sources.length === 0 ? (
-                <span className="text-[12px] text-muted-foreground/70">
-                  henüz yok
-                </span>
-              ) : (
-                sources.map((s) => (
-                  <SourceChip key={s} source={{ id: s, kind: "filing" }} />
-                ))
-              )}
-            </div>
-          </div>
 
-          <div className="rounded-2xl border border-warn/30 bg-[linear-gradient(180deg,rgba(245,158,11,0.08),rgba(245,158,11,0.02))] p-4 text-[11.5px] leading-relaxed text-text-2">
-            <span className="font-semibold text-warn">Disclaimer.</span> Bu
-            akış demo modunda mock veriyle çalışıyor. Backend bağlandığında
-            aynı bileşenler gerçek tez akışını işleyecek.
-          </div>
-        </aside>
+            <div className="rounded-2xl border border-warn/30 bg-[linear-gradient(180deg,rgba(245,158,11,0.08),rgba(245,158,11,0.02))] p-4 text-[11.5px] leading-relaxed text-text-2">
+              <span className="font-semibold text-warn">Disclaimer.</span> Bu
+              akış demo modunda mock veriyle çalışıyor. Backend bağlandığında
+              aynı bileşenler gerçek tez akışını işleyecek.
+            </div>
+          </aside>
+        </FadeIn>
       </div>
     </div>
+    </PageTransition>
   );
 }
 

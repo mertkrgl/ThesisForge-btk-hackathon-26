@@ -11,6 +11,7 @@ import {
 import { AGENT_REGISTRY } from "@/lib/mock/agents";
 import type { AgentTone } from "@/lib/mock/types";
 import { cn } from "@/lib/utils";
+import { StaggerContainer, StaggerItem, HoverCard } from "@/components/shared/MotionWrappers";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   LineChart,
@@ -51,54 +52,60 @@ export function AgentShowcase() {
           subtitle="Her ajanın bir mandası, bir görüş alanı ve bir güven katkısı var. Birbirleriyle çelişebilir, sentez katmanı bunu kalibre eder."
         />
 
-        <div className="mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StaggerContainer
+          stagger={0.06}
+          className="mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        >
           {AGENT_REGISTRY.map((agent) => {
             const Icon = ICONS[agent.icon] ?? Sparkles;
             return (
-              <div
-                key={agent.id}
-                className={cn(
-                  "group relative overflow-hidden rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-5 transition-all",
-                  "hover:-translate-y-0.5 hover:border-line-2",
-                  TONE_GLOW[agent.tone]
-                )}
-              >
-                <div
-                  className={cn(
-                    "inline-flex h-10 w-10 items-center justify-center rounded-xl border",
-                    TONE_BG[agent.tone]
-                  )}
-                >
-                  <Icon className="h-4.5 w-4.5" />
-                </div>
-                <div className="mt-4 text-[14px] font-semibold text-white">
-                  {agent.name}
-                </div>
-                <div
-                  className={cn(
-                    "mt-0.5 text-[10.5px] uppercase tracking-[0.14em]",
-                    agent.tone === "bull"
-                      ? "text-[#86EFAC]"
-                      : agent.tone === "bear"
-                        ? "text-[#FCA5A5]"
-                        : agent.tone === "warn"
-                          ? "text-warn"
-                          : agent.tone === "violet"
-                            ? "text-violet"
-                            : agent.tone === "cyan"
-                              ? "text-cyan"
-                              : "text-[#93C5FD]"
-                  )}
-                >
-                  {agent.role}
-                </div>
-                <p className="mt-3 text-[12.5px] leading-relaxed text-text-2">
-                  {agent.mandate}
-                </p>
-              </div>
+              <StaggerItem key={agent.id}>
+                <HoverCard>
+                  <div
+                    className={cn(
+                      "group relative overflow-hidden rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-5 transition-all",
+                      "hover:border-line-2",
+                      TONE_GLOW[agent.tone]
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "inline-flex h-10 w-10 items-center justify-center rounded-xl border",
+                        TONE_BG[agent.tone]
+                      )}
+                    >
+                      <Icon className="h-4.5 w-4.5" />
+                    </div>
+                    <div className="mt-4 text-[14px] font-semibold text-white">
+                      {agent.name}
+                    </div>
+                    <div
+                      className={cn(
+                        "mt-0.5 text-[10.5px] uppercase tracking-[0.14em]",
+                        agent.tone === "bull"
+                          ? "text-[#86EFAC]"
+                          : agent.tone === "bear"
+                            ? "text-[#FCA5A5]"
+                            : agent.tone === "warn"
+                              ? "text-warn"
+                              : agent.tone === "violet"
+                                ? "text-violet"
+                                : agent.tone === "cyan"
+                                  ? "text-cyan"
+                                  : "text-[#93C5FD]"
+                      )}
+                    >
+                      {agent.role}
+                    </div>
+                    <p className="mt-3 text-[12.5px] leading-relaxed text-text-2">
+                      {agent.mandate}
+                    </p>
+                  </div>
+                </HoverCard>
+              </StaggerItem>
             );
           })}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   );
