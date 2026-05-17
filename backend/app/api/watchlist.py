@@ -8,7 +8,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.repo import add_watchlist, list_watchlist, remove_watchlist
+from app.db.repo import (
+    add_watchlist,
+    ensure_user_by_id,
+    list_watchlist,
+    remove_watchlist,
+)
 from app.db.session import get_session
 
 
@@ -33,6 +38,8 @@ async def post_watchlist(
     req: AddRequest,
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
+    # Demo user_id'nin FK constraint için users tablosunda olmasını garanti et.
+    await ensure_user_by_id(session, req.user_id)
     added = await add_watchlist(session, req.user_id, req.ticker)
     await session.commit()
     return {"status": "added" if added else "exists"}

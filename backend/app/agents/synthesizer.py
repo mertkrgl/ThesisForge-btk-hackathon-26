@@ -185,9 +185,31 @@ _UUID_RE = re.compile(r"\[kaynak:\s*([a-f0-9-]{36})\]", re.IGNORECASE)
 _UUID_VALUE_RE = re.compile(r"^[a-f0-9-]{36}$", re.IGNORECASE)
 
 # Catalyst tarih prefix'i: YYYY-MM-DD | YYYY-MM | YYYY-Q[1-4] | YYYY-H[1-2]
+# Slash range (Q2/Q3, H1/H2) ve mevsim ("Q2-Q3") dahil tolere edilir; LLM
+# bu varyasyonları doğal olarak üretiyor.
 _CATALYST_DATE_RE = re.compile(
-    r"^(\d{4}-(?:Q[1-4]|H[1-2]|\d{2}(?:-\d{2})?))\s*[:—-]\s*(.+)$"
+    r"^(\d{4}-"
+    r"(?:"
+    r"Q[1-4](?:[/\-–]Q[1-4])?"  # 2026-Q2 veya 2026-Q2/Q3 veya 2026-Q2-Q3
+    r"|H[1-2](?:[/\-–]H[1-2])?"  # 2026-H1 veya 2026-H1/H2
+    r"|\d{2}(?:-\d{2})?"  # 2026-08 veya 2026-08-15
+    r"))"
+    r"\s*[:—–-]\s*"
+    r"(.+)$"
 )
+
+# Bullet başındaki opsiyonel **bold** / *italic* / arkadan gelen parantez
+# açıklaması (örn. " (Tahmini)") prefix'leri — LLM bunları markdown vurgu için
+# ekliyor; tarih parse'ı için sıyrılır.
+_CATALYST_BOLD_STRIP_RE = re.compile(r"^[*_]+\s*")
+# Sadece "YYYY-{Q1|H2|MM}" ile başlıyor mu? — weak-filter için gevşek kontrol.
+# `(Tahmini)` açıklaması veya `:` ayraç sonradan gelebilir.
+_CATALYST_LOOSE_DATE_RE = re.compile(
+    r"^\d{4}-(?:Q[1-4]|H[1-2]|\d{2})",
+    re.IGNORECASE,
+)
+_CATALYST_BOLD_SUFFIX_RE = re.compile(r"[*_]+\s*$")
+_CATALYST_PAREN_TAIL_RE = re.compile(r"^([^\s:]+(?:[/\-–][^\s:]+)?)\s*\([^)]+\)")
 
 # Bullet prefix (Bull/Bear/Risk maddeleri için bold etiket olabilir: **Risk**: ...)
 _BULLET_BOLD_PREFIX_RE = re.compile(r"^\*\*[^*]+\*\*\s*[:—-]?\s*")
@@ -367,7 +389,20 @@ def _drop_weak_unsourced_bullets(md: str) -> str:
         if section in _WEAK_FILTER_SECTIONS and stripped.startswith(("- ", "* ")):
             has_uuid = bool(_UUID_RE.search(stripped))
             has_number = bool(_FINANCIAL_NUMBER_RE.search(stripped))
-            if not has_uuid and not has_number:
+            # Catalyst bölümünde tarih prefix'i de yapısal bir kanıttır
+            # (örn. `**2026-Q4:**`, `**2026-08-15 (Tahmini):**`). Bu durumda
+            # UUID/sayı şartı esnetilir; aksi takdirde synthesizer UUID
+            # eklemeyi atladığında tüm catalyst bullet'ları sessizce düşerdi.
+            has_date_prefix = False
+            if section == "anahtar katalizörler":
+                # Bullet'ın bullet prefix'inden sonraki kısmında YYYY-... ara.
+                # `:` veya `(açıklama)` ardından geleceği için tam date regex'i
+                # değil, sadece "YYYY-(Q|H|MM) ile başlıyor mu" kontrolü.
+                body = stripped[2:].strip()
+                if body.startswith(("**", "__")):
+                    body = body[2:].lstrip()
+                has_date_prefix = bool(_CATALYST_LOOSE_DATE_RE.match(body))
+            if not has_uuid and not has_number and not has_date_prefix:
                 # Bullet'ı tamamen düşür (satırı kaldır).
                 continue
         out.append(line)
@@ -428,12 +463,26 @@ def _parse_bull_bear_bullet(bullet: str) -> BullBearPoint:
 def _parse_catalyst_bullet(bullet: str) -> Catalyst | None:
     """`- 2026-Q3: <event> [kaynak: <uuid>]` → Catalyst.
 
-    Tarih prefix'i yoksa None döner (catalyst değil).
+    Tarih prefix'i yoksa None döner (catalyst değil). LLM bullet'i
+    `**2026-Q2/Q3:**` veya `**2026-08 (Tahmini):**` gibi varyasyonlarla
+    üretebildiği için bold/italic ve trailing parantez prefix'leri sıyrılır.
     """
     m = _UUID_RE.search(bullet)
     call_id: str | None = m.group(1) if m else None
     text = _UUID_RE.sub("", bullet)
     text = re.sub(r"\s+([.,;:!?])", r"\1", text).strip()
+
+    # 1. Leading **bold** / *italic* prefix'leri kaldır
+    text = _CATALYST_BOLD_STRIP_RE.sub("", text)
+    # 2. Eğer hala bold içindeyse ve `**TARİH (açıklama):**` formundaysa
+    #    açıklama parantezini çıkar, tarihi koru
+    text = _CATALYST_PAREN_TAIL_RE.sub(r"\1", text, count=1)
+    # 3. Trailing bold marker
+    # `**2026-Q2/Q3:** Yeni...` formundan `**` sonrası boşluk kalır; iki ucu da
+    # temizle (örn. `**TARİH:** event` → `TARİH: event`)
+    text = re.sub(r"\*\*\s*", "", text)
+    text = re.sub(r"^[*_]+\s*", "", text)
+    text = text.strip()
 
     dm = _CATALYST_DATE_RE.match(text)
     if not dm:

@@ -8,6 +8,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import chat as chat_router
+from app.api import config_info as config_info_router
+from app.api import market as market_router
 from app.api import thesis_rest as thesis_rest_router
 from app.api import thesis_ws as ws_router
 from app.api import watchlist as watchlist_router
@@ -98,3 +100,5 @@ app.include_router(chat_router.router)
 app.include_router(ws_router.router)
 app.include_router(thesis_rest_router.router)
 app.include_router(watchlist_router.router)
+app.include_router(market_router.router)
+app.include_router(config_info_router.router)

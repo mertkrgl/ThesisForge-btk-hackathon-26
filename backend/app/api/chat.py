@@ -14,7 +14,7 @@ from app.agents.orchestrator import run_thesis
 from app.agents.sector_map import load_sector_map
 from app.api.ws_hub import hub
 from app.core.logging import log
-from app.db.repo import create_thesis_skeleton
+from app.db.repo import create_thesis_skeleton, ensure_user_by_id
 from app.db.session import session_scope
 
 
@@ -109,6 +109,10 @@ async def chat(req: ChatRequest) -> ChatResponse:
         )
 
     async with session_scope() as s:
+        if req.user_id is not None:
+            # Demo user_id frontend tarafından üretildi; users tablosunda yoksa FK
+            # constraint'i için sentetik bir user oluştur.
+            await ensure_user_by_id(s, req.user_id)
         thesis_id = await create_thesis_skeleton(
             s,
             ticker=ticker,

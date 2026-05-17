@@ -65,6 +65,10 @@ export type Thesis = {
   }>;
   sources: Source[];
   kpis: Array<{ label: string; value: string; delta?: string; tone?: AgentTone }>;
+  /** Backend synthesizer'dan gelen tam markdown rapor (TL;DR + tüm bölümler). */
+  thesisMd?: string;
+  /** Citation lookup için: thesis_md içindeki `[kaynak: UUID]`'leri tool adına çevirmek. */
+  citationLookup?: Array<{ call_id: string; tool_name: string | null }>;
 };
 
 export type WatchlistItem = {

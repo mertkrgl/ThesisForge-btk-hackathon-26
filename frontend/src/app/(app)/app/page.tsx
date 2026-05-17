@@ -11,9 +11,15 @@ import {
   StaggerContainer,
   StaggerItem,
 } from "@/components/shared/MotionWrappers";
+import type { Thesis } from "@/lib/mock/types";
 
 export default async function DashboardPage() {
-  const theses = await listTheses();
+  let theses: Thesis[] = [];
+  try {
+    theses = await listTheses();
+  } catch {
+    theses = [];
+  }
   const recent = theses.slice(0, 4);
 
   return (

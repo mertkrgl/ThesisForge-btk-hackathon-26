@@ -5,11 +5,10 @@ import type { AgentTone } from "@/lib/mock/types";
 const FEED = [
   { agent: "synthesizer", action: "TUPRS sentezi yayınlandı", time: "2 dk", confidence: 67 },
   { agent: "fundamental", action: "ASELS bilanço analizi tamamlandı", time: "14 dk", confidence: 72 },
-  { agent: "risk", action: "EREGL volatilite uyarısı", time: "31 dk", confidence: 60 },
-  { agent: "catalyst", action: "THYAO yaz trafik katalisti eklendi", time: "1 sa", confidence: 70 },
+  { agent: "macro", action: "TCMB göstergeleri güncellendi", time: "31 dk", confidence: 60 },
+  { agent: "sector-router", action: "THYAO ulaştırma squad'ına atandı", time: "1 sa", confidence: 90 },
   { agent: "memory", action: "Benzer marj toparlanma örneği işaretlendi", time: "1 sa", confidence: 62 },
-  { agent: "devil", action: "BIMAS marj baskısı argümanı eklendi", time: "2 sa", confidence: 54 },
-  { agent: "sentiment", action: "Haber akışı duygu skoru güncellendi", time: "3 sa", confidence: 55 },
+  { agent: "devils-advocate", action: "BIMAS marj baskısı argümanı eklendi", time: "2 sa", confidence: 54 },
   { agent: "technical", action: "TUPRS 20G EMA testi geçildi", time: "4 sa", confidence: 58 },
 ];
 

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, User, Cpu, Database, Bell, Code2 } from "lucide-react";
+import { Check, User, Cpu, Database, Bell, Code2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getConfigInfo } from "@/lib/api/config";
+import type { BackendConfigInfo } from "@/lib/types/backend";
 
 type TabId = "profile" | "models" | "data" | "notifications" | "developer";
 
@@ -40,6 +42,8 @@ export function SettingsPanels() {
   const [tab, setTab] = useState<TabId>("profile");
   const [settings, setSettings] = useState<Settings>(DEFAULTS);
   const [saved, setSaved] = useState(false);
+  const [config, setConfig] = useState<BackendConfigInfo | null>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -49,6 +53,21 @@ export function SettingsPanels() {
       } catch {}
     }, 0);
     return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    getConfigInfo()
+      .then((c) => {
+        if (!cancelled) setConfig(c);
+      })
+      .catch((e) => {
+        if (!cancelled)
+          setConfigError(e instanceof Error ? e.message : String(e));
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const save = () => {
@@ -114,36 +133,44 @@ export function SettingsPanels() {
         {tab === "models" && (
           <FormSection
             title="Modeller"
-            subtitle="Komiteyi yürüten Gemini sürümünü seçin."
+            subtitle="Komiteyi yürüten Gemini sürümleri sunucu tarafında yapılandırılmıştır."
           >
+            <div className="rounded-lg border border-warn/30 bg-warn/10 p-3 text-[12px] text-warn">
+              <div className="flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5" />
+                <span className="font-semibold">Sunucu tarafı yapılandırma</span>
+              </div>
+              <p className="mt-1 leading-relaxed">
+                Bu ayarlar backend env değişkenleriyle belirlenir ve buradan
+                değiştirilemez.
+              </p>
+            </div>
+            {configError && (
+              <div className="rounded-lg border border-bear/30 bg-bear/10 p-3 text-[12px] text-bear">
+                Backend ayarları alınamadı: {configError}
+              </div>
+            )}
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {(["pro", "flash"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setSettings((s) => ({ ...s, model: m }))}
-                  className={cn(
-                    "rounded-xl border p-4 text-left transition-all",
-                    settings.model === m
-                      ? "border-primary/40 bg-primary/10 shadow-[0_0_0_3px_rgba(59,130,246,0.10)]"
-                      : "border-border bg-card hover:border-border"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-900 dark:text-white">
-                      Gemini 2.5 {m === "pro" ? "Pro" : "Flash"}
-                    </span>
-                    {settings.model === m && (
-                      <Check className="h-4 w-4 text-primary" />
-                    )}
-                  </div>
-                  <p className="mt-1.5 text-[12px] leading-relaxed text-text-2">
-                    {m === "pro"
-                      ? "Derin akıl yürütme — sentez ve devil's advocate için."
-                      : "Hızlı tepki — teknik ve sentiment ajanları için."}
-                  </p>
-                </button>
-              ))}
+              <ConfigChip
+                title="Akıl Yürütme (Pro)"
+                value={config?.models.pro ?? "—"}
+                hint="Sentez ve şeytan avukatı için derin model."
+              />
+              <ConfigChip
+                title="Hızlı Yanıt (Flash)"
+                value={config?.models.flash ?? "—"}
+                hint="Teknik, temel ve makro işçi ajanları için."
+              />
+              <ConfigChip
+                title="Embedding Modeli"
+                value={config?.models.embed ?? "—"}
+                hint={`Hafıza similarity araması · ${config?.models.embed_dimensions ?? "?"} boyut`}
+              />
+              <ConfigChip
+                title="Çalışma Modu"
+                value={config ? `${config.mode} (${config.env})` : "—"}
+                hint={`Cache: ${config?.cache_backend ?? "?"}`}
+              />
             </div>
           </FormSection>
         )}
@@ -151,32 +178,50 @@ export function SettingsPanels() {
         {tab === "data" && (
           <FormSection
             title="Veri Kaynakları"
-            subtitle="Ajanların hangi kaynaklara erişeceğini belirleyin."
+            subtitle="Ajanların eriştiği veri sağlayıcılarının sunucu tarafı durumu."
           >
+            <div className="rounded-lg border border-warn/30 bg-warn/10 p-3 text-[12px] text-warn">
+              <div className="flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5" />
+                <span className="font-semibold">Read-only</span>
+              </div>
+              <p className="mt-1 leading-relaxed">
+                Veri kaynakları backend env (TCMB_EVDS_KEY, MKK_API_KEY vs.)
+                üzerinden aktive edilir.
+              </p>
+            </div>
             <ul className="divide-y divide-line/60 rounded-xl border border-border bg-card">
               {[
+                { id: "yfinance", label: "Yfinance · Fiyat ve OHLCV" },
+                { id: "isyatirim", label: "İş Yatırım · BIST verisi" },
                 { id: "kap", label: "KAP · Kamuyu Aydınlatma" },
-                { id: "evds", label: "TCMB EVDS · Makro veri" },
+                { id: "tcmb_evds", label: "TCMB EVDS · Makro veri" },
                 { id: "mkk", label: "MKK · Olay verisi" },
-                { id: "bist", label: "BIST Primary · Fiyat akışı" },
-                { id: "news", label: "Türkçe haber akışı" },
-              ].map((row) => (
-                <li
-                  key={row.id}
-                  className="flex items-center justify-between gap-3 px-4 py-3"
-                >
-                  <span className="text-[13px] text-text-2">{row.label}</span>
-                  <Toggle
-                    on={!!settings.sources[row.id]}
-                    onChange={(v) =>
-                      setSettings((s) => ({
-                        ...s,
-                        sources: { ...s.sources, [row.id]: v },
-                      }))
-                    }
-                  />
-                </li>
-              ))}
+                { id: "bist", label: "BIST · İndeks ve fiyat" },
+              ].map((row) => {
+                const active =
+                  (config?.data_sources as Record<string, boolean> | undefined)?.[
+                    row.id
+                  ] ?? false;
+                return (
+                  <li
+                    key={row.id}
+                    className="flex items-center justify-between gap-3 px-4 py-3"
+                  >
+                    <span className="text-[13px] text-text-2">{row.label}</span>
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                        active
+                          ? "border-bull/30 bg-bull/10 text-bull"
+                          : "border-muted bg-muted/40 text-muted-foreground",
+                      )}
+                    >
+                      {active ? "Aktif" : "Pasif"}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </FormSection>
         )}
@@ -274,6 +319,30 @@ export function SettingsPanels() {
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
       `}</style>
+    </div>
+  );
+}
+
+function ConfigChip({
+  title,
+  value,
+  hint,
+}: {
+  title: string;
+  value: string;
+  hint?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <div className="text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
+        {title}
+      </div>
+      <div className="mt-1 font-mono text-[13px] font-semibold text-slate-900 dark:text-white">
+        {value}
+      </div>
+      {hint && (
+        <p className="mt-1.5 text-[11.5px] leading-relaxed text-text-2">{hint}</p>
+      )}
     </div>
   );
 }

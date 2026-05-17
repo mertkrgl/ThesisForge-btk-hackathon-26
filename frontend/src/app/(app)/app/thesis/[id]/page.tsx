@@ -12,6 +12,8 @@ import { DisclaimerBlock } from "@/components/shared/DisclaimerBlock";
 import { cn } from "@/lib/utils";
 import type { AgentTone, Source, ThesisPoint } from "@/lib/mock/types";
 import { PageTransition, FadeIn } from "@/components/shared/MotionWrappers";
+import { InlineMarkdown } from "@/components/shared/InlineMarkdown";
+import { ThesisReport } from "@/components/shared/ThesisReport";
 
 const KPI_TONE: Record<AgentTone, string> = {
   bull: "text-bull",
@@ -71,7 +73,7 @@ export default async function ThesisViewerPage({
               </div>
             </div>
             <p className="mt-4 max-w-2xl text-[14.5px] leading-relaxed text-text-2">
-              {thesis.oneLiner}
+              <InlineMarkdown text={thesis.oneLiner} />
             </p>
           </div>
 
@@ -109,7 +111,27 @@ export default async function ThesisViewerPage({
         </div>
       </FadeIn>
 
-      {/* bull / bear / catalyst */}
+      {/* tam markdown raporu — TL;DR + Bull + Bear + Katalist + Tarihsel + Risk + Güven */}
+      {thesis.thesisMd && (
+        <FadeIn delay={0.08}>
+          <div className="mt-6 rounded-2xl border border-border bg-card p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">
+                Detaylı Rapor
+              </h2>
+              <span className="text-[11px] text-muted-foreground">
+                Komite sentezi · kaynak doğrulamalı
+              </span>
+            </div>
+            <ThesisReport
+              markdown={thesis.thesisMd}
+              citations={thesis.citationLookup}
+            />
+          </div>
+        </FadeIn>
+      )}
+
+      {/* bull / bear / catalyst — hızlı tarama için yapılandırılmış görünüm */}
       <FadeIn delay={0.1}>
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
         <Column
@@ -270,7 +292,7 @@ function Column({
             key={i}
             className="text-[13px] leading-relaxed text-text-2"
           >
-            {p.text}
+            <InlineMarkdown text={p.text} />
             {p.sources.length > 0 && (
               <span className="ml-1 inline-flex flex-wrap gap-1 align-middle">
                 {p.sources.map((sid) => {

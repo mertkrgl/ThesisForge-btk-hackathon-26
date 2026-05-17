@@ -7,18 +7,28 @@ export default async function LiveCommitteePage({
 }) {
   // Next.js 15+ searchParams is a Promise
   const resolvedParams = await searchParams;
-  const symbol = (resolvedParams.symbol || "TUPRS").toUpperCase();
-  const persona = resolvedParams.persona || "default";
+  const explicitSymbol = (resolvedParams.symbol || "").trim().toUpperCase();
+  const symbol = explicitSymbol || "TUPRS";
+  const persona =
+    resolvedParams.persona === "conservative" ? "conservative" : "default";
 
-  // Personaya göre başlık ayarlayalım
-  const personaLabel = persona === "conservative" ? "Muhafazakar Mod" : "Dengeli Mod";
+  const personaLabel =
+    persona === "conservative" ? "Muhafazakâr Mod" : "Dengeli Mod";
+
+  // Sembol açıkça verildiyse (örn. /app/thesis/new formundan veya watchlist'ten
+  // gelindiyse) analiz otomatik başlasın. Sidebar'dan parametresiz gelindiyse
+  // kullanıcı sembolü değiştirip "Komiteyi Başlat"a basana kadar bekle.
+  const autoStart = explicitSymbol.length > 0;
+
+  const subtitle = autoStart ? `${symbol} · ${personaLabel}` : "Yeni Tez";
 
   return (
-    <LiveThesisRunner 
-      defaultSymbol={symbol} 
-      title={`Canlı Komite (${personaLabel})`} 
-      subtitle={`${symbol} için ${personaLabel} analizi yapılıyor`} 
-      autoStart={true}
+    <LiveThesisRunner
+      defaultSymbol={symbol}
+      defaultPersona={persona}
+      title="Canlı Komite"
+      subtitle={subtitle}
+      autoStart={autoStart}
     />
   );
 }
