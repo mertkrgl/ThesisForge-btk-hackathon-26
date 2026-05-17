@@ -9,25 +9,43 @@ import { Personas } from "@/components/marketing/Personas";
 import { Faq } from "@/components/marketing/Faq";
 import { CtaBand } from "@/components/marketing/CtaBand";
 import { DisclaimerBlock } from "@/components/shared/DisclaimerBlock";
-import { PageTransition } from "@/components/shared/MotionWrappers";
+import { PageTransition, ScrollReveal } from "@/components/shared/MotionWrappers";
 
 export default function LandingPage() {
   return (
     <PageTransition>
       <Hero demo={<MiniLiveDemo />} />
-      <TrustedBy />
-      <FeatureGrid />
-      <Personas />
-      <AgentShowcase />
-      <HowItWorks />
-      <DataSources />
-      <Faq />
+      <ScrollReveal>
+        <TrustedBy />
+      </ScrollReveal>
+      <ScrollReveal>
+        <FeatureGrid />
+      </ScrollReveal>
+      <ScrollReveal>
+        <Personas />
+      </ScrollReveal>
+      <ScrollReveal>
+        <AgentShowcase />
+      </ScrollReveal>
+      <ScrollReveal>
+        <HowItWorks />
+      </ScrollReveal>
+      <ScrollReveal>
+        <DataSources />
+      </ScrollReveal>
+      <ScrollReveal>
+        <Faq />
+      </ScrollReveal>
 
-      <section className="mx-auto w-full max-w-[1280px] px-6 py-12 snap-section">
-        <DisclaimerBlock />
-      </section>
+      <ScrollReveal>
+        <section className="mx-auto w-full max-w-[1280px] px-6 py-12">
+          <DisclaimerBlock />
+        </section>
+      </ScrollReveal>
 
-      <CtaBand />
+      <ScrollReveal>
+        <CtaBand />
+      </ScrollReveal>
     </PageTransition>
   );
 }

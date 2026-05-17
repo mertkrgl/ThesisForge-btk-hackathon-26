@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import type { HTMLMotionProps } from "framer-motion";
 import React from "react";
 
@@ -92,6 +92,40 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ─── Scroll-triggered section reveal ─── */
+
+export function ScrollReveal({
+  children,
+  className,
+  delay = 0,
+  y = 34,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  y?: number;
+}) {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={prefersReducedMotion ? false : { opacity: 0, y, filter: "blur(8px)" }}
+      whileInView={
+        prefersReducedMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" }
+      }
+      viewport={{ once: false, amount: 0.22, margin: "0px 0px -10% 0px" }}
+      transition={{
+        duration: 0.72,
+        delay,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      className={className}
     >
       {children}
     </motion.div>

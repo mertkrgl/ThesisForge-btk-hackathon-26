@@ -1,30 +1,21 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, Play } from "lucide-react";
-import { GradientText } from "@/components/shared/GradientText";
+import { ArrowRight, Play } from "lucide-react";
 
 export function Hero({ demo }: { demo?: React.ReactNode }) {
   return (
-    <section className="relative overflow-hidden border-b border-border/60 snap-section">
-      <div className="absolute inset-0 tf-aurora-bg" aria-hidden />
-      <div className="absolute inset-0 tf-grid-bg opacity-[0.4]" aria-hidden />
-
+    <section className="relative overflow-hidden border-b border-border/60 bg-background">
       <div className="relative mx-auto grid w-full max-w-[1280px] gap-12 px-6 pb-20 pt-16 md:grid-cols-[1.05fr_1fr] md:pb-28 md:pt-24">
         <div className="flex flex-col">
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 dark:border-border bg-card dark:bg-white/[0.03] px-3 py-1 text-[11px] font-medium text-slate-500 dark:text-text-2">
-            <span className="relative grid h-1.5 w-1.5 place-items-center">
-              <span
-                className="absolute inset-0 rounded-full bg-bull"
-                style={{ animation: "tf-pulse-dot 1.6s ease-in-out infinite" }}
-              />
-            </span>
+            <span className="h-1.5 w-1.5 rounded-full bg-bull" />
             BIST için yatırım komitesi · Demo modu
           </div>
 
           <h1 className="mt-5 text-balance text-4xl font-extrabold leading-[1.05] tracking-tight md:text-[64px]">
             <span className="block text-slate-900 dark:text-white">8 ajanlı yapay zekâ</span>
-            <GradientText as="span" className="block">
+            <span className="block text-slate-900 dark:text-white">
               yatırım komitesi.
-            </GradientText>
+            </span>
             <span className="mt-3 block text-2xl font-semibold text-text-2 md:text-[26px]">
               Tezi okuyun, kararı siz verin.
             </span>
@@ -41,9 +32,8 @@ export function Hero({ demo }: { demo?: React.ReactNode }) {
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Link
               href="/app/thesis/new"
-              className="group inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-[13.5px] font-semibold text-primary-foreground shadow-[0_12px_30px_-12px_#3B82F6] transition-all hover:bg-[#2563EB]"
+              className="group inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-[13.5px] font-semibold text-primary-foreground transition-colors hover:bg-[#2563EB]"
             >
-              <Sparkles className="h-4 w-4" />
               Demo&apos;yu Başlat
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
@@ -57,9 +47,9 @@ export function Hero({ demo }: { demo?: React.ReactNode }) {
           </div>
 
           <dl className="mt-10 grid max-w-md grid-cols-3 gap-6 border-t border-border/60 pt-6">
-            <Stat label="Ajan" value="8" />
-            <Stat label="Veri kaynağı" value="4+" />
-            <Stat label="Ortalama tez süresi" value="~45s" />
+            <Stat label="Uzman ajan" value="8" />
+            <Stat label="Resmi kaynak" value="4" />
+            <Stat label="Tez boyutu" value="3" subvalue="Bull · Bear · Katalist" />
           </dl>
         </div>
 
@@ -71,13 +61,26 @@ export function Hero({ demo }: { demo?: React.ReactNode }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  subvalue,
+}: {
+  label: string;
+  value: string;
+  subvalue?: string;
+}) {
   return (
     <div>
       <dt className="text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
         {label}
       </dt>
-      <dd className="mt-1 font-mono text-2xl font-bold text-slate-900 dark:text-white">{value}</dd>
+      <dd className="mt-1 font-mono text-2xl font-bold text-slate-900 dark:text-white">
+        {value}
+      </dd>
+      {subvalue && (
+        <div className="mt-0.5 text-[10.5px] text-text-2">{subvalue}</div>
+      )}
     </div>
   );
 }

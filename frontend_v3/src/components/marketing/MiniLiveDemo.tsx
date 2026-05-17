@@ -110,11 +110,11 @@ export function MiniLiveDemo() {
   }, []);
 
   return (
-    <div className="glass relative w-full overflow-hidden rounded-2xl p-5 shadow-[0_30px_60px_-30px_rgba(59,130,246,0.45)]">
+    <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-border bg-card p-5">
       {/* header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-[linear-gradient(135deg,#3B82F6,#A78BFA)] font-mono text-[12px] font-bold text-white">
+          <div className="grid h-9 w-9 place-items-center rounded-md bg-slate-900 font-mono text-[12px] font-bold text-white dark:bg-white dark:text-slate-900">
             TF
           </div>
           <div>
@@ -122,10 +122,7 @@ export function MiniLiveDemo() {
               TUPRS · Tüpraş
             </div>
             <div className="flex items-center gap-1.5 text-[10.5px] text-muted-foreground">
-              <span
-                className="inline-block h-1.5 w-1.5 rounded-full bg-bull"
-                style={{ animation: "tf-pulse-dot 1.4s ease-in-out infinite" }}
-              />
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-bull" />
               Faz · {phase}
             </div>
           </div>
@@ -145,23 +142,17 @@ export function MiniLiveDemo() {
             <div
               key={id}
               className={cn(
-                "rounded-xl border border-slate-200 dark:border-border/80 bg-card/80 dark:bg-[#0A1124]/80 p-3 transition-all",
-                st?.status === "running" &&
-                  "ring-1 ring-inset ring-primary/50 shadow-[0_0_0_3px_rgba(59,130,246,0.08)]"
+                "rounded-xl border border-slate-200 dark:border-border/80 bg-background p-3 transition-colors",
+                st?.status === "running" && "ring-1 ring-inset ring-primary/50"
               )}
             >
               <div className="flex items-center gap-2">
                 <span
                   className={cn(
                     "inline-flex h-1.5 w-1.5 rounded-full",
-                    TONE_DOT[meta.tone]
+                    TONE_DOT[meta.tone],
+                    st?.status === "running" && "animate-blink"
                   )}
-                  style={{
-                    animation:
-                      st?.status === "running"
-                        ? "tf-pulse-dot 1.2s ease-in-out infinite"
-                        : undefined,
-                  }}
                 />
                 <span className="text-[11.5px] font-semibold text-slate-900 dark:text-white">
                   {meta.name}
@@ -182,7 +173,7 @@ export function MiniLiveDemo() {
                   </span>
                 )}
                 {st?.status === "running" && (
-                  <span className="ml-0.5 inline-block h-3 w-1 translate-y-0.5 bg-primary/80 align-middle [animation:tf-pulse-dot_0.9s_ease-in-out_infinite]" />
+                  <span className="animate-blink ml-0.5 inline-block h-3 w-1 translate-y-0.5 bg-primary/80 align-middle" />
                 )}
               </div>
             </div>
@@ -223,7 +214,7 @@ export function MiniLiveDemo() {
         </div>
         <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-line/60">
           <div
-            className="h-full rounded-full bg-[linear-gradient(90deg,#3B82F6,#A78BFA,#22D3EE)] transition-[width] duration-700 ease-out"
+            className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
             style={{ width: `${confidence}%` }}
           />
         </div>
