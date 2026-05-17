@@ -730,8 +730,8 @@ function AssemblyScene({ symbol }: { symbol: string }) {
         </div>
         <div className="committee-veil absolute inset-0" />
 
-        <div className="committee-scene relative z-20 flex min-h-[560px] items-center justify-center">
-          <div className="relative h-[460px] w-full max-w-[860px] sm:h-[560px]">
+        <div className="committee-scene relative z-20 flex min-h-[calc(100vh-220px)] items-center justify-center">
+          <div className="relative mx-auto aspect-[16/9] w-full min-h-[560px] max-w-[1180px]">
             <div className="committee-table absolute left-1/2 top-[51%] h-[185px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] sm:h-[250px] sm:w-[470px]">
               <div className="absolute inset-4 rounded-[50%] border border-slate-400/45 bg-slate-100/35" />
               <div className="committee-symbol absolute left-1/2 top-1/2 rounded-[14px] border border-primary/40 bg-primary/10 px-5 py-2.5 font-mono text-[24px] font-black tracking-wide text-primary sm:px-6 sm:py-3 sm:text-[34px]">

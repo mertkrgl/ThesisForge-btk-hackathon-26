@@ -86,8 +86,8 @@ export function WatchlistStrip() {
             return (
               <li key={w.ticker}>
                 <Link
-                  href={`/app/thesis/live?symbol=${w.ticker}`}
-                  className="block rounded-xl border border-border bg-card p-3 transition-colors hover:border-border"
+                  href={`/app/watchlist/${w.ticker}`}
+                  className="block rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-accent/30"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex min-w-0 items-center gap-2">

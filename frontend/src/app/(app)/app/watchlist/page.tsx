@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ArrowDownRight,
@@ -37,6 +38,7 @@ function formatPrice(value: number | null): string {
 }
 
 export default function WatchlistPage() {
+  const router = useRouter();
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -173,9 +175,22 @@ export default function WatchlistPage() {
             {items.map((w) => {
               const hasQuote = w.last != null && w.deltaPct != null;
               const positive = (w.deltaPct ?? 0) >= 0;
+              const detailHref = `/app/watchlist/${w.ticker}`;
+              const goDetail = () => router.push(detailHref);
               return (
                 <StaggerItem key={w.ticker}>
-                  <li className="rounded-2xl border border-border bg-card p-5">
+                  <li
+                    role="link"
+                    tabIndex={0}
+                    onClick={goDetail}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        goDetail();
+                      }
+                    }}
+                    className="group cursor-pointer rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-accent/20 focus:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+                  >
                     <div className="flex items-start justify-between">
                       <div className="flex min-w-0 items-center gap-3">
                         <CompanyLogo
@@ -184,7 +199,7 @@ export default function WatchlistPage() {
                           size="md"
                         />
                         <div className="min-w-0">
-                          <div className="font-mono text-lg font-bold text-slate-900 dark:text-white">
+                          <div className="font-mono text-lg font-bold text-slate-900 transition-colors group-hover:text-primary dark:text-white dark:group-hover:text-primary">
                             {w.ticker}
                           </div>
                           <div className="truncate text-[12px] text-muted-foreground">
@@ -216,7 +231,10 @@ export default function WatchlistPage() {
                         )}
                         <button
                           type="button"
-                          onClick={() => handleRemove(w.ticker)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemove(w.ticker);
+                          }}
                           disabled={busy}
                           className="rounded-md p-1 text-text-2 transition-colors hover:bg-bear/10 hover:text-bear disabled:opacity-40"
                           title="Watchlist'ten çıkar"
@@ -244,6 +262,7 @@ export default function WatchlistPage() {
                     <div className="mt-4 flex items-center justify-between">
                       <Link
                         href={`/app/thesis/live?symbol=${w.ticker}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-[12px] font-semibold text-primary-foreground transition-colors hover:bg-[#2563EB]"
                       >
                         <Sparkles className="h-3.5 w-3.5" />
@@ -251,6 +270,7 @@ export default function WatchlistPage() {
                       </Link>
                       <Link
                         href={`/app/history?ticker=${w.ticker}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="text-[11.5px] text-text-2 hover:text-white"
                       >
                         Geçmiş tezler →

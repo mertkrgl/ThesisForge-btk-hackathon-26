@@ -130,6 +130,52 @@ export type BackendQuote = {
   spark: number[];
 };
 
+export type MarketHistoryPeriod = "1d" | "1w" | "1mo";
+
+export type BackendHistoryPoint = {
+  t: string;
+  c: number;
+  o: number;
+  h: number;
+  l: number;
+  v: number;
+};
+
+export type BackendHistory = {
+  ticker: string;
+  period: MarketHistoryPeriod;
+  interval: string;
+  points: BackendHistoryPoint[];
+  first: number;
+  last: number;
+  high: number;
+  low: number;
+  volume: number;
+  delta_pct: number;
+};
+
+export type FeedItemKind = "kap" | "news";
+
+export type BackendFeedItem = {
+  kind: FeedItemKind;
+  id: string;
+  title: string;
+  snippet: string | null;
+  source: string;
+  url: string;
+  published_at: string;
+  meta: Record<string, unknown>;
+};
+
+export type BackendCompanyFeed = {
+  ticker: string;
+  days: number;
+  count: number;
+  items: BackendFeedItem[];
+  sources_ok: string[];
+  sources_err: Record<string, string>;
+};
+
 export type BackendConfigInfo = {
   env: string;
   mode: string;
