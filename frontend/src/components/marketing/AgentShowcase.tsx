@@ -39,9 +39,43 @@ const AGENT_ICON_MAP: Record<string, LucideIcon> = {
   Zap,
   Radio,
   AlertTriangle,
+  Compass: Sparkles,
+  Globe: Radio,
 };
 
-const findAgent = (id: string) => AGENT_REGISTRY.find((a) => a.id === id)!;
+// Marketing AgentShowcase mimari diyagramı için "anlatımsal" agent meta'ları —
+// gerçek pipeline'da olmayan (catalyst/sentiment/risk) chip'ler dekoratif amaçlı
+// burada tanımlı. Live runner ve thesis viewer sadece AGENT_REGISTRY'yi kullanır.
+const SHOWCASE_AGENT_META: Record<
+  string,
+  { name: string; icon: string }
+> = {
+  technical: { name: "Teknik Analist", icon: "LineChart" },
+  fundamental: { name: "Temel Analist", icon: "Calculator" },
+  "devils-advocate": { name: "Şeytan Avukatı", icon: "ShieldAlert" },
+  devil: { name: "Şeytan Avukatı", icon: "ShieldAlert" },
+  synthesizer: { name: "Sentez", icon: "Sparkles" },
+  memory: { name: "Bellek", icon: "History" },
+  catalyst: { name: "Katalist Avcısı", icon: "Zap" },
+  sentiment: { name: "Algı", icon: "Radio" },
+  risk: { name: "Risk Yönetimi", icon: "AlertTriangle" },
+  "sector-router": { name: "Sektör Yönlendirici", icon: "Compass" },
+  macro: { name: "Makro Bağlam", icon: "Globe" },
+};
+
+const findAgent = (id: string) => {
+  const real = AGENT_REGISTRY.find((a) => a.id === id);
+  if (real) return real;
+  const meta = SHOWCASE_AGENT_META[id];
+  return {
+    id,
+    name: meta?.name ?? id,
+    role: "",
+    mandate: "",
+    tone: "primary" as const,
+    icon: meta?.icon ?? "Sparkles",
+  };
+};
 
 // ----- Types -----
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Thesis } from "@/lib/mock/types";
 import { CompanyLogo } from "./CompanyLogo";
 import { VerdictBadge } from "./VerdictBadge";
+import { InlineMarkdown } from "@/components/shared/InlineMarkdown";
 
 export function ThesisCard({ thesis }: { thesis: Thesis }) {
   const date = new Date(thesis.createdAt).toLocaleDateString("tr-TR", {
@@ -36,7 +37,7 @@ export function ThesisCard({ thesis }: { thesis: Thesis }) {
         {thesis.sector}
       </div>
       <p className="mt-3 line-clamp-3 text-[12.5px] leading-relaxed text-text-2">
-        {thesis.oneLiner}
+        <InlineMarkdown text={thesis.oneLiner} />
       </p>
       <div className="mt-auto pt-4">
         <div className="flex items-center justify-between text-[10.5px]">

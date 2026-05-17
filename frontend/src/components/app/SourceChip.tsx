@@ -10,6 +10,15 @@ const KIND_TONE: Record<Source["kind"], string> = {
   filing: "text-bear border-bear/30",
 };
 
+// UUID regex — kullanıcıya tam UUID basmamak için kısalt
+const _UUID_RE = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+
+function _displayId(id: string, label?: string): string {
+  if (label) return label;
+  if (_UUID_RE.test(id)) return id.slice(0, 8); // ilk 8 char yeterli unique
+  return id;
+}
+
 export function SourceChip({
   source,
   className,
@@ -18,10 +27,13 @@ export function SourceChip({
   className?: string;
 }) {
   const kind = ("kind" in source && source.kind) || "filing";
-  const label = "label" in source && source.label ? source.label : source.id;
+  const rawLabel = "label" in source && source.label ? source.label : undefined;
   const url = "url" in source ? source.url : undefined;
+  const display = _displayId(source.id, rawLabel);
+  const tooltip = rawLabel ? `${rawLabel} · ${source.id}` : source.id;
   const chipClassName = cn(
-    "inline-flex items-center gap-1 rounded border bg-secondary px-1.5 py-0.5 font-mono text-[10.5px]",
+    "inline-flex max-w-[260px] items-center gap-1 truncate rounded border bg-secondary px-1.5 py-0.5 text-[10.5px]",
+    rawLabel ? "font-sans" : "font-mono",
     KIND_TONE[kind],
     url && "transition-colors hover:bg-accent hover:underline",
     className
@@ -29,7 +41,7 @@ export function SourceChip({
   const content = (
     <>
       <span className="opacity-60">[</span>
-      {source.id}
+      <span className="truncate">{display}</span>
       <span className="opacity-60">]</span>
     </>
   );
@@ -41,7 +53,7 @@ export function SourceChip({
         target="_blank"
         rel="noreferrer"
         className={chipClassName}
-        title={`${label} - kaynağı aç`}
+        title={`${tooltip} — kaynağı aç`}
       >
         {content}
       </a>
@@ -49,7 +61,7 @@ export function SourceChip({
   }
 
   return (
-    <span className={chipClassName} title={label}>
+    <span className={chipClassName} title={tooltip}>
       {content}
     </span>
   );

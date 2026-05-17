@@ -1,9 +1,20 @@
 import { listTheses } from "@/lib/api/thesis";
 import { HistoryTable } from "@/components/app/HistoryTable";
 import { PageTransition, FadeIn } from "@/components/shared/MotionWrappers";
+import type { Thesis } from "@/lib/mock/types";
 
-export default async function HistoryPage() {
-  const theses = await listTheses();
+export default async function HistoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ticker?: string }>;
+}) {
+  const { ticker } = await searchParams;
+  let theses: Thesis[] = [];
+  try {
+    theses = await listTheses(ticker);
+  } catch {
+    theses = [];
+  }
   return (
     <PageTransition>
       <div className="mx-auto w-full max-w-[1280px] px-6 py-8">

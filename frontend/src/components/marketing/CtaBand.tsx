@@ -26,7 +26,7 @@ export function CtaBand() {
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link
-            href="/app/thesis/new"
+            href="/app/thesis/live"
             className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-card dark:bg-accent/50 px-5 text-[13.5px] font-medium text-slate-600 dark:text-text-2 transition-colors hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
           >
             Demo Tezi Çalıştır

@@ -5,10 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Sparkles,
-  Radio,
-  FileText,
   Star,
-  LineChart,
   History,
   Settings,
 } from "lucide-react";
@@ -33,21 +30,9 @@ const NAV: NavSection[] = [
       { label: "Dashboard", href: "/app", icon: LayoutDashboard },
       {
         label: "Yeni Tez",
-        href: "/app/thesis/new",
+        href: "/app/thesis/live",
         icon: Sparkles,
         badge: { text: "⌘N" },
-      },
-      {
-        label: "Canlı Komite",
-        href: "/app/thesis/live",
-        icon: Radio,
-        badge: { text: "CANLI", tone: "live" },
-      },
-      {
-        label: "Tez Görüntüleyici",
-        href: "/app/thesis",
-        icon: FileText,
-        matchPrefix: true,
       },
     ],
   },
@@ -58,14 +43,11 @@ const NAV: NavSection[] = [
         label: "Watchlist",
         href: "/app/watchlist",
         icon: Star,
-        badge: { text: "5" },
       },
-      { label: "Backtest Demo", href: "/app/backtest", icon: LineChart },
       {
         label: "Geçmiş Tezler",
         href: "/app/history",
         icon: History,
-        badge: { text: "24" },
       },
     ],
   },

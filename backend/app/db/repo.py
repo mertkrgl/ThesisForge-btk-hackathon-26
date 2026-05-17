@@ -29,6 +29,24 @@ async def ensure_user(session: AsyncSession, *, email: str) -> User:
     return user
 
 
+async def ensure_user_by_id(
+    session: AsyncSession, user_id: uuid.UUID
+) -> User:
+    """Verilen UUID'li user yoksa sentetik email ile oluştur.
+
+    Frontend tarayıcıda tarafından üretilen demo user_id (auth henüz yok) için
+    watchlist/thesis FK constraint'ini sağlamak amacıyla kullanılır.
+    """
+    res = await session.execute(select(User).where(User.id == user_id))
+    user = res.scalar_one_or_none()
+    if user is not None:
+        return user
+    user = User(id=user_id, email=f"demo-{user_id}@thesisforge.local")
+    session.add(user)
+    await session.flush()
+    return user
+
+
 # ───────────────────────── Theses ─────────────────────────
 
 
@@ -59,6 +77,25 @@ async def get_thesis(
 ) -> Thesis | None:
     res = await session.execute(select(Thesis).where(Thesis.id == thesis_id))
     return res.scalar_one_or_none()
+
+
+async def list_theses(
+    session: AsyncSession,
+    *,
+    limit: int = 20,
+    offset: int = 0,
+    user_id: uuid.UUID | None = None,
+    ticker: str | None = None,
+) -> list[Thesis]:
+    """Tezleri en yeniden eskiye doğru listele; opsiyonel user_id/ticker filter."""
+    q = select(Thesis)
+    if user_id is not None:
+        q = q.where(Thesis.user_id == user_id)
+    if ticker:
+        q = q.where(Thesis.ticker == ticker.upper())
+    q = q.order_by(Thesis.thesis_date.desc()).offset(offset).limit(limit)
+    res = await session.execute(q)
+    return list(res.scalars().all())
 
 
 async def update_thesis_kaynaksiz_flag(
