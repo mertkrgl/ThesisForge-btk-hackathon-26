@@ -24,7 +24,7 @@ export function ConfidenceBar({
       </div>
       <div className={cn("mt-1.5 w-full overflow-hidden rounded-full bg-line/60", h)}>
         <div
-          className="h-full rounded-full bg-[linear-gradient(90deg,#3B82F6,#A78BFA,#22D3EE)] transition-[width] duration-700 ease-out"
+          className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
           style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
         />
       </div>

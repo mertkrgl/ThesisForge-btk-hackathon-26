@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight, Plus, Sparkles } from "lucide-react";
 import { MOCK_WATCHLIST } from "@/lib/mock/watchlist";
+import { CompanyLogo } from "@/components/app/CompanyLogo";
 import { Sparkline } from "@/components/app/Sparkline";
 import { cn } from "@/lib/utils";
 import {
@@ -49,12 +50,15 @@ export default function WatchlistPage() {
                   className="rounded-2xl border border-border bg-card p-5"
                 >
                   <div className="flex items-start justify-between">
-                    <div>
-                      <div className="font-mono text-lg font-bold text-slate-900 dark:text-white">
-                        {w.ticker}
-                      </div>
-                      <div className="text-[12px] text-muted-foreground">
-                        {w.name}
+                    <div className="flex min-w-0 items-center gap-3">
+                      <CompanyLogo ticker={w.ticker} company={w.name} size="md" />
+                      <div className="min-w-0">
+                        <div className="font-mono text-lg font-bold text-slate-900 dark:text-white">
+                          {w.ticker}
+                        </div>
+                        <div className="truncate text-[12px] text-muted-foreground">
+                          {w.name}
+                        </div>
                       </div>
                     </div>
                     <span

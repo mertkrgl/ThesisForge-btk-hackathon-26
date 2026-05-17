@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Thesis } from "@/lib/mock/types";
+import { CompanyLogo } from "./CompanyLogo";
 import { VerdictBadge } from "./VerdictBadge";
 
 export function ThesisCard({ thesis }: { thesis: Thesis }) {
@@ -13,11 +14,19 @@ export function ThesisCard({ thesis }: { thesis: Thesis }) {
       className="group flex h-full flex-col rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-[0_20px_40px_-20px_rgba(59,130,246,0.35)]"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[14px] font-bold text-slate-900 dark:text-white">
-            {thesis.ticker}
-          </span>
-          <VerdictBadge verdict={thesis.verdict} />
+        <div className="flex min-w-0 items-center gap-2">
+          <CompanyLogo ticker={thesis.ticker} company={thesis.company} size="sm" />
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[14px] font-bold text-slate-900 dark:text-white">
+                {thesis.ticker}
+              </span>
+              <VerdictBadge verdict={thesis.verdict} />
+            </div>
+            <div className="truncate text-[11px] text-muted-foreground">
+              {thesis.company}
+            </div>
+          </div>
         </div>
         <span className="font-mono text-[10.5px] text-muted-foreground">
           {date}

@@ -103,7 +103,7 @@ export default function NewThesisPage() {
                   </div>
                 </div>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Risklerin ve "Devil's Advocate" görüşlerinin öne çıktığı, sermaye korumaya odaklı temkinli analiz.
+                  Risklerin ve karşıt görüşlerin öne çıktığı, sermaye korumaya odaklı temkinli analiz.
                 </p>
               </div>
 

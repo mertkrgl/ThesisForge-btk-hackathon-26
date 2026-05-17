@@ -23,22 +23,13 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   AlertTriangle,
 };
 
-const TONE_BORDER: Record<AgentTone, string> = {
-  bull: "border-bull/40",
-  bear: "border-bear/40",
-  warn: "border-warn/40",
-  violet: "border-violet/40",
-  cyan: "border-cyan/40",
-  primary: "border-primary/40",
-};
-
 const TONE_BG: Record<AgentTone, string> = {
-  bull: "bg-bull/12 text-bull",
-  bear: "bg-bear/12 text-bear",
-  warn: "bg-warn/12 text-warn",
-  violet: "bg-violet/12 text-violet",
-  cyan: "bg-cyan/12 text-cyan",
-  primary: "bg-primary/12 text-primary",
+  bull: "bg-bull/10 text-bull",
+  bear: "bg-bear/10 text-bear",
+  warn: "bg-warn/10 text-warn",
+  violet: "bg-primary/10 text-primary",
+  cyan: "bg-primary/10 text-primary",
+  primary: "bg-primary/10 text-primary",
 };
 
 const TONE_DOT: Record<AgentTone, string> = {
@@ -70,27 +61,30 @@ export function AgentCard({
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    const resetTimer = setTimeout(() => {
+      setProgress(status === "done" ? 100 : status === "running" ? 10 : 0);
+      if (status === "idle") setExpanded(false);
+    }, 0);
+
     if (status === "running") {
-      setProgress(10);
       const interval = setInterval(() => {
         setProgress((p) => Math.min(p + (Math.random() * 10 + 5), 90));
       }, 500);
-      return () => clearInterval(interval);
-    } else if (status === "done") {
-      setProgress(100);
-    } else {
-      setProgress(0);
-      setExpanded(false);
+      return () => {
+        clearTimeout(resetTimer);
+        clearInterval(interval);
+      };
     }
+
+    return () => clearTimeout(resetTimer);
   }, [status]);
 
   return (
     <div
       className={cn(
-        "relative flex h-full flex-col rounded-xl border bg-card p-4 transition-all",
-        TONE_BORDER[meta.tone],
+        "relative flex h-full flex-col rounded-xl border border-border bg-card p-4 transition-colors",
         status === "running" &&
-          "shadow-[0_0_0_3px_rgba(59,130,246,0.10)] ring-1 ring-inset ring-primary/40",
+          "border-primary/40 bg-primary/[0.03] dark:bg-primary/[0.06]",
         className
       )}
     >
@@ -114,24 +108,26 @@ export function AgentCard({
         <span
           className={cn(
             "h-2 w-2 shrink-0 rounded-full",
-            status === "idle" ? "bg-line-2" : TONE_DOT[meta.tone]
+            status === "idle" && "bg-line-2",
+            status === "running" && "bg-primary",
+            status === "done" && TONE_DOT[meta.tone]
           )}
         />
       </div>
 
       <div className="mt-4 flex-1 flex flex-col justify-center min-h-[72px]">
         {status === "idle" && (
-          <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 p-3 text-[11.5px] text-muted-foreground/70">
+          <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 p-3 text-[11.5px] text-muted-foreground/70">
             Sırasını bekliyor...
           </div>
         )}
 
         {status === "running" && (
-          <div className="flex h-full flex-col justify-center space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+          <div className="flex h-full flex-col justify-center space-y-3 rounded-lg border border-border bg-muted/20 p-3">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
               <span className="flex items-center gap-2">
                 <span className="inline-block h-2 w-2 rounded-full bg-primary [animation:tf-pulse-dot_1s_ease-in-out_infinite]" />
-                Veriler sentezleniyor...
+                Değerlendiriyor...
               </span>
               <span className="font-mono">{Math.round(progress)}%</span>
             </div>
@@ -149,18 +145,15 @@ export function AgentCard({
             {!expanded ? (
                <div 
                  onClick={() => setExpanded(true)}
-                 className={cn(
-                   "flex flex-1 cursor-pointer items-center gap-2.5 rounded-lg p-3 border transition-colors hover:bg-opacity-80",
-                   TONE_BG[meta.tone].replace("text-", "border-").replace("/12", "/20 bg-opacity-30")
-                 )}
+                 className="flex flex-1 cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-muted/20 p-3 transition-colors hover:bg-muted/35"
                >
                  <div className={cn("h-2 w-2 shrink-0 rounded-full", TONE_DOT[meta.tone])} />
-                 <span className="line-clamp-2 text-[12px] font-medium leading-relaxed opacity-90">
+                 <span className="line-clamp-2 text-[12px] font-medium leading-relaxed text-text-2">
                    {text ? text.replace(/[*#]/g, '') : "Analiz başarıyla tamamlandı."}
                  </span>
                </div>
             ) : (
-               <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3 font-mono text-[12px] leading-relaxed text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 whitespace-pre-wrap">
+               <div className="rounded-lg border border-border bg-muted/25 p-3 font-mono text-[12px] leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
                  {text}
                </div>
             )}
@@ -171,7 +164,7 @@ export function AgentCard({
                   onClick={() => setExpanded(!expanded)}
                   className="text-[10.5px] font-semibold text-primary hover:underline focus:outline-none"
                 >
-                  {expanded ? "▲ Özeti Göster" : "▼ Detaylı Analizi Oku"}
+                  {expanded ? "Özeti göster" : "Detayı aç"}
                 </button>
               </div>
             )}
@@ -189,7 +182,7 @@ export function AgentCard({
           </div>
           <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-line/60">
             <div
-              className={cn("h-full rounded-full", TONE_DOT[meta.tone])}
+              className="h-full rounded-full bg-primary"
               style={{ width: `${confidence}%` }}
             />
           </div>
