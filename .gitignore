@@ -6,3 +6,7 @@ __pycache__/
 .DS_Store
 .venv/
 venv/
+
+# Pipeline runtime çıktıları (her smoke run'da üretilir, repo'ya girmemeli)
+thesis_output*.md
+
