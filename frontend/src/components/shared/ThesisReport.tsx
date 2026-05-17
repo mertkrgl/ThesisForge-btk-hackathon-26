@@ -10,9 +10,9 @@
  */
 import React from "react";
 import { InlineMarkdown } from "@/components/shared/InlineMarkdown";
-import { SourceChip } from "@/components/app/SourceChip";
+import { SourceChipPopover } from "@/components/app/SourceChipPopover";
 import { toolToSource } from "@/lib/data/toolLabels";
-import type { Source } from "@/lib/mock/types";
+import type { CitationDetail, Source } from "@/lib/mock/types";
 
 const HEADING_RE = /^(#{1,3})\s+(.*)$/;
 const BULLET_RE = /^[-*]\s+(.*)$/;
@@ -75,7 +75,7 @@ function parseBlocks(md: string): Block[] {
 
 function renderInline(
   text: string,
-  citations?: { call_id: string; tool_name: string | null }[],
+  citations?: CitationDetail[],
 ): React.ReactNode {
   // [kaynak: uuid] referanslarını ayır; aralardaki metni InlineMarkdown ile bas
   const parts: React.ReactNode[] = [];
@@ -95,10 +95,11 @@ function renderInline(
       ? toolToSource(uuid, cit.tool_name)
       : { id: uuid, label: "Kaynak", kind: "filing" };
     parts.push(
-      <SourceChip
+      <SourceChipPopover
         key={`s${match.index}`}
+        citation={cit ?? null}
         source={src}
-        className="ml-0.5 align-middle"
+        className="ml-0.5"
       />,
     );
     lastIdx = match.index + match[0].length;
@@ -113,7 +114,7 @@ export function ThesisReport({
   citations,
 }: {
   markdown: string;
-  citations?: { call_id: string; tool_name: string | null }[];
+  citations?: CitationDetail[];
 }) {
   if (!markdown?.trim()) return null;
   const blocks = parseBlocks(markdown);

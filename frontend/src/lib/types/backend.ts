@@ -107,7 +107,9 @@ export type BackendCitation = {
   claim_text: string;
   call_id: string | null;
   tool_name: string | null;
+  tool_args: Record<string, unknown> | null;
   tool_result: Record<string, unknown> | null;
+  tool_ts: string | null;
   is_kaynaksiz: boolean;
 };
 

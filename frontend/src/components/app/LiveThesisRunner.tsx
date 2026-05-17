@@ -59,17 +59,35 @@ const PHASES: { id: PhaseId; label: string }[] = [
 
 const PERSONA_COPY: Record<
   Persona,
-  { label: string; compact: string; body: string }
+  {
+    label: string;
+    compact: string;
+    body: string;
+    tagline: string;
+    bullets: string[];
+  }
 > = {
   default: {
     label: "Dengeli Analiz",
     compact: "Dengeli",
-    body: "Bull ve bear argümanları aynı ağırlıkta değerlendirilir.",
+    tagline: "Standart sentez · güven skoru sınırsız",
+    body: "Bull ve bear argümanları aynı ağırlıkta değerlendirilir; sayısal tez profesyonel rapor formatında üretilir.",
+    bullets: [
+      "Standart synthesizer promptu",
+      "Bull ↔ Bear eşit ağırlık",
+      "Tüm sektör profilleri için uygun",
+    ],
   },
   conservative: {
-    label: "Muhafazakar",
-    compact: "Muhafazakar",
-    body: "Riskler ve aşağı yönlü senaryolar daha görünür tutulur.",
+    label: "Muhafazakâr",
+    compact: "Muhafazakâr",
+    tagline: "Bear-first sentez · güven skoru ≤70 ile sınırlı",
+    body: "Önce risk ve aşağı yönlü senaryolar yazılır; temettü güvenliği, volatilite ve sermaye koruma açıkça değerlendirilir.",
+    bullets: [
+      "Risk önce, getiri sonra",
+      "Temettü & sermaye koruma vurgusu",
+      "Final güven skoru 70 ile cap'lenir",
+    ],
   },
 };
 
@@ -145,7 +163,6 @@ export function LiveThesisRunner({
   const router = useRouter();
   const [symbol, setSymbol] = useState(defaultSymbol);
   const [persona, setPersona] = useState<Persona>(defaultPersona);
-  const [question, setQuestion] = useState("");
   const [running, setRunning] = useState(false);
   const [assembling, setAssembling] = useState(false);
   const [phase, setPhase] = useState<PhaseId>("Hazırlanıyor");
@@ -189,7 +206,6 @@ export function LiveThesisRunner({
       {
         symbol: sym,
         persona,
-        question: question || undefined,
       },
       {
         onMeta: ({ thesisId: tid }) => setThesisId(tid),
@@ -372,8 +388,6 @@ export function LiveThesisRunner({
             setSymbol={setSymbol}
             persona={persona}
             setPersona={setPersona}
-            question={question}
-            setQuestion={setQuestion}
             onStart={() => start()}
           />
         )}
@@ -431,19 +445,40 @@ export function LiveThesisRunner({
                 <>
                   <StaggerContainer
                     stagger={0.04}
-                    className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
                   >
-                    {visibleAgents.map((meta) => (
-                      <StaggerItem key={meta.id}>
-                        <AgentCard
-                          meta={meta}
-                          status={agents[meta.id]?.status ?? "idle"}
-                          text={agents[meta.id]?.text}
-                          confidence={agents[meta.id]?.confidence}
-                        />
-                      </StaggerItem>
-                    ))}
+                    {visibleAgents
+                      .filter((meta) => meta.id !== "synthesizer")
+                      .map((meta) => (
+                        <StaggerItem key={meta.id}>
+                          <AgentCard
+                            meta={meta}
+                            status={agents[meta.id]?.status ?? "idle"}
+                            text={agents[meta.id]?.text}
+                            confidence={agents[meta.id]?.confidence}
+                          />
+                        </StaggerItem>
+                      ))}
                   </StaggerContainer>
+                  {(() => {
+                    const synth = visibleAgents.find(
+                      (m) => m.id === "synthesizer",
+                    );
+                    if (!synth) return null;
+                    return (
+                      <FadeIn delay={0.05}>
+                        <div className="mt-3">
+                          <AgentCard
+                            wide
+                            meta={synth}
+                            status={agents[synth.id]?.status ?? "idle"}
+                            text={agents[synth.id]?.text}
+                            confidence={agents[synth.id]?.confidence}
+                          />
+                        </div>
+                      </FadeIn>
+                    );
+                  })()}
                   {state === "running" && queuedAgents.length > 0 && (
                     <QueueStrip queuedAgents={queuedAgents} />
                   )}
@@ -481,8 +516,6 @@ function IdleHero({
   setSymbol,
   persona,
   setPersona,
-  question,
-  setQuestion,
   onStart,
 }: {
   title: string;
@@ -491,8 +524,6 @@ function IdleHero({
   setSymbol: (v: string) => void;
   persona: Persona;
   setPersona: (p: Persona) => void;
-  question: string;
-  setQuestion: (q: string) => void;
   onStart: () => void;
 }) {
   const selectedPersona = PERSONA_COPY[persona];
@@ -580,42 +611,25 @@ function IdleHero({
             ))}
           </div>
 
-          <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
-            <div>
+          <div className="mt-7">
+            <div className="flex items-center justify-between gap-3">
               <label className="block text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                 Komite stratejisi
               </label>
-              <div className="mt-2 grid grid-cols-2 rounded-xl border border-border bg-muted/25 p-1">
-                <PersonaToggle
-                  value="default"
-                  active={persona === "default"}
-                  onClick={() => setPersona("default")}
-                />
-                <PersonaToggle
-                  value="conservative"
-                  active={persona === "conservative"}
-                  onClick={() => setPersona("conservative")}
-                />
-              </div>
-              <p className="mt-2 min-h-[34px] text-[11.5px] leading-relaxed text-text-2">
-                {selectedPersona.body}
-              </p>
+              <span className="text-[11px] text-muted-foreground">
+                Synthesizer promptu ve güven cap&apos;i etkilenir
+              </span>
             </div>
-
-            <div>
-              <div className="flex items-center justify-between gap-3">
-                <label className="block text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                  Odak sorusu
-                </label>
-                <span className="text-[11px] text-muted-foreground">
-                  Opsiyonel
-                </span>
-              </div>
-              <input
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder={`Örn: ${symbol || "ASELS"} için 4Ç katalist takvimi nasıl?`}
-                className="mt-2 h-11 w-full rounded-lg border border-border bg-slate-50 px-3 text-[13px] text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/20 dark:bg-muted dark:text-white"
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <PersonaCard
+                value="default"
+                active={persona === "default"}
+                onClick={() => setPersona("default")}
+              />
+              <PersonaCard
+                value="conservative"
+                active={persona === "conservative"}
+                onClick={() => setPersona("conservative")}
               />
             </div>
           </div>
@@ -667,10 +681,10 @@ function IdleHero({
 
           <div className="mt-5 text-[12.5px] leading-relaxed text-text-2">
             <span className="font-semibold text-slate-900 dark:text-white">
-              Odak alanı:
+              Hazır:
             </span>{" "}
-            sembol, strateji ve isteğe bağlı soru. Başlatınca bu panel canlı
-            ilerleme görünümüne dönüşür.
+            sembol ve komite stratejisi. Başlatınca bu panel canlı ilerleme
+            görünümüne dönüşür.
           </div>
         </aside>
       </div>
@@ -678,7 +692,7 @@ function IdleHero({
   );
 }
 
-function PersonaToggle({
+function PersonaCard({
   value,
   active,
   onClick,
@@ -688,24 +702,77 @@ function PersonaToggle({
   onClick: () => void;
 }) {
   const Icon = value === "conservative" ? ShieldAlert : Sparkles;
-  const tone =
-    value === "conservative"
-      ? "text-warn border-warn/25 bg-warn/10"
-      : "text-primary border-primary/25 bg-primary/10";
+  const tone = value === "conservative" ? "warn" : "primary";
+  const meta = PERSONA_COPY[value];
 
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        "flex h-10 min-w-0 items-center justify-center gap-2 rounded-lg border text-[12px] font-semibold transition-colors",
+        "group relative flex flex-col rounded-xl border bg-card p-4 text-left transition-all",
+        "hover:border-primary/40 hover:bg-accent/20",
         active
-          ? tone
-          : "border-transparent text-muted-foreground hover:bg-card hover:text-text-2",
+          ? tone === "warn"
+            ? "border-warn/50 bg-warn/[0.04] shadow-[0_18px_42px_-28px_rgba(245,158,11,0.55)] ring-1 ring-warn/30"
+            : "border-primary/50 bg-primary/[0.04] shadow-[0_18px_42px_-28px_rgba(59,130,246,0.55)] ring-1 ring-primary/30"
+          : "border-border",
       )}
     >
-      <Icon className="h-3.5 w-3.5 shrink-0" />
-      <span className="truncate">{PERSONA_COPY[value].compact}</span>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div
+            className={cn(
+              "grid h-9 w-9 place-items-center rounded-lg",
+              tone === "warn"
+                ? "bg-warn/10 text-warn"
+                : "bg-primary/10 text-primary",
+            )}
+          >
+            <Icon className="h-4 w-4" />
+          </div>
+          <div>
+            <div className="text-[14px] font-semibold text-slate-900 dark:text-white">
+              {meta.label}
+            </div>
+            <div className="text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
+              {meta.tagline}
+            </div>
+          </div>
+        </div>
+        <span
+          className={cn(
+            "mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors",
+            active
+              ? tone === "warn"
+                ? "border-warn bg-warn text-white"
+                : "border-primary bg-primary text-white"
+              : "border-border",
+          )}
+          aria-hidden
+        >
+          {active && (
+            <span className="block h-1.5 w-1.5 rounded-full bg-white" />
+          )}
+        </span>
+      </div>
+      <p className="mt-3 text-[12.5px] leading-relaxed text-text-2">
+        {meta.body}
+      </p>
+      <ul className="mt-3 flex flex-col gap-1 text-[11.5px] text-muted-foreground">
+        {meta.bullets.map((b) => (
+          <li key={b} className="flex items-start gap-1.5">
+            <span
+              className={cn(
+                "mt-1 inline-block h-1 w-1 shrink-0 rounded-full",
+                tone === "warn" ? "bg-warn" : "bg-primary",
+              )}
+            />
+            <span>{b}</span>
+          </li>
+        ))}
+      </ul>
     </button>
   );
 }

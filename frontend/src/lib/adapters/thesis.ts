@@ -233,6 +233,9 @@ export function adaptThesis(
           .map((c) => ({
             call_id: c.call_id as string,
             tool_name: c.tool_name,
+            tool_args: c.tool_args,
+            tool_result: c.tool_result,
+            tool_ts: c.tool_ts,
           }))
       : undefined,
   };

@@ -332,7 +332,9 @@ async def list_citations_with_tool_results(
             Citation.call_id,
             Citation.is_kaynaksiz,
             ToolCallLog.tool_name,
+            ToolCallLog.args,
             ToolCallLog.result,
+            ToolCallLog.ts,
         )
         .outerjoin(ToolCallLog, Citation.call_id == ToolCallLog.call_id)
         .where(Citation.thesis_id == thesis_id)
@@ -345,7 +347,9 @@ async def list_citations_with_tool_results(
                 "claim_text": r.claim_text,
                 "call_id": str(r.call_id) if r.call_id else None,
                 "tool_name": r.tool_name,
+                "tool_args": r.args,
                 "tool_result": r.result,
+                "tool_ts": r.ts.isoformat() if r.ts else None,
                 "is_kaynaksiz": bool(r.is_kaynaksiz),
             }
         )

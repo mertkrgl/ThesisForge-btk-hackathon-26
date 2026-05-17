@@ -179,7 +179,7 @@ export default function WatchlistPage() {
               const goDetail = () => router.push(detailHref);
               return (
                 <StaggerItem key={w.ticker}>
-                  <li
+                  <div
                     role="link"
                     tabIndex={0}
                     onClick={goDetail}
@@ -276,7 +276,7 @@ export default function WatchlistPage() {
                         Geçmiş tezler →
                       </Link>
                     </div>
-                  </li>
+                  </div>
                 </StaggerItem>
               );
             })}
