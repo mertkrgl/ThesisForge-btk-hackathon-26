@@ -59,11 +59,11 @@ export function AgentShowcase() {
           {AGENT_REGISTRY.map((agent) => {
             const Icon = ICONS[agent.icon] ?? Sparkles;
             return (
-              <StaggerItem key={agent.id}>
-                <HoverCard>
+              <StaggerItem key={agent.id} className="h-full">
+                <HoverCard className="h-full">
                   <div
                     className={cn(
-                      "group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-border bg-card dark:bg-card p-5 shadow-sm dark:shadow-none transition-all",
+                      "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-border bg-card dark:bg-card p-5 shadow-sm dark:shadow-none transition-all",
                       "hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-border",
                       TONE_GLOW[agent.tone]
                     )}
@@ -97,7 +97,7 @@ export function AgentShowcase() {
                     >
                       {agent.role}
                     </div>
-                    <p className="mt-3 text-[12.5px] leading-relaxed text-text-2">
+                    <p className="mt-3 flex-1 text-[12.5px] leading-relaxed text-text-2">
                       {agent.mandate}
                     </p>
                   </div>

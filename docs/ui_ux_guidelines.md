@@ -86,3 +86,26 @@ Bir projenin jüriye veya yatırımcıya "kullanıma hazır bir ürün" (Product
 *   **TrustedBy (Sosyal Kanıt):** Kullanıcı siteye girer girmez *Borsa İstanbul, KAP, TCMB, Gemini* gibi güvenilir otorite logolarını görür. Sönük ve gri (grayscale) tonlarda tasarlanarak ana tasarımı boğmadan "kurumsal altyapı" mesajı verir.
 *   **Personas (Kimler İçin Tasarlandı):** Ürünün sadece ne yaptığı değil, *kimin hangi problemini çözdüğü* vurgulanır. Bireysel Yatırımcılar, Fon Yöneticileri ve İçerik Üreticileri için 3 ayrı kullanım senaryosu (Use-case) sunulur.
 *   **FAQ (Sıkça Sorulan Sorular):** Kullanıcıların yapay zeka ve finans hakkındaki haklı şüphelerini gidermek için eklendi. Ağır kütüphaneler yerine saf HTML5 `<details>` ve `<summary>` etiketleri ile son derece hafif ve modern bir akordeon (Accordion) yapısı kurulmuştur.
+
+## 11. Görsel Tutarlılık ve Grafik İyileştirmeleri (Mayıs 2026)
+
+Bu iterasyonda kullanıcı arayüzünün profesyonelliğini artıran üç önemli iyileştirme yapılmıştır:
+
+### 11.1 Ajan Kartları Eşit Yükseklik (AgentShowcase)
+
+*   **Sorun:** 8 ajan kartının metin uzunluğu farklı olduğu için kartlar farklı yüksekliklerde oluşuyor, aynı satırdaki kartlar hizasız görünüyordu.
+*   **Çözüm:** `AgentShowcase.tsx` bileşenindeki `StaggerItem`, `HoverCard` ve iç kart `div`'lerine `h-full` eklenerek CSS Grid'in satır yüksekliğini miras alması sağlandı. Kart gövdesi `flex flex-col` yapılıp, açıklama paragrafına `flex-1` verilerek tüm kartlar aynı satırdaki en uzun kartla eşit yüksekliğe getirildi.
+
+### 11.2 Profesyonel Persona İsimlendirmesi (Yeni Tez Sayfası)
+
+*   **Sorun:** Muhafazakâr strateji kartında gayri resmi bir isim ("Ali Bey") ve label'da gereksiz teknik jargon ("Persona") bulunuyordu.
+*   **Çözüm:** `new/page.tsx` dosyasında:
+    *   `"Muhafazakar (Ali Bey)"` → `"Muhafazakâr Strateji"` olarak güncellendi.
+    *   `"Komite Stratejisi (Persona)"` → `"Komite Stratejisi"` olarak sadeleştirildi.
+
+### 11.3 Gradient Area Sparkline'lar (Watchlist)
+
+*   **Sorun:** Dashboard watchlist kartlarındaki sparkline'lar düz çizgi (`LineChart`) olarak çiziliyordu; görsel olarak sönük ve amatör duruyordu.
+*   **Çözüm:** `Sparkline.tsx` bileşeni Recharts `AreaChart`'a dönüştürüldü. Çizginin altı, trende göre (yeşil/kırmızı) saydamdan opak'a geçiş yapan `linearGradient` ile doldurularak shadcn/ui estetik standartlarına uygun premium bir görünüm elde edildi.
+*   **Teknik Not:** Birden fazla Sparkline bileşeninin aynı sayfada SVG gradient ID'si çakışmasını önlemek için React'ın `useId()` hook'u ile her bileşene benzersiz gradient referansı atanmaktadır.
+

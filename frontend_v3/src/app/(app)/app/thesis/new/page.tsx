@@ -59,7 +59,7 @@ export default function NewThesisPage() {
           {/* Persona Selection */}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">
-              Komite Stratejisi (Persona)
+              Komite Stratejisi
             </label>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               
@@ -96,7 +96,7 @@ export default function NewThesisPage() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <ShieldAlert className={`h-5 w-5 ${persona === "conservative" ? "text-amber-600 dark:text-amber-400" : "text-slate-400"}`} />
-                    <h3 className={`font-semibold ${persona === "conservative" ? "text-amber-900 dark:text-amber-100" : "text-slate-900 dark:text-white"}`}>Muhafazakar (Ali Bey)</h3>
+                    <h3 className={`font-semibold ${persona === "conservative" ? "text-amber-900 dark:text-amber-100" : "text-slate-900 dark:text-white"}`}>Muhafazakâr Strateji</h3>
                   </div>
                   <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${persona === "conservative" ? "border-amber-600" : "border-slate-300"}`}>
                     {persona === "conservative" && <div className="h-2 w-2 rounded-full bg-amber-600" />}
