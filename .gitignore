@@ -7,6 +7,10 @@ __pycache__/
 .venv/
 venv/
 
-# Pipeline runtime çıktıları (her smoke run'da üretilir, repo'ya girmemeli)
-thesis_output*.md
-
+# AI Tarama Engeli (Tüm alt klasörlerdeki RAM şişmesini önlemek için)
+**/node_modules/
+**/.next/
+**/.turbo/
+**/out/
+**/build/
+**/dist/
