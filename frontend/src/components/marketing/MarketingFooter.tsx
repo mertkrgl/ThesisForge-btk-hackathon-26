@@ -17,7 +17,7 @@ export function MarketingFooter() {
         <FooterCol
           title="Ürün"
           items={[
-            { label: "Canlı Komite", href: "/app/thesis/new" },
+            { label: "Yeni Tez", href: "/app/thesis/live" },
             { label: "Watchlist", href: "/app/watchlist" },
             { label: "Geçmiş Tezler", href: "/app/history" },
             { label: "Ayarlar", href: "/app/settings" },

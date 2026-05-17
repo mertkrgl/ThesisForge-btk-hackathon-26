@@ -26,6 +26,16 @@ import {
 } from "@/lib/api/watchlist";
 import type { WatchlistItem } from "@/lib/mock/types";
 
+const priceFormatter = new Intl.NumberFormat("tr-TR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+function formatPrice(value: number | null): string {
+  if (value == null || !Number.isFinite(value)) return "Veri yok";
+  return priceFormatter.format(value);
+}
+
 export default function WatchlistPage() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +58,25 @@ export default function WatchlistPage() {
   };
 
   useEffect(() => {
-    refresh();
+    let cancelled = false;
+
+    const loadInitial = async () => {
+      setError(null);
+      try {
+        const rows = await listWatchlist();
+        if (!cancelled) setItems(rows);
+      } catch (e) {
+        if (!cancelled)
+          setError(e instanceof Error ? e.message : "Watchlist alınamadı");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadInitial();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -143,7 +171,8 @@ export default function WatchlistPage() {
             className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
           >
             {items.map((w) => {
-              const positive = w.deltaPct >= 0;
+              const hasQuote = w.last != null && w.deltaPct != null;
+              const positive = (w.deltaPct ?? 0) >= 0;
               return (
                 <StaggerItem key={w.ticker}>
                   <li className="rounded-2xl border border-border bg-card p-5">
@@ -164,21 +193,27 @@ export default function WatchlistPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 font-mono text-[11px] font-semibold",
-                            positive
-                              ? "border-bull/30 bg-bull/10 text-bull"
-                              : "border-bear/30 bg-bear/10 text-bear",
-                          )}
-                        >
-                          {positive ? (
-                            <ArrowUpRight className="h-3 w-3" />
-                          ) : (
-                            <ArrowDownRight className="h-3 w-3" />
-                          )}
-                          {Math.abs(w.deltaPct).toFixed(2)}%
-                        </span>
+                        {hasQuote ? (
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 font-mono text-[11px] font-semibold",
+                              positive
+                                ? "border-bull/30 bg-bull/10 text-bull"
+                                : "border-bear/30 bg-bear/10 text-bear",
+                            )}
+                          >
+                            {positive ? (
+                              <ArrowUpRight className="h-3 w-3" />
+                            ) : (
+                              <ArrowDownRight className="h-3 w-3" />
+                            )}
+                            {Math.abs(w.deltaPct ?? 0).toFixed(2)}%
+                          </span>
+                        ) : (
+                          <span className="rounded-full border border-warn/30 bg-warn/10 px-2 py-0.5 text-[11px] font-semibold text-warn">
+                            Veri yok
+                          </span>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleRemove(w.ticker)}
@@ -191,18 +226,24 @@ export default function WatchlistPage() {
                       </div>
                     </div>
                     <div className="mt-2 font-mono text-2xl font-bold text-text-2">
-                      {w.last.toFixed(2)}
+                      {formatPrice(w.last)}
                     </div>
                     <div className="mt-3 h-[64px]">
-                      <Sparkline
-                        data={w.spark}
-                        positive={positive}
-                        height={64}
-                      />
+                      {hasQuote && w.spark.length > 1 ? (
+                        <Sparkline
+                          data={w.spark}
+                          positive={positive}
+                          height={64}
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border bg-card/50 text-[11.5px] text-muted-foreground">
+                          Quote alınamadı
+                        </div>
+                      )}
                     </div>
                     <div className="mt-4 flex items-center justify-between">
                       <Link
-                        href={`/app/thesis/new?symbol=${w.ticker}`}
+                        href={`/app/thesis/live?symbol=${w.ticker}`}
                         className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-[12px] font-semibold text-primary-foreground transition-colors hover:bg-[#2563EB]"
                       >
                         <Sparkles className="h-3.5 w-3.5" />

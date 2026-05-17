@@ -9,6 +9,16 @@ import { cn } from "@/lib/utils";
 import { listWatchlist } from "@/lib/api/watchlist";
 import type { WatchlistItem } from "@/lib/mock/types";
 
+const priceFormatter = new Intl.NumberFormat("tr-TR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+function formatPrice(value: number | null): string {
+  if (value == null || !Number.isFinite(value)) return "Veri yok";
+  return priceFormatter.format(value);
+}
+
 export function WatchlistStrip() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +70,7 @@ export function WatchlistStrip() {
         </div>
       ) : items.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border bg-card/60 p-4 text-center text-[12px] text-text-2">
-          Henüz watchlist'inde sembol yok.{" "}
+          Henüz watchlist&apos;inde sembol yok.{" "}
           <Link
             href="/app/watchlist"
             className="font-semibold text-primary hover:underline"
@@ -71,11 +81,12 @@ export function WatchlistStrip() {
       ) : (
         <ul className="grid grid-cols-2 gap-2 md:grid-cols-5">
           {items.map((w) => {
-            const positive = w.deltaPct >= 0;
+            const hasQuote = w.last != null && w.deltaPct != null;
+            const positive = (w.deltaPct ?? 0) >= 0;
             return (
               <li key={w.ticker}>
                 <Link
-                  href={`/app/thesis/new?symbol=${w.ticker}`}
+                  href={`/app/thesis/live?symbol=${w.ticker}`}
                   className="block rounded-xl border border-border bg-card p-3 transition-colors hover:border-border"
                 >
                   <div className="flex items-center justify-between">
@@ -89,29 +100,39 @@ export function WatchlistStrip() {
                         {w.ticker}
                       </span>
                     </div>
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-0.5 font-mono text-[11px] font-semibold",
-                        positive ? "text-bull" : "text-bear",
-                      )}
-                    >
-                      {positive ? (
-                        <ArrowUpRight className="h-3 w-3" />
-                      ) : (
-                        <ArrowDownRight className="h-3 w-3" />
-                      )}
-                      {Math.abs(w.deltaPct).toFixed(2)}%
-                    </span>
+                    {hasQuote ? (
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-0.5 font-mono text-[11px] font-semibold",
+                          positive ? "text-bull" : "text-bear",
+                        )}
+                      >
+                        {positive ? (
+                          <ArrowUpRight className="h-3 w-3" />
+                        ) : (
+                          <ArrowDownRight className="h-3 w-3" />
+                        )}
+                        {Math.abs(w.deltaPct ?? 0).toFixed(2)}%
+                      </span>
+                    ) : (
+                      <span className="rounded-md border border-warn/30 bg-warn/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-warn">
+                        Veri yok
+                      </span>
+                    )}
                   </div>
                   <div className="mt-1 font-mono text-[14.5px] font-bold text-text-2">
-                    {w.last.toFixed(2)}
+                    {formatPrice(w.last)}
                   </div>
                   <div className="mt-1">
-                    <Sparkline
-                      data={w.spark}
-                      positive={positive}
-                      height={28}
-                    />
+                    {hasQuote && w.spark.length > 1 ? (
+                      <Sparkline
+                        data={w.spark}
+                        positive={positive}
+                        height={28}
+                      />
+                    ) : (
+                      <div className="h-7 rounded-md border border-dashed border-border bg-card/50" />
+                    )}
                   </div>
                 </Link>
               </li>

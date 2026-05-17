@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -47,6 +47,7 @@ type PhaseId =
 type Persona = "default" | "conservative";
 
 const POPULAR = ["TUPRS", "ASELS", "EREGL", "THYAO", "BIMAS", "GARAN"];
+const ASSEMBLY_DURATION_MS = 4500;
 
 const PHASES: { id: PhaseId; label: string }[] = [
   { id: "Hazırlanıyor", label: "Hazırlık" },
@@ -70,6 +71,25 @@ const PERSONA_COPY: Record<
     compact: "Muhafazakar",
     body: "Riskler ve aşağı yönlü senaryolar daha görünür tutulur.",
   },
+};
+
+const SEAT_POSITIONS: { left: string; top: string; rotation: string }[] = [
+  { left: "50%", top: "18%", rotation: "0deg" },
+  { left: "69%", top: "26%", rotation: "42deg" },
+  { left: "76%", top: "50%", rotation: "90deg" },
+  { left: "66%", top: "76%", rotation: "138deg" },
+  { left: "34%", top: "76%", rotation: "222deg" },
+  { left: "24%", top: "50%", rotation: "270deg" },
+  { left: "31%", top: "26%", rotation: "318deg" },
+];
+
+const AGENT_TONE_RGB: Record<string, string> = {
+  bull: "34 197 94",
+  bear: "239 68 68",
+  warn: "245 158 11",
+  violet: "139 92 246",
+  cyan: "34 211 238",
+  primary: "37 99 235",
 };
 
 const PHASE_COPY: Record<PhaseId, { title: string; body: string }> = {
@@ -127,6 +147,7 @@ export function LiveThesisRunner({
   const [persona, setPersona] = useState<Persona>(defaultPersona);
   const [question, setQuestion] = useState("");
   const [running, setRunning] = useState(false);
+  const [assembling, setAssembling] = useState(false);
   const [phase, setPhase] = useState<PhaseId>("Hazırlanıyor");
   const [confidence, setConfidence] = useState(0);
   const [sources, setSources] = useState<string[]>([]);
@@ -135,13 +156,23 @@ export function LiveThesisRunner({
   const [error, setError] = useState<string | null>(null);
   const [thesisId, setThesisId] = useState<string | null>(null);
   const handleRef = useRef<{ stop: () => void } | null>(null);
+  const assemblyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearAssemblyTimer = () => {
+    if (assemblyTimerRef.current) {
+      clearTimeout(assemblyTimerRef.current);
+      assemblyTimerRef.current = null;
+    }
+  };
 
   const start = (overrideSymbol?: string) => {
     const sym = (overrideSymbol ?? symbol).trim().toUpperCase();
     if (!sym) return;
+    clearAssemblyTimer();
     handleRef.current?.stop();
     setSymbol(sym);
     setRunning(true);
+    setAssembling(true);
     setDone(false);
     setError(null);
     setThesisId(null);
@@ -149,6 +180,10 @@ export function LiveThesisRunner({
     setConfidence(0);
     setSources([]);
     setAgents(initAgents());
+    assemblyTimerRef.current = setTimeout(() => {
+      setAssembling(false);
+      assemblyTimerRef.current = null;
+    }, ASSEMBLY_DURATION_MS);
 
     handleRef.current = streamThesis(
       {
@@ -159,6 +194,8 @@ export function LiveThesisRunner({
       {
         onMeta: ({ thesisId: tid }) => setThesisId(tid),
         onError: (msg) => {
+          clearAssemblyTimer();
+          setAssembling(false);
           setError(msg);
           setRunning(false);
         },
@@ -215,6 +252,8 @@ export function LiveThesisRunner({
             );
           }
           if (e.type === "done") {
+            clearAssemblyTimer();
+            setAssembling(false);
             setPhase("Tez Hazır");
             setDone(true);
             setRunning(false);
@@ -240,6 +279,7 @@ export function LiveThesisRunner({
     }
     return () => {
       if (t) clearTimeout(t);
+      clearAssemblyTimer();
       handleRef.current?.stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -288,8 +328,10 @@ export function LiveThesisRunner({
   };
 
   const reset = () => {
+    clearAssemblyTimer();
     handleRef.current?.stop();
     setRunning(false);
+    setAssembling(false);
     setDone(false);
     setError(null);
     setThesisId(null);
@@ -299,9 +341,13 @@ export function LiveThesisRunner({
     setAgents(initAgents());
   };
 
-  // ───── 3 aşamalı state ─────
-  const state: "idle" | "running" | "done" =
-    done ? "done" : running ? "running" : "idle";
+  const state: "idle" | "assembling" | "running" | "done" = done
+    ? "done"
+    : assembling
+      ? "assembling"
+      : running
+        ? "running"
+        : "idle";
 
   return (
     <PageTransition>
@@ -331,6 +377,8 @@ export function LiveThesisRunner({
             onStart={() => start()}
           />
         )}
+
+        {state === "assembling" && <AssemblyScene symbol={symbol} />}
 
         {(state === "running" || state === "done") && (
           <>
@@ -505,7 +553,7 @@ function IdleHero({
                 className="group inline-flex h-[60px] items-center justify-center gap-2 rounded-xl bg-primary px-6 text-[14px] font-semibold text-primary-foreground shadow-[0_12px_28px_-12px_#3B82F6] transition-all hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Play className="h-4 w-4" />
-                Komiteyi Başlat
+                Komiteyi Topla
                 <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
@@ -659,6 +707,288 @@ function PersonaToggle({
       <Icon className="h-3.5 w-3.5 shrink-0" />
       <span className="truncate">{PERSONA_COPY[value].compact}</span>
     </button>
+  );
+}
+
+function AssemblyScene({ symbol }: { symbol: string }) {
+  return (
+    <FadeIn>
+      <div
+        className="committee-stage relative min-h-[calc(100vh-170px)] overflow-hidden rounded-2xl border border-border p-4 sm:p-6"
+        aria-live="polite"
+      >
+        <div className="committee-blurred-ui pointer-events-none absolute inset-[-24px] scale-[1.04]">
+          <div className="mx-auto mt-8 h-[84px] w-[72%] rounded-2xl border border-border bg-white/60" />
+          <div className="mx-auto mt-7 grid w-[84%] grid-cols-2 gap-4 sm:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-[110px] rounded-xl border border-border bg-white/50"
+              />
+            ))}
+          </div>
+        </div>
+        <div className="committee-veil absolute inset-0" />
+
+        <div className="committee-scene relative z-20 flex min-h-[560px] items-center justify-center">
+          <div className="relative h-[460px] w-full max-w-[860px] sm:h-[560px]">
+            <div className="committee-table absolute left-1/2 top-[51%] h-[185px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-[50%] sm:h-[250px] sm:w-[470px]">
+              <div className="absolute inset-4 rounded-[50%] border border-slate-400/45 bg-slate-100/35" />
+              <div className="committee-symbol absolute left-1/2 top-1/2 rounded-[14px] border border-primary/40 bg-primary/10 px-5 py-2.5 font-mono text-[24px] font-black tracking-wide text-primary sm:px-6 sm:py-3 sm:text-[34px]">
+                {symbol}
+              </div>
+            </div>
+
+            {AGENT_REGISTRY.map((agent, index) => {
+              const seat = SEAT_POSITIONS[index % SEAT_POSITIONS.length];
+              const tone = AGENT_TONE_RGB[agent.tone] ?? AGENT_TONE_RGB.primary;
+              return (
+                <div
+                  key={agent.id}
+                  className="committee-agent absolute"
+                  style={
+                    {
+                      left: seat.left,
+                      top: seat.top,
+                      "--rotation": seat.rotation,
+                      "--delay": `${220 + index * 400}ms`,
+                      "--tone": tone,
+                    } as CSSProperties
+                  }
+                >
+                  <div className="committee-agent-orient">
+                    <div
+                      aria-hidden="true"
+                      className="committee-figure"
+                      style={{
+                        backgroundImage:
+                          "url(/assets/committee/agent-silhouette.svg)",
+                      }}
+                    />
+                    <div className="committee-agent-label">
+                      {agent.name}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className="committee-ready absolute bottom-8 left-1/2 inline-flex items-center gap-2">
+              <span className="committee-ready-dot" />
+              Komite toplandı
+            </div>
+          </div>
+        </div>
+
+        <style>{`
+          .committee-stage {
+            background:
+              radial-gradient(circle at 50% 44%, rgba(248, 250, 252, 0.72), transparent 38%),
+              linear-gradient(180deg, #d6dde7 0%, #c4ccd8 100%);
+            box-shadow: 0 42px 100px -54px rgba(15, 23, 42, 0.72);
+          }
+
+          .committee-stage::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+              radial-gradient(circle at 50% 50%, transparent 0%, transparent 48%, rgba(15, 23, 42, 0.20) 100%),
+              linear-gradient(115deg, rgba(255, 255, 255, 0.18), transparent 42%, rgba(15, 23, 42, 0.08));
+            z-index: 1;
+          }
+
+          .committee-blurred-ui {
+            opacity: 0.34;
+            filter: blur(10px);
+          }
+
+          .committee-veil {
+            background: rgba(203, 213, 225, 0.62);
+            backdrop-filter: blur(9px) saturate(0.82);
+          }
+
+          .committee-table {
+            border: 1px solid rgba(148, 163, 184, 0.72);
+            background:
+              radial-gradient(ellipse at 50% 42%, rgba(226, 232, 240, 0.98) 0%, rgba(203, 213, 225, 0.98) 48%, rgba(148, 163, 184, 0.98) 100%);
+            box-shadow:
+              0 34px 58px -32px rgba(15, 23, 42, 0.72),
+              inset 0 0 0 22px rgba(241, 245, 249, 0.48),
+              inset 0 0 0 23px rgba(100, 116, 139, 0.42);
+          }
+
+          .committee-table::before {
+            content: "";
+            position: absolute;
+            inset: -22px;
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            border-radius: 50%;
+            animation: tf-committee-ring 1200ms ease-in-out infinite;
+          }
+
+          .committee-agent {
+            width: 136px;
+            height: 132px;
+            opacity: 0;
+            transform: translate(-50%, 34%) scale(0.7);
+            filter: blur(8px);
+            animation: tf-committee-seat 680ms cubic-bezier(0.2, 0.85, 0.2, 1) forwards;
+            animation-delay: var(--delay);
+            z-index: 3;
+          }
+
+          .committee-agent-orient {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(var(--rotation));
+            transform-origin: center center;
+          }
+
+          .committee-figure {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            filter: drop-shadow(0 18px 14px rgb(var(--tone) / 0.2));
+          }
+
+          .committee-agent-label {
+            width: max-content;
+            max-width: 120px;
+            margin: -4px auto 0;
+            border: 1.5px solid rgb(var(--tone) / 0.62);
+            border-radius: 999px;
+            background:
+              linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 250, 252, 0.72)),
+              rgb(var(--tone) / 0.18);
+            color: rgb(var(--tone));
+            padding: 6px 10px;
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 900;
+            white-space: nowrap;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+            box-shadow:
+              0 16px 34px -24px rgb(var(--tone) / 0.88),
+              0 2px 8px rgba(15, 23, 42, 0.16);
+          }
+
+          .committee-ready {
+            opacity: 0;
+            transform: translate(-50%, 8px);
+            border: 1.5px solid rgb(34 197 94 / 0.62);
+            border-radius: 16px;
+            background:
+              linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(240, 253, 244, 0.76)),
+              rgb(34 197 94 / 0.18);
+            color: rgb(34 197 94);
+            padding: 13px 18px;
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 0.01em;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+            z-index: 4;
+            box-shadow:
+              0 20px 44px -24px rgb(34 197 94 / 0.9),
+              0 2px 10px rgba(15, 23, 42, 0.18),
+              0 0 28px rgb(34 197 94 / 0.16);
+            animation: tf-committee-ready 500ms ease-out 3580ms forwards;
+          }
+
+          .committee-ready-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgb(34 197 94);
+            box-shadow: 0 0 16px rgb(34 197 94 / 0.7);
+          }
+
+          .committee-symbol {
+            opacity: 0;
+            box-shadow: 0 0 24px rgb(37 99 235 / 0.22);
+            animation:
+              tf-committee-symbol-enter 520ms cubic-bezier(0.2, 0.85, 0.2, 1) 3060ms forwards,
+              tf-committee-symbol 1150ms ease-in-out 3580ms infinite;
+          }
+
+          @keyframes tf-committee-seat {
+            to {
+              opacity: 1;
+              transform: translate(-50%, -50%) scale(1);
+              filter: blur(0);
+            }
+          }
+
+          @keyframes tf-committee-ready {
+            to {
+              opacity: 1;
+              transform: translate(-50%, 0);
+            }
+          }
+
+          @keyframes tf-committee-ring {
+            0%, 100% {
+              opacity: 0.45;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.8;
+              transform: scale(1.03);
+            }
+          }
+
+          @keyframes tf-committee-symbol-enter {
+            from {
+              opacity: 0;
+              transform: translate(-50%, -50%) scale(0.76);
+              filter: blur(8px);
+            }
+            to {
+              opacity: 1;
+              transform: translate(-50%, -50%) scale(1);
+              filter: blur(0);
+            }
+          }
+
+          @keyframes tf-committee-symbol {
+            0%, 100% {
+              box-shadow: 0 0 24px rgb(37 99 235 / 0.22);
+              transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+              box-shadow: 0 0 48px rgb(37 99 235 / 0.42);
+              transform: translate(-50%, -50%) scale(1.06);
+            }
+          }
+
+          @media (min-width: 640px) {
+            .committee-agent {
+              width: 166px;
+              height: 162px;
+            }
+
+            .committee-figure {
+              width: 98px;
+              height: 98px;
+            }
+
+            .committee-agent-label {
+              max-width: 154px;
+              padding: 8px 13px;
+              font-size: 13px;
+            }
+          }
+        `}</style>
+      </div>
+    </FadeIn>
   );
 }
 

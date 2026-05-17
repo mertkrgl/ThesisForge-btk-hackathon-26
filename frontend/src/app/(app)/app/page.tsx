@@ -39,7 +39,7 @@ export default async function DashboardPage() {
               </p>
             </div>
             <Link
-              href="/app/thesis/new"
+              href="/app/thesis/live"
               className="group inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-[13px] font-semibold text-primary-foreground shadow-[0_10px_25px_-10px_#3B82F6] transition-all hover:bg-[#2563EB]"
             >
               <Sparkles className="h-4 w-4" />

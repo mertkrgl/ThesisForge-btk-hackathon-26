@@ -10,7 +10,6 @@ import {
   Star,
   Settings,
   FileText,
-  Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +36,7 @@ const CMDS: Cmd[] = [
     hint: "⌘N",
     group: "Eylem",
     icon: Sparkles,
-    run: (r) => r.push("/app/thesis/new"),
+    run: (r) => r.push("/app/thesis/live"),
   },
   {
     id: "go-history",
@@ -65,28 +64,21 @@ const CMDS: Cmd[] = [
     label: "Tez başlat: TUPRS",
     group: "Sembol",
     icon: FileText,
-    run: (r) => r.push("/app/thesis/new?symbol=TUPRS"),
+    run: (r) => r.push("/app/thesis/live?symbol=TUPRS"),
   },
   {
     id: "asels",
     label: "Tez başlat: ASELS",
     group: "Sembol",
     icon: FileText,
-    run: (r) => r.push("/app/thesis/new?symbol=ASELS"),
+    run: (r) => r.push("/app/thesis/live?symbol=ASELS"),
   },
   {
     id: "ereg",
     label: "Tez başlat: EREGL",
     group: "Sembol",
     icon: FileText,
-    run: (r) => r.push("/app/thesis/new?symbol=EREGL"),
-  },
-  {
-    id: "live",
-    label: "Canlı komite akışı",
-    group: "Gezinme",
-    icon: Radio,
-    run: (r) => r.push("/app/thesis/live"),
+    run: (r) => r.push("/app/thesis/live?symbol=EREGL"),
   },
 ];
 

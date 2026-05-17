@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Komite Animasyon Preview</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #eef2f7;
+        --card: #f8fafc;
+        --line: #dbe3ef;
+        --text: #0f172a;
+        --muted: #64748b;
+        --primary: 37 99 235;
+        --bull: 34 197 94;
+        --bear: 239 68 68;
+        --warn: 245 158 11;
+        --cyan: 34 211 238;
+        --violet: 139 92 246;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 50% 46%, rgba(59, 130, 246, 0.18), transparent 30%),
+          radial-gradient(circle at 26% 24%, rgba(15, 23, 42, 0.16), transparent 30%),
+          radial-gradient(circle at 78% 72%, rgba(71, 85, 105, 0.18), transparent 34%),
+          linear-gradient(180deg, #d8dee8 0%, #cbd3df 46%, #b9c2cf 100%);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        color: var(--text);
+      }
+
+      .page {
+        width: min(1120px, 96vw);
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .toolbar h1 {
+        margin: 0;
+        font-size: 15px;
+        letter-spacing: 0.02em;
+      }
+
+      .toolbar p {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .toolbar button {
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+        color: var(--text);
+        padding: 0 14px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 14px 28px -24px rgba(15, 23, 42, 0.35);
+      }
+
+      .stage {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        min-height: 560px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 50% 44%, rgba(248, 250, 252, 0.72), transparent 38%),
+          linear-gradient(180deg, #d6dde7 0%, #c4ccd8 100%);
+        box-shadow: 0 42px 100px -54px rgba(15, 23, 42, 0.72);
+      }
+
+      .stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 50% 50%, transparent 0%, transparent 48%, rgba(15, 23, 42, 0.20) 100%),
+          linear-gradient(115deg, rgba(255, 255, 255, 0.18), transparent 42%, rgba(15, 23, 42, 0.08));
+        z-index: 1;
+      }
+
+      .blurred-ui {
+        position: absolute;
+        inset: -24px;
+        opacity: 0.34;
+        filter: blur(10px);
+        transform: scale(1.04);
+        pointer-events: none;
+      }
+
+      .blurred-ui .bar {
+        width: 72%;
+        height: 84px;
+        margin: 34px auto 0;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.68);
+      }
+
+      .blurred-ui .grid {
+        width: 84%;
+        margin: 28px auto 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+
+      .blurred-ui .cell {
+        height: 110px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.56);
+      }
+
+      .veil {
+        position: absolute;
+        inset: 0;
+        background: rgba(203, 213, 225, 0.62);
+        backdrop-filter: blur(9px) saturate(0.82);
+      }
+
+      .scene {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+      }
+
+      .table {
+        position: absolute;
+        left: 50%;
+        top: 51%;
+        width: 470px;
+        height: 250px;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(148, 163, 184, 0.72);
+        border-radius: 50%;
+        background:
+          radial-gradient(ellipse at 50% 42%, rgba(226, 232, 240, 0.98) 0%, rgba(203, 213, 225, 0.98) 48%, rgba(148, 163, 184, 0.98) 100%);
+        box-shadow:
+          0 34px 58px -32px rgba(15, 23, 42, 0.72),
+          inset 0 0 0 22px rgba(241, 245, 249, 0.48),
+          inset 0 0 0 23px rgba(100, 116, 139, 0.42);
+      }
+
+      .table::before {
+        content: "";
+        position: absolute;
+        inset: -22px;
+        border: 1px solid rgba(37, 99, 235, 0.16);
+        border-radius: 50%;
+        animation: table-ring 1200ms ease-in-out infinite;
+      }
+
+      .symbol {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgb(var(--primary) / 0.36);
+        border-radius: 14px;
+        background: rgb(var(--primary) / 0.1);
+        color: rgb(var(--primary));
+        padding: 12px 24px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 34px;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        opacity: 0;
+        animation:
+          symbol-enter 520ms cubic-bezier(0.2, 0.85, 0.2, 1) 3060ms forwards,
+          symbol-pulse 1150ms ease-in-out 3580ms infinite;
+      }
+
+      .agent {
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        width: 166px;
+        height: 162px;
+        opacity: 0;
+        transform: translate(-50%, 34%) scale(0.7);
+        filter: blur(8px);
+        animation: agent-seat 680ms cubic-bezier(0.2, 0.85, 0.2, 1) forwards;
+        animation-delay: var(--delay);
+        z-index: 3;
+      }
+
+      .agent-orient {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transform: rotate(var(--rotation));
+        transform-origin: center center;
+      }
+
+      .agent-figure {
+        width: 98px;
+        height: 98px;
+        margin: 0 auto;
+        background-image: url("./agent-silhouette.svg");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        filter: drop-shadow(0 18px 14px rgb(var(--tone) / 0.2));
+      }
+
+      .agent-label {
+        width: max-content;
+        max-width: 154px;
+        margin: -4px auto 0;
+        border: 1.5px solid rgb(var(--tone) / 0.62);
+        border-radius: 999px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 250, 252, 0.72)),
+          rgb(var(--tone) / 0.18);
+        color: rgb(var(--tone));
+        padding: 8px 13px;
+        font-size: 13px;
+        line-height: 1;
+        font-weight: 900;
+        white-space: nowrap;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+        box-shadow:
+          0 16px 34px -24px rgb(var(--tone) / 0.88),
+          0 2px 8px rgba(15, 23, 42, 0.16);
+      }
+
+      .ready {
+        position: absolute;
+        left: 50%;
+        bottom: 32px;
+        transform: translate(-50%, 10px);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1.5px solid rgb(var(--bull) / 0.62);
+        border-radius: 16px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(240, 253, 244, 0.76)),
+          rgb(var(--bull) / 0.18);
+        color: rgb(var(--bull));
+        padding: 13px 18px;
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: 0.01em;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+        opacity: 0;
+        animation: ready-in 500ms ease-out 3580ms forwards;
+        z-index: 4;
+        box-shadow:
+          0 20px 44px -24px rgb(var(--bull) / 0.9),
+          0 2px 10px rgba(15, 23, 42, 0.18),
+          0 0 28px rgb(var(--bull) / 0.16);
+      }
+
+      .ready-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgb(var(--bull));
+        box-shadow: 0 0 16px rgb(var(--bull) / 0.7);
+      }
+
+      @keyframes agent-seat {
+        to {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+          filter: blur(0);
+        }
+      }
+
+      @keyframes ready-in {
+        to {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
+      }
+
+      @keyframes table-ring {
+        0%,
+        100% {
+          opacity: 0.42;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.9;
+          transform: scale(1.035);
+        }
+      }
+
+      @keyframes symbol-pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 24px rgb(var(--primary) / 0.22);
+          transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+          box-shadow: 0 0 48px rgb(var(--primary) / 0.42);
+          transform: translate(-50%, -50%) scale(1.06);
+        }
+      }
+
+      @keyframes symbol-enter {
+        from {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.76);
+          filter: blur(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+          filter: blur(0);
+        }
+      }
+
+      @media (max-width: 760px) {
+        .stage {
+          min-height: 620px;
+        }
+
+        .table {
+          width: 330px;
+          height: 190px;
+        }
+
+        .symbol {
+          font-size: 24px;
+        }
+
+        .agent {
+          width: 136px;
+          height: 132px;
+        }
+
+        .agent-figure {
+          width: 80px;
+          height: 80px;
+        }
+
+        .agent-label {
+          max-width: 120px;
+          font-size: 11px;
+          padding: 6px 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="toolbar">
+        <div>
+          <h1>Komite Toplanıyor - Preview</h1>
+          <p>Animasyonu yeniden izlemek için butona bas.</p>
+        </div>
+        <button type="button" onclick="replay()">Tekrar oynat</button>
+      </div>
+
+      <section id="stage" class="stage">
+        <div class="blurred-ui">
+          <div class="bar"></div>
+          <div class="grid">
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+          </div>
+        </div>
+        <div class="veil"></div>
+
+        <div class="scene">
+          <div class="table">
+            <div class="symbol">TUPRS</div>
+          </div>
+
+          <div class="agent" style="--x: 50%; --y: 18%; --rotation: 0deg; --delay: 220ms; --tone: var(--violet)">
+            <div class="agent-orient">
+              <div class="agent-figure"></div>
+              <div class="agent-label">Sektör Yönlendirici</div>
+            </div>
+          </div>
+          <div class="agent" style="--x: 69%; --y: 26%; --rotation: 42deg; --delay: 620ms; --tone: var(--cyan)">
+            <div class="agent-orient">
+              <div class="agent-figure"></div>
+              <div class="agent-label">Makro Bağlam</div>
+            </div>
+          </div>
+          <div class="agent" style="--x: 76%; --y: 50%; --rotation: 90deg; --delay: 1020ms; --tone: var(--warn)">
+            <div class="agent-orient">
+              <div class="agent-figure"></div>
+              <div class="agent-label">Bellek</div>
+            </div>
+          </div>
+          <div class="agent" style="--x: 66%; --y: 76%; --rotation: 138deg; --delay: 1420ms; --tone: var(--cyan)">
+            <div class="agent-orient">
+              <div class="agent-figure"></div>
+              <div class="agent-label">Teknik Analist</div>
+            </div>
+          </div>
+          <div class="agent" style="--x: 34%; --y: 76%; --rotation: 222deg; --delay: 1820ms; --tone: var(--bull)">
+            <div class="agent-orient">
+              <div class="agent-figure"></div>
+              <div class="agent-label">Temel Analist</div>
+            </div>
+          </div>
+          <div class="agent" style="--x: 24%; --y: 50%; --rotation: 270deg; --delay: 2220ms; --tone: var(--bear)">
+            <div class="agent-orient">
+              <div class="agent-figure"></div>
+              <div class="agent-label">Şeytan Avukatı</div>
+            </div>
+          </div>
+          <div class="agent" style="--x: 31%; --y: 26%; --rotation: 318deg; --delay: 2620ms; --tone: var(--primary)">
+            <div class="agent-orient">
+              <div class="agent-figure"></div>
+              <div class="agent-label">Sentez</div>
+            </div>
+          </div>
+
+          <div class="ready"><span class="ready-dot"></span>Komite toplandı</div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      function replay() {
+        const stage = document.getElementById("stage");
+        const clone = stage.cloneNode(true);
+        stage.replaceWith(clone);
+      }
+    </script>
+  </body>
+</html>

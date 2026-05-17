@@ -74,7 +74,7 @@ export type Thesis = {
 export type WatchlistItem = {
   ticker: string;
   name: string;
-  last: number;
-  deltaPct: number;
+  last: number | null;
+  deltaPct: number | null;
   spark: number[];
 };

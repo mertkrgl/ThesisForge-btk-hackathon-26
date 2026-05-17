@@ -1,20 +1,8 @@
 import { apiFetch, getDemoUserId } from "@/lib/api/client";
+import { fetchMarketQuote } from "@/lib/api/market";
 import { companyName } from "@/lib/data/companyNames";
-import type {
-  BackendQuote,
-  BackendWatchlistRow,
-} from "@/lib/types/backend";
+import type { BackendWatchlistRow } from "@/lib/types/backend";
 import type { WatchlistItem } from "@/lib/mock/types";
-
-async function fetchQuote(ticker: string): Promise<BackendQuote | null> {
-  try {
-    return await apiFetch<BackendQuote>(
-      `/api/market/quote/${encodeURIComponent(ticker)}`,
-    );
-  } catch {
-    return null;
-  }
-}
 
 export async function listWatchlist(): Promise<WatchlistItem[]> {
   const userId = getDemoUserId();
@@ -23,17 +11,19 @@ export async function listWatchlist(): Promise<WatchlistItem[]> {
     `/api/watchlist?${qs.toString()}`,
   );
 
-  const quotes = await Promise.all(rows.map((r) => fetchQuote(r.ticker)));
+  const quotes = await Promise.allSettled(
+    rows.map((r) => fetchMarketQuote(r.ticker)),
+  );
 
   return rows.map((row, i) => {
-    const q = quotes[i];
-    const fallbackSpark = Array.from({ length: 24 }, (_, j) => 100 + j * 0.1);
+    const result = quotes[i];
+    const q = result?.status === "fulfilled" ? result.value : null;
     return {
       ticker: row.ticker,
       name: companyName(row.ticker),
-      last: q?.last ?? 0,
-      deltaPct: q?.delta_pct ?? 0,
-      spark: q?.spark && q.spark.length > 0 ? q.spark : fallbackSpark,
+      last: q?.last ?? null,
+      deltaPct: q?.delta_pct ?? null,
+      spark: q?.spark && q.spark.length > 0 ? q.spark : [],
     };
   });
 }

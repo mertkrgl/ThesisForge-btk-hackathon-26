@@ -26,7 +26,7 @@ export default async function LiveCommitteePage({
     <LiveThesisRunner
       defaultSymbol={symbol}
       defaultPersona={persona}
-      title="Canlı Komite"
+      title="Yeni Tez"
       subtitle={subtitle}
       autoStart={autoStart}
     />
