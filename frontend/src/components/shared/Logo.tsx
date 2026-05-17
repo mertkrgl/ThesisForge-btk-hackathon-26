@@ -23,7 +23,7 @@ export function Logo({
         <Sparkles className={cn("text-white", icon)} />
       </div>
       <div className="flex flex-col leading-tight">
-        <span className="text-[15px] font-extrabold tracking-tight text-white">
+        <span className="text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white">
           ThesisForge
         </span>
         <span className="text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground">

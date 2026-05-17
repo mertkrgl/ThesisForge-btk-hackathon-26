@@ -34,9 +34,9 @@ export function Breadcrumbs() {
           <span key={href} className="flex items-center gap-1.5">
             {i > 0 && <ChevronRight className="h-3 w-3 opacity-50" />}
             {isLast ? (
-              <span className="font-semibold text-white">{label}</span>
+              <span className="font-semibold text-slate-900 dark:text-white">{label}</span>
             ) : (
-              <Link href={href} className="transition-colors hover:text-white">
+              <Link href={href} className="transition-colors hover:text-slate-900 dark:hover:text-white">
                 {label}
               </Link>
             )}

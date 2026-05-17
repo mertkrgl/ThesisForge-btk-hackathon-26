@@ -1,28 +1,25 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Download, FileText } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { getThesis } from "@/lib/api/thesis";
 import { AGENT_REGISTRY } from "@/lib/mock/agents";
 import { ConfidenceBar } from "@/components/app/ConfidenceBar";
+import { CompanyLogo } from "@/components/app/CompanyLogo";
 import { SourceChip } from "@/components/app/SourceChip";
+import { ThesisExportButtons } from "@/components/app/ThesisExportButtons";
 import { VerdictBadge } from "@/components/app/VerdictBadge";
 import { DisclaimerBlock } from "@/components/shared/DisclaimerBlock";
 import { cn } from "@/lib/utils";
-import type { AgentTone, ThesisPoint } from "@/lib/mock/types";
-import {
-  PageTransition,
-  FadeIn,
-  StaggerContainer,
-  StaggerItem,
-} from "@/components/shared/MotionWrappers";
+import type { AgentTone, Source, ThesisPoint } from "@/lib/mock/types";
+import { PageTransition, FadeIn } from "@/components/shared/MotionWrappers";
 
 const KPI_TONE: Record<AgentTone, string> = {
-  bull: "text-[#86EFAC]",
-  bear: "text-[#FCA5A5]",
+  bull: "text-bull",
+  bear: "text-bear",
   warn: "text-warn",
   violet: "text-violet",
   cyan: "text-cyan",
-  primary: "text-[#93C5FD]",
+  primary: "text-primary",
 };
 
 export default async function ThesisViewerPage({
@@ -54,16 +51,14 @@ export default async function ThesisViewerPage({
 
       {/* header */}
       <FadeIn delay={0.05}>
-        <div className="overflow-hidden rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-6">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card p-6">
           <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <div className="flex items-center gap-3">
-              <span className="grid h-12 w-12 place-items-center rounded-xl bg-[linear-gradient(135deg,#3B82F6,#A78BFA)] font-mono text-[14px] font-bold text-white">
-                {thesis.ticker.slice(0, 2)}
-              </span>
+              <CompanyLogo ticker={thesis.ticker} company={thesis.company} size="lg" />
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="font-mono text-2xl font-extrabold tracking-tight text-white">
+                  <h1 className="font-mono text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                     {thesis.ticker}
                   </h1>
                   <VerdictBadge verdict={thesis.verdict} />
@@ -84,33 +79,18 @@ export default async function ThesisViewerPage({
             <div className="w-[200px]">
               <ConfidenceBar value={thesis.confidence} size="lg" />
             </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white/[0.02] px-3 text-[12px] text-text-2 transition-colors hover:border-line-2 hover:text-white"
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Markdown
-              </button>
-              <button
-                type="button"
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white/[0.02] px-3 text-[12px] text-text-2 transition-colors hover:border-line-2 hover:text-white"
-              >
-                <Download className="h-3.5 w-3.5" />
-                PDF
-              </button>
-            </div>
+            <ThesisExportButtons thesis={thesis} date={date} />
           </div>
         </div>
 
         {/* KPIs */}
-        <div className="mt-6 grid grid-cols-2 gap-3 border-t border-line pt-5 md:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-5 md:grid-cols-4">
           {thesis.kpis.map((k) => (
             <div key={k.label}>
               <div className="text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
                 {k.label}
               </div>
-              <div className="mt-1 font-mono text-xl font-bold text-white">
+              <div className="mt-1 font-mono text-xl font-bold text-slate-900 dark:text-white">
                 {k.value}
               </div>
               {k.delta && (
@@ -126,7 +106,7 @@ export default async function ThesisViewerPage({
             </div>
           ))}
         </div>
-      </div>
+        </div>
       </FadeIn>
 
       {/* bull / bear / catalyst */}
@@ -155,9 +135,9 @@ export default async function ThesisViewerPage({
 
       {/* agent breakdown */}
       <FadeIn delay={0.15}>
-        <div className="mt-6 rounded-2xl border border-line bg-card p-6">
+        <div className="mt-6 rounded-2xl border border-border bg-card p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold text-white">
+          <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">
             Ajan Kırılımı
           </h2>
           <span className="text-[11px] text-muted-foreground">
@@ -171,16 +151,16 @@ export default async function ThesisViewerPage({
             return (
               <div
                 key={a.id}
-                className="flex flex-col gap-2 rounded-xl border border-line bg-[#0A1122] p-4"
+                className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-[12px] font-semibold text-white">
+                  <span className="text-[12px] font-semibold text-slate-900 dark:text-white">
                     {meta.name}
                   </span>
                   <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
                     {meta.role}
                   </span>
-                  <span className="ml-auto font-mono text-[12px] font-bold text-white">
+                  <span className="ml-auto font-mono text-[12px] font-bold text-slate-900 dark:text-white">
                     {a.confidence}%
                   </span>
                 </div>
@@ -196,18 +176,31 @@ export default async function ThesisViewerPage({
 
       {/* citations */}
       <FadeIn delay={0.2}>
-        <div className="mt-6 rounded-2xl border border-line bg-card p-6">
-          <h2 className="mb-3 text-[15px] font-semibold text-white">Kaynaklar</h2>
+        <div className="mt-6 rounded-2xl border border-border bg-card p-6">
+          <h2 className="mb-3 text-[15px] font-semibold text-slate-900 dark:text-white">Kaynaklar</h2>
           <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {thesis.sources.map((s) => (
               <li
                 key={s.id}
-                className="flex items-center gap-2.5 rounded-lg border border-line bg-[#0A1122] px-3 py-2"
+                className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2"
               >
                 <SourceChip source={s} />
-                <span className="truncate text-[12.5px] text-text-2">
-                  {s.label}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[12.5px] text-text-2">
+                    {s.label}
+                  </div>
+                  {s.url && (
+                    <a
+                      href={s.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-0.5 inline-flex max-w-full items-center gap-1 text-[11px] text-primary hover:underline"
+                    >
+                      <span className="truncate">{s.url}</span>
+                      <ExternalLink className="h-3 w-3 shrink-0" />
+                    </a>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -233,7 +226,7 @@ function Column({
   title: string;
   tone: AgentTone;
   items: ThesisPoint[];
-  sources: { id: string; kind: "kap" | "evds" | "bist" | "mkk" | "news" | "filing" }[];
+  sources: Source[];
 }) {
   const TONE_BORDER: Record<AgentTone, string> = {
     bull: "border-bull/30",
@@ -244,12 +237,12 @@ function Column({
     primary: "border-primary/30",
   };
   const TONE_BG: Record<AgentTone, string> = {
-    bull: "bg-bull/10 text-[#86EFAC]",
-    bear: "bg-bear/10 text-[#FCA5A5]",
+    bull: "bg-bull/10 text-bull",
+    bear: "bg-bear/10 text-bear",
     warn: "bg-warn/10 text-warn",
     violet: "bg-violet/10 text-violet",
     cyan: "bg-cyan/10 text-cyan",
-    primary: "bg-primary/10 text-[#93C5FD]",
+    primary: "bg-primary/10 text-primary",
   };
   return (
     <div

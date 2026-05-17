@@ -17,7 +17,7 @@ export function SectionHeader({
     kickerTone === "cyan"
       ? "text-cyan"
       : kickerTone === "primary"
-        ? "text-[#93C5FD]"
+        ? "text-primary"
         : kickerTone === "warn"
           ? "text-warn"
           : "text-violet";

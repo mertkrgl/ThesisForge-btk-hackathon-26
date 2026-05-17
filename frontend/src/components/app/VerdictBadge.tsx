@@ -7,11 +7,11 @@ const MAP: Record<
 > = {
   bull: {
     label: "Pozitif",
-    cls: "bg-bull/15 text-[#86EFAC] border-bull/30",
+    cls: "bg-bull/15 text-bull border-bull/30",
   },
   bear: {
     label: "Negatif",
-    cls: "bg-bear/15 text-[#FCA5A5] border-bear/30",
+    cls: "bg-bear/15 text-bear border-bear/30",
   },
   neutral: {
     label: "Nötr",

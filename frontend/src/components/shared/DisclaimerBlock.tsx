@@ -22,7 +22,7 @@ export function DisclaimerBlock({
           Yatırım tavsiyesi değildir.
         </span>{" "}
         ThesisForge, çok ajanlı yapay zekâ ile{" "}
-        <span className="text-white">karar destek</span> sağlar; al/sat sinyali
+        <span className="text-slate-900 dark:text-white">karar destek</span> sağlar; al/sat sinyali
         üretmez. Üretilen tezler, kaynak bağlantılarıyla birlikte sunulan
         analizlerdir.{" "}
         {!compact && (

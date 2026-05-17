@@ -24,9 +24,9 @@ const TONE_DOT: Record<AgentTone, string> = {
 
 export function AgentActivityFeed() {
   return (
-    <div className="rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-[13px] font-semibold text-white">Ajan Aktivitesi</h2>
+    <div className="h-full flex flex-col rounded-2xl border border-border bg-card p-4">
+      <div className="mb-3 flex items-center justify-between shrink-0">
+        <h2 className="text-[13px] font-semibold text-slate-900 dark:text-white">Ajan Aktivitesi</h2>
         <span className="text-[11px] text-muted-foreground">son 4 saat</span>
       </div>
       <ul className="flex flex-col gap-1.5">
@@ -36,7 +36,7 @@ export function AgentActivityFeed() {
           return (
             <li
               key={i}
-              className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/[0.02]"
+              className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-accent/50"
             >
               <span
                 className={cn(
@@ -44,7 +44,7 @@ export function AgentActivityFeed() {
                   TONE_DOT[meta.tone]
                 )}
               />
-              <span className="text-[12px] font-semibold text-white">
+              <span className="text-[12px] font-semibold text-slate-900 dark:text-white">
                 {meta.name}
               </span>
               <span className="truncate text-[12px] text-text-2">

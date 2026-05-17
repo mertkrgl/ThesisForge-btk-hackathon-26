@@ -71,9 +71,9 @@ export function SettingsPanels() {
               type="button"
               onClick={() => setTab(t.id)}
               className={cn(
-                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] text-text-2 transition-all hover:bg-[#0F1A30] hover:text-white",
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] text-slate-600 dark:text-text-2 transition-all hover:bg-slate-100 dark:hover:bg-secondary hover:text-slate-900 dark:hover:text-white",
                 active &&
-                  "bg-[linear-gradient(90deg,#13213F,#0E1830)] text-white shadow-[inset_0_0_0_1px_#1E2A44,inset_2px_0_0_#3B82F6]"
+                  "bg-blue-50 dark:bg-accent text-blue-700 dark:text-white shadow-[inset_2px_0_0_#2563EB] dark:shadow-[inset_0_0_0_1px_#1E2A44,inset_2px_0_0_#3B82F6]"
               )}
             >
               <Icon className="h-4 w-4 opacity-80" />
@@ -83,7 +83,7 @@ export function SettingsPanels() {
         })}
       </nav>
 
-      <div className="rounded-2xl border border-line bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-6">
         {tab === "profile" && (
           <FormSection
             title="Profil"
@@ -126,15 +126,15 @@ export function SettingsPanels() {
                     "rounded-xl border p-4 text-left transition-all",
                     settings.model === m
                       ? "border-primary/40 bg-primary/10 shadow-[0_0_0_3px_rgba(59,130,246,0.10)]"
-                      : "border-line bg-[#0A1122] hover:border-line-2"
+                      : "border-border bg-card hover:border-border"
                   )}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-white">
+                    <span className="font-semibold text-slate-900 dark:text-white">
                       Gemini 2.5 {m === "pro" ? "Pro" : "Flash"}
                     </span>
                     {settings.model === m && (
-                      <Check className="h-4 w-4 text-[#93C5FD]" />
+                      <Check className="h-4 w-4 text-primary" />
                     )}
                   </div>
                   <p className="mt-1.5 text-[12px] leading-relaxed text-text-2">
@@ -153,7 +153,7 @@ export function SettingsPanels() {
             title="Veri Kaynakları"
             subtitle="Ajanların hangi kaynaklara erişeceğini belirleyin."
           >
-            <ul className="divide-y divide-line/60 rounded-xl border border-line bg-[#0A1122]">
+            <ul className="divide-y divide-line/60 rounded-xl border border-border bg-card">
               {[
                 { id: "kap", label: "KAP · Kamuyu Aydınlatma" },
                 { id: "evds", label: "TCMB EVDS · Makro veri" },
@@ -240,9 +240,9 @@ export function SettingsPanels() {
           </FormSection>
         )}
 
-        <div className="mt-6 flex items-center justify-end gap-3 border-t border-line pt-4">
+        <div className="mt-6 flex items-center justify-end gap-3 border-t border-border pt-4">
           {saved && (
-            <span className="inline-flex items-center gap-1.5 text-[12px] text-[#86EFAC]">
+            <span className="inline-flex items-center gap-1.5 text-[12px] text-bull">
               <Check className="h-3.5 w-3.5" />
               Kaydedildi
             </span>
@@ -264,8 +264,8 @@ export function SettingsPanels() {
           padding: 0 12px;
           border-radius: 8px;
           border: 1px solid var(--tf-line);
-          background: #0e1830;
-          color: #fff;
+          background: var(--card, #fff);
+          color: var(--foreground, #0F172A);
           font-size: 13px;
         }
         :global(.input-base:focus) {
@@ -290,7 +290,7 @@ function FormSection({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="text-[15px] font-semibold text-white">{title}</h2>
+        <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">{title}</h2>
         <p className="mt-0.5 text-[12px] text-muted-foreground">{subtitle}</p>
       </div>
       <div className="flex flex-col gap-3">{children}</div>
@@ -327,9 +327,9 @@ function ToggleRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-[#0A1122] px-4 py-3">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
       <div className="min-w-0">
-        <div className="text-[13px] text-white">{label}</div>
+        <div className="text-[13px] text-slate-900 dark:text-white">{label}</div>
         {hint && (
           <div className="mt-0.5 text-[11.5px] text-muted-foreground">
             {hint}
@@ -358,12 +358,12 @@ function Toggle({
         "relative h-6 w-11 shrink-0 rounded-full border transition-colors",
         on
           ? "border-primary/50 bg-primary/40 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]"
-          : "border-line bg-[#0E1830]"
+          : "border-border bg-muted"
       )}
     >
       <span
         className={cn(
-          "absolute top-[2px] h-[18px] w-[18px] rounded-full bg-white shadow transition-transform",
+          "absolute top-[2px] h-[18px] w-[18px] rounded-full bg-card shadow transition-transform",
           on ? "translate-x-[22px]" : "translate-x-[2px]"
         )}
       />

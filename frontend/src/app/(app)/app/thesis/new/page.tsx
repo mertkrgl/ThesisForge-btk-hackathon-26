@@ -28,7 +28,7 @@ export default function NewThesisPage() {
         </p>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 sm:p-8">
+      <div className="bg-card dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 sm:p-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           
           {/* Ticker Input */}
@@ -59,7 +59,7 @@ export default function NewThesisPage() {
           {/* Persona Selection */}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">
-              Komite Stratejisi (Persona)
+              Komite Stratejisi
             </label>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               
@@ -96,14 +96,14 @@ export default function NewThesisPage() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <ShieldAlert className={`h-5 w-5 ${persona === "conservative" ? "text-amber-600 dark:text-amber-400" : "text-slate-400"}`} />
-                    <h3 className={`font-semibold ${persona === "conservative" ? "text-amber-900 dark:text-amber-100" : "text-slate-900 dark:text-white"}`}>Muhafazakar (Ali Bey)</h3>
+                    <h3 className={`font-semibold ${persona === "conservative" ? "text-amber-900 dark:text-amber-100" : "text-slate-900 dark:text-white"}`}>Muhafazakâr Strateji</h3>
                   </div>
                   <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${persona === "conservative" ? "border-amber-600" : "border-slate-300"}`}>
                     {persona === "conservative" && <div className="h-2 w-2 rounded-full bg-amber-600" />}
                   </div>
                 </div>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Risklerin ve "Devil's Advocate" görüşlerinin öne çıktığı, sermaye korumaya odaklı temkinli analiz.
+                  Risklerin ve karşıt görüşlerin öne çıktığı, sermaye korumaya odaklı temkinli analiz.
                 </p>
               </div>
 

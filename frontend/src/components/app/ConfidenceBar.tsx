@@ -18,13 +18,13 @@ export function ConfidenceBar({
         <span className="text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
           {label}
         </span>
-        <span className="font-mono text-[12px] font-semibold text-white">
+        <span className="font-mono text-[12px] font-semibold text-slate-900 dark:text-white">
           {Math.round(value).toString().padStart(2, "0")}%
         </span>
       </div>
       <div className={cn("mt-1.5 w-full overflow-hidden rounded-full bg-line/60", h)}>
         <div
-          className="h-full rounded-full bg-[linear-gradient(90deg,#3B82F6,#A78BFA,#22D3EE)] transition-[width] duration-700 ease-out"
+          className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
           style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
         />
       </div>

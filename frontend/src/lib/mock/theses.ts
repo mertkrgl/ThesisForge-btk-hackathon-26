@@ -96,14 +96,54 @@ export const MOCK_THESES: Thesis[] = [
       },
     ],
     sources: [
-      { id: "KAP-24Q3", label: "KAP 3Ç 2024 Konsolide Bilanço", kind: "kap" },
-      { id: "EVDS-CPI-Q3", label: "TCMB EVDS · TÜFE Q3", kind: "evds" },
-      { id: "BIST-PX", label: "BIST Primary fiyat akışı", kind: "bist" },
-      { id: "IEA-OutlookQ4", label: "IEA · Petrol Q4 Görünüm", kind: "filing" },
-      { id: "TUPRS-OPS-Q3", label: "Tüpraş 3Ç Operasyonel Rapor", kind: "filing" },
-      { id: "TUPRS-GUIDE-24", label: "Tüpraş 2024 Beklenti Notu", kind: "kap" },
-      { id: "KAP-CAL", label: "KAP Bilanço Takvimi", kind: "kap" },
-      { id: "EVDS-CAL", label: "TCMB Toplantı Takvimi", kind: "evds" },
+      {
+        id: "KAP-24Q3",
+        label: "KAP 3Ç 2024 Konsolide Bilanço",
+        kind: "kap",
+        url: "https://www.kap.org.tr/tr/sirket-bilgileri/ozet/4028e4a1412ac44501412d2a4b5d0a5d",
+      },
+      {
+        id: "EVDS-CPI-Q3",
+        label: "TCMB EVDS · TÜFE Q3",
+        kind: "evds",
+        url: "https://evds2.tcmb.gov.tr/",
+      },
+      {
+        id: "BIST-PX",
+        label: "BIST Primary fiyat akışı",
+        kind: "bist",
+        url: "https://www.borsaistanbul.com/tr/sayfa/163/pay-piyasasi-verileri",
+      },
+      {
+        id: "IEA-OutlookQ4",
+        label: "IEA · Petrol Q4 Görünüm",
+        kind: "filing",
+        url: "https://www.iea.org/reports/oil-market-report",
+      },
+      {
+        id: "TUPRS-OPS-Q3",
+        label: "Tüpraş 3Ç Operasyonel Rapor",
+        kind: "filing",
+        url: "https://www.tupras.com.tr/yatirimci-iliskileri/finansal-raporlar",
+      },
+      {
+        id: "TUPRS-GUIDE-24",
+        label: "Tüpraş 2024 Beklenti Notu",
+        kind: "kap",
+        url: "https://www.kap.org.tr/tr/sirket-bilgileri/ozet/4028e4a1412ac44501412d2a4b5d0a5d",
+      },
+      {
+        id: "KAP-CAL",
+        label: "KAP Bilanço Takvimi",
+        kind: "kap",
+        url: "https://www.kap.org.tr/tr/",
+      },
+      {
+        id: "EVDS-CAL",
+        label: "TCMB Toplantı Takvimi",
+        kind: "evds",
+        url: "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Duyurular/Basin/Para+Politikasi+Kurulu+Toplanti+Takvimi",
+      },
     ],
     kpis: [
       { label: "Son", value: "172.40", delta: "+1.8%", tone: "bull" },
@@ -155,9 +195,24 @@ export const MOCK_THESES: Thesis[] = [
       { id: "risk", summary: "Vol artıyor; pozisyon ölçeği düşür.", confidence: 55 },
     ],
     sources: [
-      { id: "KAP-ASELS-Q3", label: "KAP Aselsan 3Ç 2024", kind: "kap" },
-      { id: "ASELS-IR", label: "Aselsan Yatırımcı Sunumu", kind: "filing" },
-      { id: "BIST-PX", label: "BIST Primary fiyat akışı", kind: "bist" },
+      {
+        id: "KAP-ASELS-Q3",
+        label: "KAP Aselsan 3Ç 2024",
+        kind: "kap",
+        url: "https://www.kap.org.tr/tr/sirket-bilgileri/ozet/4028e4a1412ac8c901412d2b04a00033",
+      },
+      {
+        id: "ASELS-IR",
+        label: "Aselsan Yatırımcı Sunumu",
+        kind: "filing",
+        url: "https://www.aselsan.com/tr/yatirimci-iliskileri",
+      },
+      {
+        id: "BIST-PX",
+        label: "BIST Primary fiyat akışı",
+        kind: "bist",
+        url: "https://www.borsaistanbul.com/tr/sayfa/163/pay-piyasasi-verileri",
+      },
     ],
     kpis: [
       { label: "Son", value: "112.80", delta: "+3.2%", tone: "bull" },
@@ -209,9 +264,24 @@ export const MOCK_THESES: Thesis[] = [
       { id: "risk", summary: "Vol düşük; bekleme makul.", confidence: 60 },
     ],
     sources: [
-      { id: "EVDS-INFRA", label: "TCMB EVDS · Altyapı Yatırımları", kind: "evds" },
-      { id: "EVDS-CPI-Q3", label: "TCMB EVDS · TÜFE Q3", kind: "evds" },
-      { id: "IEA-OutlookQ4", label: "IEA · Çelik Q4 Görünüm", kind: "filing" },
+      {
+        id: "EVDS-INFRA",
+        label: "TCMB EVDS · Altyapı Yatırımları",
+        kind: "evds",
+        url: "https://evds2.tcmb.gov.tr/",
+      },
+      {
+        id: "EVDS-CPI-Q3",
+        label: "TCMB EVDS · TÜFE Q3",
+        kind: "evds",
+        url: "https://evds2.tcmb.gov.tr/",
+      },
+      {
+        id: "IEA-OutlookQ4",
+        label: "IEA · Çelik Q4 Görünüm",
+        kind: "filing",
+        url: "https://www.iea.org/reports",
+      },
     ],
     kpis: [
       { label: "Son", value: "32.18", delta: "-0.4%", tone: "bear" },
@@ -259,9 +329,24 @@ export const MOCK_THESES: Thesis[] = [
       { id: "risk", summary: "Pozisyon ölçeği orta; FX hedge düşün.", confidence: 55 },
     ],
     sources: [
-      { id: "KAP-THYAO-Q3", label: "KAP THY 3Ç 2024", kind: "kap" },
-      { id: "EVDS-FX", label: "TCMB EVDS · Kur Serileri", kind: "evds" },
-      { id: "KAP-CAL", label: "KAP Bilanço Takvimi", kind: "kap" },
+      {
+        id: "KAP-THYAO-Q3",
+        label: "KAP THY 3Ç 2024",
+        kind: "kap",
+        url: "https://www.kap.org.tr/tr/sirket-bilgileri/ozet/4028e4a140f2ed720140f30dc5c60117",
+      },
+      {
+        id: "EVDS-FX",
+        label: "TCMB EVDS · Kur Serileri",
+        kind: "evds",
+        url: "https://evds2.tcmb.gov.tr/",
+      },
+      {
+        id: "KAP-CAL",
+        label: "KAP Bilanço Takvimi",
+        kind: "kap",
+        url: "https://www.kap.org.tr/tr/",
+      },
     ],
     kpis: [
       { label: "Son", value: "284.50", delta: "+0.9%", tone: "bull" },

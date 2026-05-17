@@ -32,9 +32,9 @@ export function HistoryTable({ theses }: { theses: Thesis[] }) {
   }, [theses, q, filter]);
 
   return (
-    <div className="rounded-2xl border border-line bg-card">
-      <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3">
-        <div className="flex w-[280px] items-center gap-2 rounded-lg border border-line bg-[#0E1830] px-2.5 py-1.5 text-[13px] focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]">
+    <div className="rounded-2xl border border-border bg-card">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3">
+        <div className="flex w-[280px] items-center gap-2 rounded-lg border border-border bg-muted px-2.5 py-1.5 text-[13px] focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
             value={q}
@@ -52,8 +52,8 @@ export function HistoryTable({ theses }: { theses: Thesis[] }) {
               className={cn(
                 "rounded-md border px-2.5 py-1.5 text-[11.5px] font-medium transition-colors",
                 filter === f.id
-                  ? "border-primary/40 bg-primary/10 text-white"
-                  : "border-line bg-white/[0.02] text-text-2 hover:border-line-2 hover:text-white"
+                  ? "border-primary/40 bg-primary/10 text-blue-700 dark:text-white"
+                  : "border-slate-200 dark:border-border bg-card dark:bg-accent/50 text-slate-600 dark:text-text-2 hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
               )}
             >
               {f.label}
@@ -68,7 +68,7 @@ export function HistoryTable({ theses }: { theses: Thesis[] }) {
       <div className="overflow-x-auto">
         <table className="w-full text-left text-[12.5px]">
           <thead>
-            <tr className="border-b border-line text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
+            <tr className="border-b border-border text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
               <th className="px-4 py-2 font-semibold">Sembol</th>
               <th className="px-4 py-2 font-semibold">Sektör</th>
               <th className="px-4 py-2 font-semibold">Karar</th>
@@ -81,12 +81,12 @@ export function HistoryTable({ theses }: { theses: Thesis[] }) {
             {rows.map((t) => (
               <tr
                 key={t.id}
-                className="border-b border-line/60 transition-colors hover:bg-white/[0.02]"
+                className="border-b border-border/60 transition-colors hover:bg-accent/50"
               >
                 <td className="px-4 py-3">
                   <Link
                     href={`/app/thesis/${t.id}`}
-                    className="font-mono text-[13px] font-semibold text-white hover:text-[#93C5FD]"
+                    className="font-mono text-[13px] font-semibold text-slate-900 dark:text-white hover:text-primary"
                   >
                     {t.ticker}
                   </Link>
@@ -106,7 +106,7 @@ export function HistoryTable({ theses }: { theses: Thesis[] }) {
                         style={{ width: `${t.confidence}%` }}
                       />
                     </div>
-                    <span className="font-mono text-[11.5px] font-semibold text-white">
+                    <span className="font-mono text-[11.5px] font-semibold text-slate-900 dark:text-white">
                       {t.confidence}%
                     </span>
                   </div>
@@ -117,7 +117,7 @@ export function HistoryTable({ theses }: { theses: Thesis[] }) {
                 <td className="px-4 py-3 text-right">
                   <Link
                     href={`/app/thesis/${t.id}`}
-                    className="text-[11.5px] text-[#93C5FD] hover:text-white"
+                    className="text-[11.5px] text-primary hover:text-primary/80 dark:hover:text-white"
                   >
                     Aç →
                   </Link>

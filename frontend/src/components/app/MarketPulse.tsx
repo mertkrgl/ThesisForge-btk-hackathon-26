@@ -73,15 +73,15 @@ export function MarketPulse() {
   };
 
   // Determine flash classes
-  let bgClass = "bg-[linear-gradient(180deg,#0C1428,#0A1122)]";
-  if (flashColor === "up") bgClass = "bg-[#089981]/20";
+  let bgClass = "bg-card";
+  if (flashColor === "up") bgClass = "bg-bull/20";
   if (flashColor === "down") bgClass = "bg-[#f23645]/20";
 
   return (
-    <div className={`rounded-2xl border border-line p-4 transition-colors duration-300 ${bgClass}`}>
-      <div className="mb-2 flex items-baseline justify-between">
+    <div className={`h-full flex flex-col rounded-2xl border border-border p-4 transition-colors duration-300 ${bgClass}`}>
+      <div className="mb-2 flex items-baseline justify-between shrink-0">
         <div>
-          <h2 className="text-[13px] font-semibold text-white">
+          <h2 className="text-[13px] font-semibold text-slate-900 dark:text-white">
             BIST100 · Piyasa Nabzı
           </h2>
           <div className="mt-0.5 flex items-center gap-2 text-[11.5px] text-muted-foreground">
@@ -89,13 +89,13 @@ export function MarketPulse() {
           </div>
         </div>
         <div className="text-right">
-          <div className="font-mono text-xl font-bold text-white tracking-tight">
+          <div className="font-mono text-xl font-bold text-slate-900 dark:text-white tracking-tight">
             {currentPrice.toFixed(2)}
           </div>
           <div
             className={
               "font-mono text-[11.5px] font-semibold " +
-              (deltaPct >= 0 ? "text-[#089981]" : "text-[#f23645]")
+              (deltaPct >= 0 ? "text-bull" : "text-bear")
             }
           >
             {deltaPct >= 0 ? "+" : ""}
@@ -103,7 +103,7 @@ export function MarketPulse() {
           </div>
         </div>
       </div>
-      <div className="h-[200px] w-full mt-4">
+      <div className="flex-1 w-full mt-4 min-h-[200px]">
         <ReactECharts 
           option={option} 
           style={{ height: "100%", width: "100%" }} 

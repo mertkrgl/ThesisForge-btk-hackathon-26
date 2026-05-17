@@ -31,10 +31,10 @@ export function Stepper({
             key={step.id}
             className={cn(
               "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
-              done && "border-bull/30 bg-bull/10 text-[#86EFAC]",
+              done && "border-bull/30 bg-bull/10 text-bull",
               active &&
-                "border-primary/40 bg-primary/10 text-white shadow-[0_0_0_3px_rgba(59,130,246,0.10)]",
-              !done && !active && "border-line bg-card text-muted-foreground"
+                "border-primary/40 bg-primary/10 text-blue-700 dark:text-white shadow-[0_0_0_3px_rgba(59,130,246,0.10)]",
+              !done && !active && "border-border bg-card text-muted-foreground"
             )}
           >
             <span className="grid h-4 w-4 place-items-center rounded-full bg-current/10">

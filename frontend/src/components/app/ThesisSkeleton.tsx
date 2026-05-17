@@ -4,7 +4,7 @@ import { BrainCircuit } from "lucide-react";
 
 export function ThesisSkeleton() {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#0C1428]/60 p-5 backdrop-blur-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-card/60 p-5 backdrop-blur-sm">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20">
           <BrainCircuit className="h-5 w-5 animate-pulse text-primary" />
@@ -24,7 +24,7 @@ export function ThesisSkeleton() {
       <div className="mt-6 flex items-center justify-between border-t border-white/5 pt-4">
         <div className="h-4 w-24 animate-pulse rounded bg-white/10" />
         <div className="flex gap-2">
-          <div className="h-5 w-16 animate-pulse rounded bg-[#089981]/20" />
+          <div className="h-5 w-16 animate-pulse rounded bg-bull/20" />
           <div className="h-5 w-16 animate-pulse rounded bg-[#f23645]/20" />
         </div>
       </div>

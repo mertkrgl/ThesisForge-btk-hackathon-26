@@ -12,7 +12,7 @@ export default async function HistoryPage() {
             <div className="text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
               Arşiv
             </div>
-            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-white">
+            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               Geçmiş Tezler
             </h1>
             <p className="mt-1 max-w-2xl text-[13px] text-text-2">

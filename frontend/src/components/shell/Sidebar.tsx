@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 type NavItem = {
   label: string;
@@ -83,10 +84,10 @@ export function Sidebar() {
   const pathname = usePathname() ?? "/app";
 
   return (
-    <aside className="sticky top-0 flex h-screen flex-col gap-1 border-r border-line bg-[linear-gradient(180deg,#0A1020,#070A12)] px-3.5 py-4">
+    <aside className="sticky top-0 flex h-screen flex-col gap-1 border-r border-slate-200 dark:border-border bg-card dark:bg-[linear-gradient(180deg,#0A1020,#070A12)] px-3.5 py-4">
       <Link
         href="/app"
-        className="mb-2.5 flex items-center gap-2.5 border-b border-dashed border-line px-2.5 pb-4 pt-2"
+        className="mb-2.5 flex items-center gap-2.5 border-b border-dashed border-border px-2.5 pb-4 pt-2"
       >
         <div className="grid h-[30px] w-[30px] place-items-center rounded-lg bg-[radial-gradient(120%_120%_at_20%_0%,#3B82F6_0%,#1D4ED8_50%,#0B1220_100%)] shadow-[0_6px_20px_-8px_#3B82F6,inset_0_0_0_1px_#2A4D9C]">
           <Sparkles className="h-[18px] w-[18px] text-white" />
@@ -114,9 +115,9 @@ export function Sidebar() {
                 key={item.label}
                 href={item.href}
                 className={cn(
-                  "relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] text-text-2 transition-all hover:bg-[#0F1A30] hover:text-white",
+                  "relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] text-slate-600 dark:text-text-2 transition-all hover:bg-slate-100 dark:hover:bg-secondary hover:text-slate-900 dark:hover:text-white",
                   active &&
-                    "bg-[linear-gradient(90deg,#13213F_0%,#0E1830_100%)] text-white shadow-[inset_0_0_0_1px_#1E2A44]"
+                    "bg-blue-50 dark:bg-accent text-blue-700 dark:text-white shadow-[inset_2px_0_0_#2563EB] dark:shadow-none dark:border dark:border-border"
                 )}
               >
                 {active && (
@@ -135,7 +136,7 @@ export function Sidebar() {
                     className={cn(
                       "ml-auto rounded-full px-1.5 py-0.5 text-[10.5px]",
                       item.badge.tone === "live"
-                        ? "bg-bull/15 text-[#86EFAC]"
+                        ? "bg-bull/15 text-bull"
                         : "bg-line text-dim"
                     )}
                   >
@@ -148,14 +149,17 @@ export function Sidebar() {
         </div>
       ))}
 
-      <div className="mt-auto flex items-center gap-2.5 border-t border-dashed border-line pt-3">
-        <div className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[linear-gradient(135deg,#3B82F6,#A78BFA)] text-[12px] font-bold text-white">
-          MG
+      <div className="mt-auto flex items-center gap-2.5 border-t border-dashed border-border pt-3">
+        <div className="flex-1 flex items-center gap-2.5">
+          <div className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[linear-gradient(135deg,#3B82F6,#A78BFA)] text-[12px] font-bold text-white">
+            MG
+          </div>
+          <div className="text-[12.5px] leading-tight">
+            <div className="font-semibold text-slate-900 dark:text-white">Melih Genel</div>
+            <div className="text-[10.5px] text-muted-foreground">Hackathon</div>
+          </div>
         </div>
-        <div className="text-[12.5px] leading-tight">
-          <div className="font-semibold text-white">Melih Genel</div>
-          <div className="text-[10.5px] text-muted-foreground">Hackathon</div>
-        </div>
+        <ThemeToggle />
       </div>
     </aside>
   );

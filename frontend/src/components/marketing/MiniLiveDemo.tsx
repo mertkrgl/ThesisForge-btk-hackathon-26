@@ -7,12 +7,12 @@ import type { AgentTone } from "@/lib/mock/types";
 import { cn } from "@/lib/utils";
 
 const TONE_BG: Record<AgentTone, string> = {
-  bull: "bg-bull/15 text-[#86EFAC]",
-  bear: "bg-bear/15 text-[#FCA5A5]",
+  bull: "bg-bull/15 text-bull",
+  bear: "bg-bear/15 text-bear",
   warn: "bg-warn/15 text-warn",
   violet: "bg-violet/15 text-violet",
   cyan: "bg-cyan/15 text-cyan",
-  primary: "bg-primary/15 text-[#93C5FD]",
+  primary: "bg-primary/15 text-primary",
 };
 
 const TONE_DOT: Record<AgentTone, string> = {
@@ -110,27 +110,24 @@ export function MiniLiveDemo() {
   }, []);
 
   return (
-    <div className="glass relative w-full overflow-hidden rounded-2xl p-5 shadow-[0_30px_60px_-30px_rgba(59,130,246,0.45)]">
+    <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-border bg-card p-5">
       {/* header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-[linear-gradient(135deg,#3B82F6,#A78BFA)] font-mono text-[12px] font-bold text-white">
+          <div className="grid h-9 w-9 place-items-center rounded-md bg-slate-900 font-mono text-[12px] font-bold text-white dark:bg-white dark:text-slate-900">
             TF
           </div>
           <div>
-            <div className="text-[13px] font-semibold text-white">
+            <div className="text-[13px] font-semibold text-slate-900 dark:text-white">
               TUPRS · Tüpraş
             </div>
             <div className="flex items-center gap-1.5 text-[10.5px] text-muted-foreground">
-              <span
-                className="inline-block h-1.5 w-1.5 rounded-full bg-bull"
-                style={{ animation: "tf-pulse-dot 1.4s ease-in-out infinite" }}
-              />
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-bull" />
               Faz · {phase}
             </div>
           </div>
         </div>
-        <span className="rounded-full border border-line bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-text-2">
+        <span className="rounded-full border border-slate-200 dark:border-border bg-slate-50 dark:bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-slate-500 dark:text-text-2">
           CANLI · DEMO
         </span>
       </div>
@@ -145,25 +142,19 @@ export function MiniLiveDemo() {
             <div
               key={id}
               className={cn(
-                "rounded-xl border border-line/80 bg-[#0A1124]/80 p-3 transition-all",
-                st?.status === "running" &&
-                  "ring-1 ring-inset ring-primary/50 shadow-[0_0_0_3px_rgba(59,130,246,0.08)]"
+                "rounded-xl border border-slate-200 dark:border-border/80 bg-background p-3 transition-colors",
+                st?.status === "running" && "ring-1 ring-inset ring-primary/50"
               )}
             >
               <div className="flex items-center gap-2">
                 <span
                   className={cn(
                     "inline-flex h-1.5 w-1.5 rounded-full",
-                    TONE_DOT[meta.tone]
+                    TONE_DOT[meta.tone],
+                    st?.status === "running" && "animate-blink"
                   )}
-                  style={{
-                    animation:
-                      st?.status === "running"
-                        ? "tf-pulse-dot 1.2s ease-in-out infinite"
-                        : undefined,
-                  }}
                 />
-                <span className="text-[11.5px] font-semibold text-white">
+                <span className="text-[11.5px] font-semibold text-slate-900 dark:text-white">
                   {meta.name}
                 </span>
                 <span
@@ -182,7 +173,7 @@ export function MiniLiveDemo() {
                   </span>
                 )}
                 {st?.status === "running" && (
-                  <span className="ml-0.5 inline-block h-3 w-1 translate-y-0.5 bg-primary/80 align-middle [animation:tf-pulse-dot_0.9s_ease-in-out_infinite]" />
+                  <span className="animate-blink ml-0.5 inline-block h-3 w-1 translate-y-0.5 bg-primary/80 align-middle" />
                 )}
               </div>
             </div>
@@ -203,7 +194,7 @@ export function MiniLiveDemo() {
           sources.map((s) => (
             <span
               key={s}
-              className="rounded border border-line bg-[#0F1A30] px-1.5 py-0.5 font-mono text-[10.5px] text-[#93C5FD]"
+              className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10.5px] text-primary"
             >
               {s}
             </span>
@@ -217,13 +208,13 @@ export function MiniLiveDemo() {
           <span className="text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
             Güven Skoru
           </span>
-          <span className="font-mono text-[12px] font-semibold text-white">
+          <span className="font-mono text-[12px] font-semibold text-slate-900 dark:text-white">
             {confidence.toString().padStart(2, "0")}%
           </span>
         </div>
         <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-line/60">
           <div
-            className="h-full rounded-full bg-[linear-gradient(90deg,#3B82F6,#A78BFA,#22D3EE)] transition-[width] duration-700 ease-out"
+            className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
             style={{ width: `${confidence}%` }}
           />
         </div>

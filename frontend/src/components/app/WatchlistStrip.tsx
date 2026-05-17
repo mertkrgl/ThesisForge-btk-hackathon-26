@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { MOCK_WATCHLIST } from "@/lib/mock/watchlist";
+import { CompanyLogo } from "./CompanyLogo";
 import { Sparkline } from "./Sparkline";
 import { cn } from "@/lib/utils";
 
 export function WatchlistStrip() {
   return (
-    <div className="rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-4">
+    <div className="rounded-2xl border border-border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-[13px] font-semibold text-white">Watchlist</h2>
+        <h2 className="text-[13px] font-semibold text-slate-900 dark:text-white">Watchlist</h2>
         <Link
           href="/app/watchlist"
-          className="text-[11.5px] text-text-2 hover:text-white"
+          className="text-[11.5px] text-text-2 hover:text-slate-900 dark:hover:text-white"
         >
           Tümü →
         </Link>
@@ -23,16 +24,19 @@ export function WatchlistStrip() {
             <li key={w.ticker}>
               <Link
                 href={`/app/thesis/new?symbol=${w.ticker}`}
-                className="block rounded-xl border border-line bg-[#0A1122] p-3 transition-colors hover:border-line-2"
+                className="block rounded-xl border border-border bg-card p-3 transition-colors hover:border-border"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[13px] font-bold text-white">
-                    {w.ticker}
-                  </span>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <CompanyLogo ticker={w.ticker} company={w.name} size="sm" />
+                    <span className="font-mono text-[13px] font-bold text-slate-900 dark:text-white">
+                      {w.ticker}
+                    </span>
+                  </div>
                   <span
                     className={cn(
                       "inline-flex items-center gap-0.5 font-mono text-[11px] font-semibold",
-                      positive ? "text-[#86EFAC]" : "text-[#FCA5A5]"
+                      positive ? "text-bull" : "text-bear"
                     )}
                   >
                     {positive ? (

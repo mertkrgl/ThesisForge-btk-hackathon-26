@@ -37,8 +37,8 @@ const NOTIFS = [
 ];
 
 const TONE: Record<string, string> = {
-  primary: "text-[#93C5FD] bg-primary/10 border-primary/30",
-  bull: "text-[#86EFAC] bg-bull/10 border-bull/30",
+  primary: "text-primary bg-primary/10 border-primary/30",
+  bull: "text-bull bg-bull/10 border-bull/30",
   warn: "text-warn bg-warn/10 border-warn/30",
 };
 
@@ -54,12 +54,12 @@ export function NotificationPanel() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative grid h-[34px] w-[34px] place-items-center rounded-lg border border-line bg-[#0E1830] text-dim transition-all hover:border-line-2 hover:text-white"
+        className="relative grid h-[34px] w-[34px] place-items-center rounded-lg border border-slate-200 dark:border-border bg-slate-50 dark:bg-muted text-slate-500 dark:text-dim transition-all hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
         aria-label="Bildirimler"
       >
         <Bell className="h-4 w-4" />
         {unread > 0 && (
-          <span className="absolute right-1.5 top-1.5 grid h-[14px] min-w-[14px] place-items-center rounded-full border-[1.5px] border-background bg-bear px-1 font-mono text-[9px] font-bold text-white">
+          <span className="absolute right-1.5 top-1.5 grid h-[14px] min-w-[14px] place-items-center rounded-full border-[1.5px] border-white dark:border-background bg-bear px-1 font-mono text-[9px] font-bold text-white">
             {unread}
           </span>
         )}
@@ -67,13 +67,13 @@ export function NotificationPanel() {
 
       <DropdownReveal
         open={open}
-        className="absolute right-0 top-[calc(100%+8px)] z-40 w-[340px] overflow-hidden rounded-xl border border-line bg-[#0B1220]/95 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] glass-strong"
+        className="absolute right-0 top-[calc(100%+8px)] z-40 w-[340px] overflow-hidden rounded-xl border border-border bg-card/95 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] glass-strong"
       >
-        <div className="flex items-center justify-between border-b border-line px-4 py-3">
-          <span className="text-[13px] font-semibold text-white">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <span className="text-[13px] font-semibold text-slate-900 dark:text-white">
             Bildirimler
           </span>
-          <button className="inline-flex items-center gap-1 text-[11px] text-text-2 transition-colors hover:text-white">
+          <button className="inline-flex items-center gap-1 text-[11px] text-slate-500 dark:text-text-2 transition-colors hover:text-slate-900 dark:hover:text-white">
             <CheckCheck className="h-3 w-3" />
             Tümünü okundu işaretle
           </button>
@@ -85,7 +85,7 @@ export function NotificationPanel() {
               <li
                 key={n.id}
                 className={cn(
-                  "flex gap-3 border-b border-line/60 px-4 py-3 transition-colors hover:bg-white/[0.02]",
+                  "flex gap-3 border-b border-border/60 px-4 py-3 transition-colors hover:bg-accent/50",
                   n.unread && "bg-white/[0.012]"
                 )}
               >
@@ -99,7 +99,7 @@ export function NotificationPanel() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[12.5px] font-semibold text-white">
+                    <span className="text-[12.5px] font-semibold text-slate-900 dark:text-white">
                       {n.title}
                     </span>
                     {n.unread && (

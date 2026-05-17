@@ -160,8 +160,8 @@ export function CommandPalette({
       }}
     >
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative w-[min(640px,92vw)] overflow-hidden rounded-2xl border border-line bg-[#0B1220]/95 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)] glass-strong tf-rise">
-        <div className="flex items-center gap-2 border-b border-line px-4 py-3">
+      <div className="relative w-[min(640px,92vw)] overflow-hidden rounded-2xl border border-border bg-card/95 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)] glass-strong tf-rise">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
             ref={inputRef}
@@ -171,9 +171,9 @@ export function CommandPalette({
               setActive(0);
             }}
             placeholder="Komut, sayfa veya sembol ara…"
-            className="flex-1 bg-transparent text-[14px] text-white placeholder:text-muted-foreground focus:outline-none"
+            className="flex-1 bg-transparent text-[14px] text-slate-900 dark:text-white placeholder:text-muted-foreground focus:outline-none"
           />
-          <span className="rounded border border-line bg-[#1A243F] px-1.5 py-px font-mono text-[10px] text-muted-foreground">
+          <span className="rounded border border-border bg-[#1A243F] px-1.5 py-px font-mono text-[10px] text-muted-foreground">
             ESC
           </span>
         </div>
@@ -200,14 +200,14 @@ export function CommandPalette({
                     className={cn(
                       "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] text-text-2 transition-colors",
                       isActive
-                        ? "bg-[linear-gradient(90deg,#13213F,#0E1830)] text-white"
-                        : "hover:bg-white/[0.03]"
+                        ? "bg-blue-50 dark:bg-accent text-blue-700 dark:text-white"
+                        : "hover:bg-slate-50 dark:hover:bg-white/[0.03]"
                     )}
                   >
                     <Icon className="h-4 w-4 opacity-80" />
                     <span className="flex-1 truncate">{c.label}</span>
                     {c.hint && (
-                      <span className="rounded border border-line bg-[#1A243F] px-1.5 py-px font-mono text-[10px] text-muted-foreground">
+                      <span className="rounded border border-border bg-[#1A243F] px-1.5 py-px font-mono text-[10px] text-muted-foreground">
                         {c.hint}
                       </span>
                     )}
@@ -222,14 +222,14 @@ export function CommandPalette({
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between border-t border-line px-4 py-2 text-[10.5px] text-muted-foreground">
+        <div className="flex items-center justify-between border-t border-border px-4 py-2 text-[10.5px] text-muted-foreground">
           <span>Komut paleti</span>
           <span className="flex items-center gap-1.5">
-            <kbd className="rounded border border-line bg-[#1A243F] px-1 py-px font-mono text-[10px]">
+            <kbd className="rounded border border-border bg-[#1A243F] px-1 py-px font-mono text-[10px]">
               ↑↓
             </kbd>
             gez ·
-            <kbd className="rounded border border-line bg-[#1A243F] px-1 py-px font-mono text-[10px]">
+            <kbd className="rounded border border-border bg-[#1A243F] px-1 py-px font-mono text-[10px]">
               ⏎
             </kbd>
             seç

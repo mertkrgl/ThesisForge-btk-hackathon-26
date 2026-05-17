@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight, Plus, Sparkles } from "lucide-react";
 import { MOCK_WATCHLIST } from "@/lib/mock/watchlist";
+import { CompanyLogo } from "@/components/app/CompanyLogo";
 import { Sparkline } from "@/components/app/Sparkline";
 import { cn } from "@/lib/utils";
 import {
@@ -20,7 +21,7 @@ export default function WatchlistPage() {
               <div className="text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
                 Takip
               </div>
-              <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-white">
+              <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                 Watchlist
               </h1>
               <p className="mt-1 max-w-2xl text-[13px] text-text-2">
@@ -29,7 +30,7 @@ export default function WatchlistPage() {
             </div>
             <button
               type="button"
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-white/[0.02] px-4 text-[13px] font-medium text-text-2 transition-colors hover:border-line-2 hover:text-white"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-accent/50 px-4 text-[13px] font-medium text-text-2 transition-colors hover:border-border hover:text-white"
             >
               <Plus className="h-4 w-4" />
               Sembol Ekle
@@ -46,23 +47,26 @@ export default function WatchlistPage() {
             return (
               <StaggerItem key={w.ticker}>
                 <li
-                  className="rounded-2xl border border-line bg-[linear-gradient(180deg,#0C1428,#0A1122)] p-5"
+                  className="rounded-2xl border border-border bg-card p-5"
                 >
                   <div className="flex items-start justify-between">
-                    <div>
-                      <div className="font-mono text-lg font-bold text-white">
-                        {w.ticker}
-                      </div>
-                      <div className="text-[12px] text-muted-foreground">
-                        {w.name}
+                    <div className="flex min-w-0 items-center gap-3">
+                      <CompanyLogo ticker={w.ticker} company={w.name} size="md" />
+                      <div className="min-w-0">
+                        <div className="font-mono text-lg font-bold text-slate-900 dark:text-white">
+                          {w.ticker}
+                        </div>
+                        <div className="truncate text-[12px] text-muted-foreground">
+                          {w.name}
+                        </div>
                       </div>
                     </div>
                     <span
                       className={cn(
                         "inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 font-mono text-[11px] font-semibold",
                         positive
-                          ? "border-bull/30 bg-bull/10 text-[#86EFAC]"
-                          : "border-bear/30 bg-bear/10 text-[#FCA5A5]"
+                          ? "border-bull/30 bg-bull/10 text-bull"
+                          : "border-bear/30 bg-bear/10 text-bear"
                       )}
                     >
                       {positive ? (

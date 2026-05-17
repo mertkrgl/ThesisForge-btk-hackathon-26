@@ -3,7 +3,8 @@ import { Sparkles } from "lucide-react";
 import { listTheses } from "@/lib/api/thesis";
 import { WatchlistStrip } from "@/components/app/WatchlistStrip";
 import { ThesisCard } from "@/components/app/ThesisCard";
-import { DraggableDashboard } from "@/components/app/DraggableDashboard";
+import { MarketPulse } from "@/components/app/MarketPulse";
+import { AgentActivityFeed } from "@/components/app/AgentActivityFeed";
 import {
   PageTransition,
   FadeIn,
@@ -24,7 +25,7 @@ export default async function DashboardPage() {
               <div className="text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
                 Çalışma Alanı
               </div>
-              <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-white">
+              <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                 Dashboard
               </h1>
               <p className="mt-1 max-w-2xl text-[13px] text-text-2">
@@ -49,16 +50,23 @@ export default async function DashboardPage() {
           <WatchlistStrip />
         </FadeIn>
 
-        {/* row 2: Draggable Layout */}
+        {/* row 2: Static Layout */}
         <FadeIn delay={0.2}>
-          <DraggableDashboard />
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-12">
+            <div className="md:col-span-7">
+              <MarketPulse />
+            </div>
+            <div className="md:col-span-5">
+              <AgentActivityFeed />
+            </div>
+          </div>
         </FadeIn>
 
         {/* row 3 */}
         <FadeIn delay={0.3}>
           <div className="mt-6">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-[14px] font-semibold text-white">Son Tezler</h2>
+              <h2 className="text-[14px] font-semibold text-slate-900 dark:text-white">Son Tezler</h2>
               <Link
                 href="/app/history"
                 className="text-[12px] text-text-2 hover:text-white"

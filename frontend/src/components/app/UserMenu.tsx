@@ -15,21 +15,21 @@ export function UserMenu() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-lg border border-line bg-[#0E1830] py-1 pl-1 pr-2 text-[12.5px] text-text-2 transition-all hover:border-line-2 hover:text-white"
+        className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-slate-50 dark:bg-muted py-1 pl-1 pr-2 text-[12.5px] text-slate-500 dark:text-text-2 transition-all hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white"
       >
         <span className="grid h-7 w-7 place-items-center rounded-md bg-[linear-gradient(135deg,#3B82F6,#A78BFA)] font-mono text-[11px] font-bold text-white">
           MG
         </span>
-        <span className="hidden font-semibold text-white sm:inline">
+        <span className="hidden font-semibold text-slate-900 dark:text-white sm:inline">
           Melih Genel
         </span>
         <ChevronDown className="h-3.5 w-3.5 opacity-70" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-40 w-[240px] overflow-hidden rounded-xl border border-line bg-[#0B1220]/95 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] glass-strong tf-rise">
-          <div className="border-b border-line px-4 py-3">
-            <div className="text-[13px] font-semibold text-white">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-40 w-[240px] overflow-hidden rounded-xl border border-border bg-card/95 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] glass-strong tf-rise">
+          <div className="border-b border-border px-4 py-3">
+            <div className="text-[13px] font-semibold text-slate-900 dark:text-white">
               Melih Genel
             </div>
             <div className="text-[11px] text-muted-foreground">
@@ -51,7 +51,7 @@ export function UserMenu() {
               onClick={() => setOpen(false)}
             />
           </div>
-          <div className="border-t border-line py-1">
+          <div className="border-t border-border py-1">
             <MenuItem
               icon={LogOut}
               label="Çıkış yap"
@@ -82,13 +82,13 @@ function MenuItem({
 }) {
   const base =
     "flex w-full items-center gap-2.5 px-4 py-2 text-left text-[12.5px] transition-colors hover:bg-white/[0.03]";
-  const color = destructive ? "text-[#FCA5A5]" : "text-text-2 hover:text-white";
+  const color = destructive ? "text-bear" : "text-slate-600 dark:text-text-2 hover:text-slate-900 dark:hover:text-white";
   const body = (
     <>
       <Icon className="h-3.5 w-3.5 opacity-80" />
       <span className="flex-1">{label}</span>
       {hint && (
-        <span className="rounded border border-line bg-[#1A243F] px-1 py-px font-mono text-[10px] text-muted-foreground">
+        <span className="rounded border border-border bg-[#1A243F] px-1 py-px font-mono text-[10px] text-muted-foreground">
           {hint}
         </span>
       )}
