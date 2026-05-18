@@ -413,21 +413,21 @@ export function PriceChartCard({
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-b-xl border-t border-border bg-border md:grid-cols-4">
         <Stat
           label="Açılış"
-          value={data ? priceFormatter.format(data.first) : "—"}
+          value={formatPrice(data?.first)}
         />
         <Stat
           label="En Yüksek"
-          value={data ? priceFormatter.format(data.high) : "—"}
+          value={formatPrice(data?.high)}
           tone="bull"
         />
         <Stat
           label="En Düşük"
-          value={data ? priceFormatter.format(data.low) : "—"}
+          value={formatPrice(data?.low)}
           tone="bear"
         />
         <Stat
           label="Hacim"
-          value={data ? volumeFormatter.format(data.volume) : "—"}
+          value={formatVolume(data?.volume)}
         />
       </div>
     </Card>
