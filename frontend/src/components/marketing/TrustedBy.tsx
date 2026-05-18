@@ -61,9 +61,15 @@ const LIBRARY_LOGOS: Logo[] = [
   },
 ];
 
-// Twice for seamless marquee loop (translateX -50%).
-const TRACK = [...LOGOS, ...LOGOS];
-const LIBRARY_TRACK = [...LIBRARY_LOGOS, ...LIBRARY_LOGOS];
+// Four copies keep the marquee visibly wider than large desktop viewports.
+// The CSS animation translates by -50%, so the first two copies are replaced
+// by the second two copies without a visible seam.
+function marqueeTrack(logos: Logo[]) {
+  return [...logos, ...logos, ...logos, ...logos];
+}
+
+const TRACK = marqueeTrack(LOGOS);
+const LIBRARY_TRACK = marqueeTrack(LIBRARY_LOGOS);
 
 function LogoMark({ logo }: { logo: Logo }) {
   return (
@@ -104,7 +110,7 @@ export function TrustedBy() {
           Gücünü Aldığı Veri Kaynakları
         </p>
         <div className="marquee-mask mt-10 overflow-hidden">
-          <div className="animate-marquee flex w-max items-center gap-24 md:gap-32">
+          <div className="animate-marquee flex w-max will-change-transform items-center gap-24 md:gap-32">
             {TRACK.map((logo, i) => (
               <LogoMark key={`${logo.alt}-${i}`} logo={logo} />
             ))}
@@ -114,7 +120,10 @@ export function TrustedBy() {
           Kullandığı Teknolojiler
         </p>
         <div className="marquee-mask mt-8 overflow-hidden">
-          <div className="animate-marquee-reverse flex w-max items-center gap-24 md:gap-32">
+          <div
+            className="animate-marquee flex w-max will-change-transform items-center gap-24 md:gap-32"
+            style={{ animationDirection: "reverse" }}
+          >
             {LIBRARY_TRACK.map((logo, i) => (
               <LogoMark key={`${logo.alt}-${i}`} logo={logo} />
             ))}
