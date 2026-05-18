@@ -36,8 +36,34 @@ const LOGOS: Logo[] = [
   },
 ];
 
+const LIBRARY_LOGOS: Logo[] = [
+  {
+    src: "/logos/strands-logo-black.svg",
+    darkSrc: "/logos/logo-header-dark.LyjuOEMF.svg",
+    alt: "Strands Agents",
+    sizeClass: "h-9 max-w-[170px]",
+  },
+  {
+    src: "/logos/yfinance-logo.webp",
+    darkSrc: "/logos/yfinance-white.webp",
+    alt: "yfinance",
+    sizeClass: "h-9 max-w-[170px]",
+  },
+  {
+    src: "/logos/gemini-logo.svg",
+    alt: "Gemini",
+    sizeClass: "h-9 max-w-[170px]",
+  },
+  {
+    src: "/logos/pandas_ta-logo.webp",
+    alt: "pandas-ta",
+    sizeClass: "h-9 max-w-[170px]",
+  },
+];
+
 // Twice for seamless marquee loop (translateX -50%).
 const TRACK = [...LOGOS, ...LOGOS];
+const LIBRARY_TRACK = [...LIBRARY_LOGOS, ...LIBRARY_LOGOS];
 
 function LogoMark({ logo }: { logo: Logo }) {
   return (
@@ -75,11 +101,21 @@ export function TrustedBy() {
     <section className="bg-background py-16">
       <div className="mx-auto w-full max-w-[1280px] px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Gücünü aldığı veri kaynakları
+          Gücünü Aldığı Veri Kaynakları
         </p>
         <div className="marquee-mask mt-10 overflow-hidden">
           <div className="animate-marquee flex w-max items-center gap-24 md:gap-32">
             {TRACK.map((logo, i) => (
+              <LogoMark key={`${logo.alt}-${i}`} logo={logo} />
+            ))}
+          </div>
+        </div>
+        <p className="mt-14 text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Kullandığı Teknolojiler
+        </p>
+        <div className="marquee-mask mt-8 overflow-hidden">
+          <div className="animate-marquee-reverse flex w-max items-center gap-24 md:gap-32">
+            {LIBRARY_TRACK.map((logo, i) => (
               <LogoMark key={`${logo.alt}-${i}`} logo={logo} />
             ))}
           </div>
