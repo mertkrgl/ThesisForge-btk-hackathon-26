@@ -43,11 +43,32 @@ function timeAgo(iso: string): string {
   return relativeFormatter.format(Math.round(diffSec / (86_400 * 365)), "year");
 }
 
+type FeedFilter = "all" | "kap" | "news";
+
 export function CompanyFeed({ ticker }: { ticker: string }) {
   const [data, setData] = React.useState<BackendCompanyFeed | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [retryNonce, setRetryNonce] = React.useState(0);
+  const [filter, setFilter] = React.useState<FeedFilter>("all");
   const loading = !error && data == null;
+
+  const counts = React.useMemo(() => {
+    if (!data) return { all: 0, kap: 0, news: 0 };
+    let kap = 0;
+    let news = 0;
+    for (const it of data.items) {
+      if (it.kind === "kap") kap++;
+      else news++;
+    }
+    return { all: data.items.length, kap, news };
+  }, [data]);
+
+  const filteredItems = React.useMemo(() => {
+    if (!data) return [];
+    if (filter === "all") return data.items;
+    if (filter === "kap") return data.items.filter((i) => i.kind === "kap");
+    return data.items.filter((i) => i.kind !== "kap");
+  }, [data, filter]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -137,11 +158,26 @@ export function CompanyFeed({ ticker }: { ticker: string }) {
         />
       ) : (
         <>
-          <ul className="divide-y divide-border">
-            {data.items.map((item) => (
-              <FeedRow key={item.id} item={item} />
-            ))}
-          </ul>
+          <FeedTabs filter={filter} counts={counts} onChange={setFilter} />
+          {filteredItems.length === 0 ? (
+            <FeedEmptyState
+              icon={<Newspaper className="h-5 w-5 text-muted-foreground" />}
+              title={
+                filter === "kap"
+                  ? "KAP bildirimi yok"
+                  : "Haber bulunmadı"
+              }
+              subtitle={`${ticker} için son 30 günde ${
+                filter === "kap" ? "KAP bildirimi" : "haber"
+              } yok. Diğer sekmeleri deneyin.`}
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {filteredItems.map((item) => (
+                <FeedRow key={item.id} item={item} />
+              ))}
+            </ul>
+          )}
           {Object.keys(data.sources_err).length > 0 && (
             <div className="border-t border-border bg-warn/5 px-5 py-2.5 text-[11px] text-warn">
               Bazı kaynaklar yüklenemedi:{" "}
@@ -151,6 +187,63 @@ export function CompanyFeed({ ticker }: { ticker: string }) {
         </>
       )}
     </section>
+  );
+}
+
+function FeedTabs({
+  filter,
+  counts,
+  onChange,
+}: {
+  filter: FeedFilter;
+  counts: { all: number; kap: number; news: number };
+  onChange: (f: FeedFilter) => void;
+}) {
+  const tabs: { key: FeedFilter; label: string; count: number }[] = [
+    { key: "all", label: "Tümü", count: counts.all },
+    { key: "kap", label: "KAP", count: counts.kap },
+    { key: "news", label: "Haberler", count: counts.news },
+  ];
+  return (
+    <div
+      role="tablist"
+      aria-label="Akış filtresi"
+      className="flex items-center gap-1 border-b border-border px-4 pt-2"
+    >
+      {tabs.map((t) => {
+        const active = filter === t.key;
+        return (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(t.key)}
+            className={cn(
+              "relative inline-flex items-center gap-1.5 rounded-t-md px-3 py-2 text-[12.5px] font-medium transition-colors",
+              active
+                ? "text-slate-900 dark:text-white"
+                : "text-muted-foreground hover:text-text-2",
+            )}
+          >
+            {t.label}
+            <span
+              className={cn(
+                "rounded-full px-1.5 py-px font-mono text-[10.5px]",
+                active
+                  ? "bg-primary/15 text-primary"
+                  : "bg-card/80 text-muted-foreground",
+              )}
+            >
+              {t.count}
+            </span>
+            {active && (
+              <span className="absolute inset-x-1 bottom-[-1px] h-[2px] rounded-full bg-primary" />
+            )}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

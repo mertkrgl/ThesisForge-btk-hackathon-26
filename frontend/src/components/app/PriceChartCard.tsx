@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import dynamic from "next/dynamic";
+import type { EChartsOption } from "echarts";
+import { ArrowDownRight, ArrowUpRight, ChartCandlestick, LineChart } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Card,
@@ -28,6 +30,12 @@ import type {
   BackendHistory,
   MarketHistoryPeriod,
 } from "@/lib/types/backend";
+
+const ReactECharts = dynamic(() => import("echarts-for-react"), {
+  ssr: false,
+});
+
+type ChartMode = "line" | "candle";
 
 const PERIOD_OPTIONS: Array<{
   value: MarketHistoryPeriod;
@@ -97,6 +105,7 @@ export function PriceChartCard({
   initialPeriod?: MarketHistoryPeriod;
 }) {
   const [period, setPeriod] = React.useState<MarketHistoryPeriod>(initialPeriod);
+  const [mode, setMode] = React.useState<ChartMode>("line");
   const [data, setData] = React.useState<BackendHistory | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [retryNonce, setRetryNonce] = React.useState(0);
@@ -128,6 +137,64 @@ export function PriceChartCard({
   const config = positive ? chartConfigBull : chartConfigBear;
   const gradientId = `price-${positive ? "bull" : "bear"}`;
   const periodMeta = PERIOD_OPTIONS.find((p) => p.value === period)!;
+  const candleOption = React.useMemo<EChartsOption>(() => {
+    const points = data?.points ?? [];
+    const axis = points.map((p) => formatTickTime(p.t, period));
+    return {
+      animation: true,
+      grid: { left: 54, right: 18, top: 18, bottom: 34 },
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "cross" },
+        borderWidth: 1,
+        formatter: (params: unknown) => {
+          const rows = Array.isArray(params) ? params : [params];
+          const first = rows[0] as { dataIndex?: number } | undefined;
+          const point =
+            typeof first?.dataIndex === "number" ? points[first.dataIndex] : null;
+          if (!point) return "";
+          return [
+            `<strong>${formatTooltipTime(point.t, period)}</strong>`,
+            `Açılış: ${priceFormatter.format(point.o)}`,
+            `Kapanış: ${priceFormatter.format(point.c)}`,
+            `Yüksek: ${priceFormatter.format(point.h)}`,
+            `Düşük: ${priceFormatter.format(point.l)}`,
+            `Hacim: ${volumeFormatter.format(point.v)}`,
+          ].join("<br/>");
+        },
+      },
+      xAxis: {
+        type: "category",
+        data: axis,
+        boundaryGap: true,
+        axisLine: { lineStyle: { color: "rgba(148,163,184,0.35)" } },
+        axisTick: { show: false },
+        axisLabel: { color: "#94A3B8", hideOverlap: true },
+      },
+      yAxis: {
+        scale: true,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { lineStyle: { color: "rgba(148,163,184,0.16)" } },
+        axisLabel: {
+          color: "#94A3B8",
+          formatter: (v: number) => priceFormatter.format(v),
+        },
+      },
+      series: [
+        {
+          type: "candlestick",
+          data: points.map((p) => [p.o, p.c, p.l, p.h]),
+          itemStyle: {
+            color: "#16A34A",
+            color0: "#EF4444",
+            borderColor: "#16A34A",
+            borderColor0: "#EF4444",
+          },
+        },
+      ],
+    };
+  }, [data?.points, period]);
 
   return (
     <Card className="pt-0">
@@ -178,6 +245,20 @@ export function PriceChartCard({
             ))}
           </SelectContent>
         </Select>
+        <div className="inline-flex items-center gap-0.5 rounded-lg border border-border bg-card/60 p-0.5">
+          <ModeButton
+            active={mode === "line"}
+            onClick={() => setMode("line")}
+            label="Çizgi"
+            icon={<LineChart className="h-3.5 w-3.5" />}
+          />
+          <ModeButton
+            active={mode === "candle"}
+            onClick={() => setMode("candle")}
+            label="Mum"
+            icon={<ChartCandlestick className="h-3.5 w-3.5" />}
+          />
+        </div>
         <div className="inline-flex items-center gap-0.5 rounded-lg border border-border bg-card/60 p-0.5 sm:hidden">
           {PERIOD_OPTIONS.map((p) => {
             const active = p.value === period;
@@ -216,6 +297,15 @@ export function PriceChartCard({
             >
               Tekrar dene
             </button>
+          </div>
+        ) : mode === "candle" ? (
+          <div className="h-[250px] w-full">
+            <ReactECharts
+              option={candleOption}
+              notMerge
+              lazyUpdate
+              style={{ height: 250, width: "100%" }}
+            />
           </div>
         ) : (
           <ChartContainer
@@ -314,6 +404,35 @@ export function PriceChartCard({
         />
       </div>
     </Card>
+  );
+}
+
+function ModeButton({
+  active,
+  onClick,
+  label,
+  icon,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[11.5px] font-semibold transition-colors",
+        active
+          ? "bg-primary text-primary-foreground shadow-sm"
+          : "text-text-2 hover:bg-accent hover:text-slate-900 dark:hover:text-white",
+      )}
+    >
+      {icon}
+      <span className="hidden sm:inline">{label}</span>
+    </button>
   );
 }
 

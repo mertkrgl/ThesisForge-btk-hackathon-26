@@ -42,6 +42,14 @@ class User(Base):
         server_default=text("gen_random_uuid()"),
     )
     email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    # password_hash nullable — demo user'lar (auth öncesi ensure_user_by_id ile
+    # insert edilen) NULL kalır ve login edemez. Register flow her zaman bcrypt
+    # hash set eder.
+    password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+    name: Mapped[str | None] = mapped_column(String, nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     tier: Mapped[str] = mapped_column(
         String, nullable=False, server_default=text("'free'")
     )
@@ -102,6 +110,7 @@ class Thesis(Base):
     bull_points: Mapped[list | dict | None] = mapped_column(JSONB, nullable=True)
     bear_points: Mapped[list | dict | None] = mapped_column(JSONB, nullable=True)
     catalysts: Mapped[list | dict | None] = mapped_column(JSONB, nullable=True)
+    sentiment_label: Mapped[str | None] = mapped_column(String, nullable=True)
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     confidence_breakdown: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     memory_hits: Mapped[list | dict | None] = mapped_column(JSONB, nullable=True)

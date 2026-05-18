@@ -8,9 +8,21 @@ import {
   Zap,
   Radio,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import type { AgentMeta, AgentTone } from "@/lib/mock/types";
 import { cn } from "@/lib/utils";
+
+// Ajan çalışırken 2.4s'de bir değişen Türkçe durum mesajları. Yatırımcıya
+// "donmuş hissi" vermemek için pct yüzdesi yavaş ilerlerken metin değişerek
+// canlılığı destekler.
+const RUNNING_MESSAGES = [
+  "Veri çekiliyor…",
+  "Kaynaklar taranıyor…",
+  "Analiz ediyor…",
+  "Bulgular karşılaştırılıyor…",
+  "Sonuçlar derleniyor…",
+];
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   LineChart,
@@ -48,6 +60,7 @@ export function AgentCard({
   status,
   text,
   confidence,
+  pct,
   className,
   wide = false,
 }: {
@@ -55,43 +68,62 @@ export function AgentCard({
   status: AgentCardStatus;
   text?: string;
   confidence?: number;
+  /** Backend tool_progress'ten gelen gerçek 0-100 yüzde. undefined ise belirsiz
+   *  shimmer animasyonu gösterilir (rastgele "fake" doldurma yok). */
+  pct?: number;
   className?: string;
   /** Geniş yatay düzen — sentez ajanı gibi öne çıkan kartlar için. */
   wide?: boolean;
 }) {
   const Icon = ICONS[meta.icon] ?? Sparkles;
   const [expanded, setExpanded] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [msgIdx, setMsgIdx] = useState(0);
 
   useEffect(() => {
-    const resetTimer = setTimeout(() => {
-      setProgress(status === "done" ? 100 : status === "running" ? 10 : 0);
-      if (status === "idle") setExpanded(false);
-    }, 0);
-
-    if (status === "running") {
-      const interval = setInterval(() => {
-        setProgress((p) => Math.min(p + (Math.random() * 10 + 5), 90));
-      }, 500);
-      return () => {
-        clearTimeout(resetTimer);
-        clearInterval(interval);
-      };
-    }
-
-    return () => clearTimeout(resetTimer);
+    if (status !== "idle") return;
+    const id = window.setTimeout(() => setExpanded(false), 0);
+    return () => window.clearTimeout(id);
   }, [status]);
 
-  const statusDot = (
-    <span
-      className={cn(
-        "h-2 w-2 shrink-0 rounded-full",
-        status === "idle" && "bg-line-2",
-        status === "running" && "bg-primary",
-        status === "done" && TONE_DOT[meta.tone],
-      )}
-    />
-  );
+  useEffect(() => {
+    if (status !== "running") return;
+    const resetId = window.setTimeout(() => setMsgIdx(0), 0);
+    const id = setInterval(
+      () => setMsgIdx((i) => (i + 1) % RUNNING_MESSAGES.length),
+      2400,
+    );
+    return () => {
+      window.clearTimeout(resetId);
+      clearInterval(id);
+    };
+  }, [status]);
+
+  // Görüntülenen yüzde: backend pct varsa onu kullan, yoksa indeterminate.
+  // done → 100, idle → 0. Parent (LiveThesisRunner) zaten AGENT_PCT_CEILING (88)
+  // ile sınırladığı için bu Math.min defensive — 92'ye düşürdük ki herhangi bir
+  // edge-case'te bile bar 99'da donmasın.
+  const displayPct: number | null =
+    status === "done"
+      ? 100
+      : status === "idle"
+        ? 0
+        : typeof pct === "number"
+          ? Math.max(0, Math.min(92, Math.round(pct)))
+          : null;
+
+  const statusDot =
+    status === "running" ? (
+      // Spinner — kullanıcıya "ajan aktif çalışıyor" sinyalini net verir.
+      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-primary" />
+    ) : (
+      <span
+        className={cn(
+          "h-2 w-2 shrink-0 rounded-full",
+          status === "idle" && "bg-line-2",
+          status === "done" && TONE_DOT[meta.tone],
+        )}
+      />
+    );
 
   const statusBody = (
     <>
@@ -102,19 +134,42 @@ export function AgentCard({
       )}
 
       {status === "running" && (
-        <div className="flex h-full flex-col justify-center space-y-3 rounded-lg border border-border bg-muted/20 p-3">
+        <div className="flex h-full flex-col justify-center space-y-3 rounded-lg border border-primary/30 bg-primary/[0.04] p-3 dark:bg-primary/[0.07]">
           <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-            <span className="flex items-center gap-2">
-              <span className="inline-block h-2 w-2 rounded-full bg-primary [animation:tf-pulse-dot_1s_ease-in-out_infinite]" />
-              Değerlendiriyor...
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-primary [animation:tf-pulse-dot_1s_ease-in-out_infinite]" />
+              {/* Rotating mesaj — donmuş hissi vermesin. key prop'u her değişimde
+                  fade-in animasyonu için. */}
+              <span
+                key={msgIdx}
+                className="truncate text-text-2 [animation:tf-fade-in_400ms_ease-out]"
+              >
+                {RUNNING_MESSAGES[msgIdx]}
+              </span>
             </span>
-            <span className="font-mono">{Math.round(progress)}%</span>
+            {displayPct !== null && (
+              <span className="font-mono tabular-nums text-text-2">
+                {displayPct}%
+              </span>
+            )}
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-line">
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
-              style={{ width: `${progress}%` }}
-            />
+          <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-line">
+            {displayPct === null ? (
+              // Indeterminate shimmer — backend pct yokken sahte yüzde göstermek
+              // yerine sürekli kayan bar. Kullanıcı "donmuş" hissi almaz.
+              <div className="h-full w-1/3 rounded-full bg-primary [animation:tf-shimmer_1.6s_ease-in-out_infinite]" />
+            ) : (
+              <>
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-primary/80 via-primary to-primary/80 transition-[width] duration-[900ms] ease-out"
+                  style={{ width: `${displayPct}%` }}
+                />
+                {/* Bar üzerinde kayan parlama — bar dururken bile aktivite hissi */}
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 h-full w-1/4 bg-gradient-to-r from-transparent via-white/40 to-transparent [animation:tf-shimmer_2.2s_ease-in-out_infinite] dark:via-white/20"
+                />
+              </>
+            )}
           </div>
         </div>
       )}
@@ -203,6 +258,7 @@ export function AgentCard({
                 className={cn(
                   "grid h-12 w-12 place-items-center rounded-xl ring-1 ring-primary/20",
                   TONE_BG[meta.tone],
+                  status === "running" && "tf-ring-pulse",
                 )}
               >
                 <Icon className="h-6 w-6" />
@@ -247,6 +303,7 @@ export function AgentCard({
           className={cn(
             "grid h-8 w-8 place-items-center rounded-lg",
             TONE_BG[meta.tone],
+            status === "running" && "tf-ring-pulse",
           )}
         >
           <Icon className="h-4 w-4" />

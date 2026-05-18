@@ -23,6 +23,7 @@ from typing import Any, Awaitable, Callable, Iterator
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.ws_hub import hub as _ws_hub
 from app.core.logging import log
 from app.db.repo import insert_tool_call_log
 
@@ -83,6 +84,39 @@ def tool(
                     error=str(e)[:300],
                     latency_ms=latency,
                 )
+                # Fail-safe log INSERT: result=None → count_tool_calls_for_thesis
+                # bu satırı success'e saymaz ama total'a sayar. Audit/debug için
+                # hangi tool'un patladığı tool_call_logs'ta görünür kalır. Ayrı
+                # bir session aç — caller'ın session'ı rollback edilmiş olabilir.
+                try:
+                    from app.db.session import session_scope as _scope
+
+                    async with _scope() as _fail_session:
+                        await insert_tool_call_log(
+                            _fail_session,
+                            thesis_id=ctx.thesis_id,
+                            agent_id=ctx.agent_id,
+                            tool_name=name,
+                            args=dict(kwargs),
+                            result=None,
+                            latency_ms=latency,
+                        )
+                        await _fail_session.commit()
+                except Exception as log_err:
+                    log.warning("tool_fail_log_insert_fail", error=str(log_err)[:200])
+                # WS'e tool fail bildirimi yay (frontend progress için sayım)
+                try:
+                    await _ws_hub.publish(
+                        ctx.thesis_id,
+                        {
+                            "type": "tool_progress",
+                            "agent": ctx.agent_id,
+                            "tool": name,
+                            "status": "failed",
+                        },
+                    )
+                except Exception:
+                    pass
                 raise
 
             latency_ms = int((time.perf_counter() - t0) * 1000)
@@ -111,6 +145,21 @@ def tool(
                 call_id=call_id_str,
                 latency_ms=latency_ms,
             )
+            # WS'e tool başarısı bildirimi — frontend per-agent progress için.
+            # Sessiz fail OK: WS yoksa pipeline devam etsin.
+            try:
+                await _ws_hub.publish(
+                    ctx.thesis_id,
+                    {
+                        "type": "tool_progress",
+                        "agent": ctx.agent_id,
+                        "tool": name,
+                        "status": "ok",
+                        "call_id": call_id_str,
+                    },
+                )
+            except Exception:
+                pass
             return {"call_id": call_id_str, "result": result}
 
         wrapper.__tool_name__ = name  # type: ignore[attr-defined]

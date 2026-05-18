@@ -51,6 +51,9 @@ export type BackendConfidenceBreakdown = {
   final: number;
 };
 
+/** P2-20: bull/bear score toplamından türetilen kategorik sentiment etiketi. */
+export type SentimentLabel = "POZITIF" | "NEGATIF" | "NÖTR";
+
 export type BackendMemoryHit = {
   thesis_id: string;
   ticker: string;
@@ -75,6 +78,7 @@ export type BackendThesis = {
   bull_points: BackendBullBearPoint[] | null;
   bear_points: BackendBullBearPoint[] | null;
   catalysts: BackendCatalyst[] | null;
+  sentiment_label: SentimentLabel | null;
   confidence: number | null;
   confidence_breakdown: BackendConfidenceBreakdown | null;
   memory_hits: BackendMemoryHit[];
@@ -111,6 +115,10 @@ export type BackendCitation = {
   tool_result: Record<string, unknown> | null;
   tool_ts: string | null;
   is_kaynaksiz: boolean;
+  /** Backend P0-5: tool_name → Türkçe yatırımcı dili etiket (örn. "KAP Bildirimi"). */
+  source_label?: string | null;
+  /** Backend P0-5: tool_result içinden çıkarılan kaynak URL'i (varsa). */
+  url?: string | null;
 };
 
 export type BackendChatResponse = {
@@ -210,6 +218,19 @@ export type BackendWsEvent =
   | { type: "stage"; stage: string; squad?: string }
   | { type: "token"; content: string }
   | {
+      type: "tool_progress";
+      agent: string;
+      tool: string;
+      status: "ok" | "failed";
+      call_id?: string;
+    }
+  | {
+      type: "sources_count";
+      total: number;
+      success: number;
+      cited: number;
+    }
+  | {
       type: "critique";
       critique: {
         technical_pushback?: string[];
@@ -224,6 +245,7 @@ export type BackendWsEvent =
       thesis_id: string;
       confidence?: number;
       had_kaynaksiz_flag?: boolean;
+      sentiment_label?: SentimentLabel | null;
     }
   | { type: "error"; msg: string }
   | { type: "info"; msg?: string; ticker?: string };

@@ -37,12 +37,33 @@ const PARALLEL_AT_DISPATCH = [
 ];
 const DONE_AT_DEVIL = ["technical", "fundamental", "memory"];
 
+// Backend agent_id → frontend agentId (StreamAdapter dışında AGENT_REGISTRY id'leri).
+const _AGENT_ID_MAP: Record<string, string> = {
+  sector_router: "sector-router",
+  macro_context: "macro",
+  memory_agent: "memory",
+  technical_worker: "technical",
+  fundamental_worker: "fundamental",
+  devils_advocate: "devils-advocate",
+  synthesizer: "synthesizer",
+};
+
+function _mapAgentId(backendId: string | undefined): string | undefined {
+  if (!backendId) return undefined;
+  return _AGENT_ID_MAP[backendId] ?? backendId;
+}
+
+const _KAYNAK_TOKEN_RE = /\[\s*kaynak\s*:\s*([a-f0-9-]{36})\s*\]/gi;
+
 export function createStreamAdapter(): StreamAdapter {
   const startedAt = Date.now();
   const ofs = () => Date.now() - startedAt;
   let lastError: string | null = null;
   let doneId: string | null = null;
   let confidenceEmitted = false;
+  // Token akışından çıkarılan unique [kaynak:UUID] set'i — frontend "Kaynak"
+  // mini-stat'ı backend sources_count event'ini beklemeden canlı güncellesin.
+  const tokenSourceIds = new Set<string>();
 
   return {
     push(be: BackendWsEvent): StreamEvent[] {
@@ -110,6 +131,38 @@ export function createStreamAdapter(): StreamAdapter {
             agentId: "synthesizer",
             payload: be.content,
           });
+          // Token içinde [kaynak: UUID] varsa canlı kaynak sayımı için emit et.
+          // Synthesizer markdown'ı stream ederken her UUID bir kez source
+          // event'i olarak görünür → header'daki Kaynak mini-stat gerçek zamanlı
+          // doluyor; pipeline bitmeden 0 görünmüyor.
+          {
+            const text = be.content;
+            for (const m of text.matchAll(_KAYNAK_TOKEN_RE)) {
+              const uuid = m[1].toLowerCase();
+              if (tokenSourceIds.has(uuid)) continue;
+              tokenSourceIds.add(uuid);
+              out.push({ offset: ofs(), type: "source", payload: uuid });
+            }
+          }
+          break;
+
+        case "tool_progress":
+          // Backend her tool çağrısı sonrası yayınlıyor; AgentCard içinde
+          // per-agent ilerleme gösterimi için iletilir.
+          out.push({
+            offset: ofs(),
+            type: "tool_progress",
+            agentId: _mapAgentId(be.agent),
+            tool: be.tool,
+            status: be.status,
+          });
+          break;
+
+        case "sources_count":
+          // Final senaryoda backend kesin sayıyı söyler — duplicate önlemek için
+          // tokenSourceIds zaten dolduysa ek source emit etmiyoruz. Daha düşük
+          // sayı geldiyse de göstereceğimiz `payload` yine source event'leridir;
+          // toplam kontrol burada UI tarafında değil backend tarafında doğru.
           break;
 
         case "critique":

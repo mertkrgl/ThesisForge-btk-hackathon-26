@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Building2,
   LayoutDashboard,
   Sparkles,
   Star,
   History,
   Settings,
+  UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -37,6 +39,17 @@ const NAV: NavSection[] = [
     ],
   },
   {
+    title: "Keşif",
+    items: [
+      {
+        label: "Şirketler",
+        href: "/app/companies",
+        icon: Building2,
+        matchPrefix: true,
+      },
+    ],
+  },
+  {
     title: "Takip",
     items: [
       {
@@ -45,7 +58,7 @@ const NAV: NavSection[] = [
         icon: Star,
       },
       {
-        label: "Geçmiş Tezler",
+        label: "Tezler",
         href: "/app/history",
         icon: History,
       },
@@ -53,7 +66,10 @@ const NAV: NavSection[] = [
   },
   {
     title: "Sistem",
-    items: [{ label: "Ayarlar", href: "/app/settings", icon: Settings }],
+    items: [
+      { label: "Profil", href: "/app/profile", icon: UserRound },
+      { label: "Ayarlar", href: "/app/settings", icon: Settings },
+    ],
   },
 ];
 
@@ -66,7 +82,7 @@ export function Sidebar() {
   const pathname = usePathname() ?? "/app";
 
   return (
-    <aside className="sticky top-0 flex h-screen flex-col gap-1 border-r border-slate-200 dark:border-border bg-card dark:bg-[linear-gradient(180deg,#0A1020,#070A12)] px-3.5 py-4">
+    <aside className="sticky top-0 hidden h-screen flex-col gap-1 border-r border-slate-200 bg-card px-3.5 py-4 dark:border-border dark:bg-[linear-gradient(180deg,#0A1020,#070A12)] md:flex">
       <Link
         href="/app"
         className="mb-2.5 flex items-center gap-2.5 border-b border-dashed border-border px-2.5 pb-4 pt-2"

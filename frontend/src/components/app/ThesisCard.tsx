@@ -22,7 +22,7 @@ export function ThesisCard({ thesis }: { thesis: Thesis }) {
               <span className="font-mono text-[14px] font-bold text-slate-900 dark:text-white">
                 {thesis.ticker}
               </span>
-              <VerdictBadge verdict={thesis.verdict} />
+              <VerdictBadge verdict={thesis.verdict} showInfo={false} />
             </div>
             <div className="truncate text-[11px] text-muted-foreground">
               {thesis.company}

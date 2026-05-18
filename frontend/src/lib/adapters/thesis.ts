@@ -97,7 +97,15 @@ export function adaptThesis(
   const catalysts = (bt.catalysts ?? []).map(catalystToPoint);
 
   const confidence = clampScore(bt.confidence, 0);
-  const verdict = deriveVerdict(bull.length, bear.length, bt.confidence);
+  // P2-20: backend sentiment_label (bull/bear score toplamından) varsa
+  // count-based heuristic yerine onu kullan — score-based ölçü daha tutarlı.
+  const verdict: Verdict = bt.sentiment_label === "POZITIF"
+    ? "bull"
+    : bt.sentiment_label === "NEGATIF"
+      ? "bear"
+      : bt.sentiment_label === "NÖTR"
+        ? "neutral"
+        : deriveVerdict(bull.length, bear.length, bt.confidence);
   const cb = bt.confidence_breakdown;
 
   // Backend pipeline'ındaki 7 agent — confidence_breakdown bileşenlerinden türetilir.
@@ -153,7 +161,10 @@ export function adaptThesis(
     },
   ];
 
-  // Sources — citations endpoint varsa onu kullan; yoksa call_id setinden minimal liste üret
+  // Sources — citations endpoint varsa onu kullan; yoksa call_id setinden minimal liste üret.
+  // P0-5: backend `source_label` + `url` alanlarını döndürdüğünde Source.label
+  // ve Source.url da doldurulur — chip popover'da "açılamayan teknik tool ismi"
+  // yerine "KAP Bildirimi (link)" gibi yatırımcı dili gösterilir.
   let sources: Source[] = [];
   if (opts?.citations && opts.citations.length > 0) {
     const seen = new Set<string>();
@@ -161,7 +172,12 @@ export function adaptThesis(
       if (c.is_kaynaksiz || !c.call_id) continue;
       if (seen.has(c.call_id)) continue;
       seen.add(c.call_id);
-      sources.push(toolToSource(c.call_id, c.tool_name));
+      const base = toolToSource(c.call_id, c.tool_name);
+      sources.push({
+        ...base,
+        label: c.source_label ?? base.label,
+        url: c.url ?? undefined,
+      });
     }
   } else {
     const ids = new Set<string>();
@@ -216,6 +232,7 @@ export function adaptThesis(
     createdAt: bt.thesis_date ?? new Date().toISOString(),
     verdict,
     confidence,
+    sentimentLabel: bt.sentiment_label ?? undefined,
     oneLiner:
       extractTldr(bt.thesis_md) ||
       bull[0]?.text ||

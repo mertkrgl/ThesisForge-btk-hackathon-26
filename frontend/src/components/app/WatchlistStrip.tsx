@@ -7,6 +7,7 @@ import { CompanyLogo } from "./CompanyLogo";
 import { Sparkline } from "./Sparkline";
 import { cn } from "@/lib/utils";
 import { listWatchlist } from "@/lib/api/watchlist";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import type { WatchlistItem } from "@/lib/mock/types";
 
 const priceFormatter = new Intl.NumberFormat("tr-TR", {
@@ -20,12 +21,20 @@ function formatPrice(value: number | null): string {
 }
 
 export function WatchlistStrip() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      queueMicrotask(() => {
+        if (!cancelled) setLoading(false);
+      });
+      return;
+    }
     listWatchlist()
       .then((rows) => {
         if (!cancelled) setItems(rows);
@@ -40,10 +49,13 @@ export function WatchlistStrip() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [authLoading, isAuthenticated]);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <div
+      data-tour="dashboard-watchlist"
+      className="rounded-2xl border border-border bg-card p-4"
+    >
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-[13px] font-semibold text-slate-900 dark:text-white">
           Watchlist
@@ -67,6 +79,16 @@ export function WatchlistStrip() {
       ) : error ? (
         <div className="rounded-lg border border-bear/30 bg-bear/10 p-3 text-[12px] text-bear">
           {error}
+        </div>
+      ) : !isAuthenticated ? (
+        <div className="rounded-lg border border-dashed border-border bg-card/60 p-4 text-center text-[12px] text-text-2">
+          Watchlist&apos;i görüntülemek için{" "}
+          <Link
+            href="/login"
+            className="font-semibold text-primary hover:underline"
+          >
+            giriş yapın →
+          </Link>
         </div>
       ) : items.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border bg-card/60 p-4 text-center text-[12px] text-text-2">

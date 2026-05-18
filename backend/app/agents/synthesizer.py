@@ -501,6 +501,31 @@ def _parse_catalyst_bullet(bullet: str) -> Catalyst | None:
     return Catalyst(date=date_str, event=event, impact=impact, call_id=call_id)  # type: ignore[arg-type]
 
 
+def compute_sentiment_label(
+    bull_points: list[BullBearPoint],
+    bear_points: list[BullBearPoint],
+) -> str:
+    """Bull/bear score toplamından kategorik sentiment etiketi.
+
+    Net = sum(bull.score) - sum(bear.score). Eşik ±6:
+    - net ≥ 6  → POZITIF (boğa argümanları belirgin ağırlıkta)
+    - net ≤ -6 → NEGATIF (ayı argümanları belirgin ağırlıkta)
+    - aksi    → NÖTR (denge veya argümanlar zayıf)
+
+    Score ölçeği 0-10 olduğundan, ±6 fark ~tek bir güçlü bullet
+    veya iki orta seviye bullet farkına denk gelir. Confidence skoru
+    (kanıt kalitesi) ile bağımsız bir ölçü; UI tooltip'inde belirtilir.
+    """
+    bull_total = sum(p.score for p in bull_points)
+    bear_total = sum(p.score for p in bear_points)
+    net = bull_total - bear_total
+    if net >= 6:
+        return "POZITIF"
+    if net <= -6:
+        return "NEGATIF"
+    return "NÖTR"
+
+
 async def extract_structured(
     ctx: AgentContext, *, ticker: str, thesis_md: str
 ) -> ThesisStructured:

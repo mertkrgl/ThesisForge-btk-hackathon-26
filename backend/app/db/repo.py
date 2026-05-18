@@ -47,6 +47,55 @@ async def ensure_user_by_id(
     return user
 
 
+async def get_user_by_email(
+    session: AsyncSession, email: str
+) -> User | None:
+    """Auth login flow için case-insensitive email lookup."""
+    res = await session.execute(
+        select(User).where(User.email == email.lower().strip())
+    )
+    return res.scalar_one_or_none()
+
+
+async def get_user_by_id(
+    session: AsyncSession, user_id: uuid.UUID
+) -> User | None:
+    """get_current_user dependency için — JWT 'sub' claim'inden user fetch."""
+    res = await session.execute(select(User).where(User.id == user_id))
+    return res.scalar_one_or_none()
+
+
+async def create_user_with_password(
+    session: AsyncSession,
+    *,
+    email: str,
+    password_hash: str,
+    name: str | None = None,
+) -> User:
+    """Register flow — email normalize, bcrypt hash önceden hesaplanmış olarak gelir."""
+    user = User(
+        email=email.lower().strip(),
+        password_hash=password_hash,
+        name=name.strip() if name else None,
+    )
+    session.add(user)
+    await session.flush()
+    return user
+
+
+async def update_last_login(
+    session: AsyncSession, user_id: uuid.UUID
+) -> None:
+    """Login başarılı olduğunda last_login_at = now()."""
+    from datetime import datetime, timezone
+
+    await session.execute(
+        update(User)
+        .where(User.id == user_id)
+        .values(last_login_at=datetime.now(tz=timezone.utc))
+    )
+
+
 # ───────────────────────── Theses ─────────────────────────
 
 
@@ -96,6 +145,24 @@ async def list_theses(
     q = q.order_by(Thesis.thesis_date.desc()).offset(offset).limit(limit)
     res = await session.execute(q)
     return list(res.scalars().all())
+
+
+async def count_theses(
+    session: AsyncSession,
+    *,
+    user_id: uuid.UUID | None = None,
+    ticker: str | None = None,
+) -> int:
+    """list_theses ile aynı filtrelerle toplam tez sayısı — pagination için."""
+    from sqlalchemy import func
+
+    q = select(func.count()).select_from(Thesis)
+    if user_id is not None:
+        q = q.where(Thesis.user_id == user_id)
+    if ticker:
+        q = q.where(Thesis.ticker == ticker.upper())
+    res = await session.execute(q)
+    return int(res.scalar_one())
 
 
 async def update_thesis_kaynaksiz_flag(
@@ -307,6 +374,7 @@ async def update_thesis_synthesis(
     confidence_breakdown: dict | None,
     memory_hits: list[dict] | None = None,
     squad: str | None = None,
+    sentiment_label: str | None = None,
 ) -> None:
     values: dict[str, Any] = {
         "thesis_md": thesis_md,
@@ -316,6 +384,7 @@ async def update_thesis_synthesis(
         "confidence": confidence,
         "confidence_breakdown": confidence_breakdown,
         "memory_hits": memory_hits,
+        "sentiment_label": sentiment_label,
     }
     if squad:
         values["squad"] = squad

@@ -65,6 +65,14 @@ class Settings(BaseSettings):
     DEMO_KILLSWITCH_THRESHOLD_SEC: int = 90
     DEMO_TOOL_FAIL_THRESHOLD: int = 3
 
+    # ── Auth (P1)
+    # JWT secret — prod'da mutlaka env'den okunmalı (32+ byte). Dev'de fallback
+    # development-only secret kullanılır; production'da OVERRIDE şart.
+    JWT_SECRET: str = "dev-only-thesisforge-secret-CHANGE-IN-PROD-32bytes!"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_DAYS: int = 7
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+
     # ── Paths
     PRODUCT_SCRIPTS_PATH: Path = Field(
         default_factory=lambda: _REPO_ROOT / "scripts" / "product"

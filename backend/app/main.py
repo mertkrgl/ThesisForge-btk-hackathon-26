@@ -7,7 +7,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api import auth as auth_router
 from app.api import chat as chat_router
+from app.api import companies as companies_router
 from app.api import config_info as config_info_router
 from app.api import market as market_router
 from app.api import thesis_rest as thesis_rest_router
@@ -96,9 +98,11 @@ async def health() -> dict[str, str]:
     return {"status": "ok", "env": settings.ENV}
 
 
+app.include_router(auth_router.router)
 app.include_router(chat_router.router)
 app.include_router(ws_router.router)
 app.include_router(thesis_rest_router.router)
 app.include_router(watchlist_router.router)
 app.include_router(market_router.router)
 app.include_router(config_info_router.router)
+app.include_router(companies_router.router)

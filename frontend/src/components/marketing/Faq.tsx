@@ -21,7 +21,7 @@ const FAQS: Faq[] = [
   },
   {
     q: "Kaç ajan var ve ne işe yarıyor?",
-    a: "8 uzman ajan: Teknik Analist, Temel Analist, Şeytan Avukatı, Sentez, Bellek, Katalist Avcısı, Algı, Risk Yönetimi. Her ajanın net bir mandası ve kendi güven katkısı vardır; Sentez ajanı hepsini okuyup kalibre edilmiş bir tez üretir.",
+    a: "8 uzman ajan: Teknik Analist, Temel Analist, Anti-tez Uzmanı, Sentez, Bellek, Katalist Avcısı, Algı, Risk Yönetimi. Her ajanın net bir mandası ve kendi güven katkısı vardır; Sentez ajanı hepsini okuyup kalibre edilmiş bir tez üretir.",
   },
   {
     q: "Güven skoru (confidence) nasıl hesaplanıyor?",

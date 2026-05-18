@@ -195,6 +195,9 @@ class Catalyst(BaseModel):
     call_id: str | None = None
 
 
+SentimentLabel = Literal["POZITIF", "NEGATIF", "NÖTR"]
+
+
 class ThesisOutput(BaseModel):
     ticker: str
     user_mode: UserMode
@@ -202,6 +205,7 @@ class ThesisOutput(BaseModel):
     bull_points: list[BullBearPoint] = Field(default_factory=list)
     bear_points: list[BullBearPoint] = Field(default_factory=list)
     catalysts: list[Catalyst] = Field(default_factory=list)
+    sentiment_label: SentimentLabel | None = None
     confidence: float = Field(ge=0.0, le=100.0)
     confidence_breakdown: ConfidenceBreakdown
     citations: list[CitationRecord] = Field(default_factory=list)

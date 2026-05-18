@@ -4,7 +4,7 @@ import { PageTransition, FadeIn } from "@/components/shared/MotionWrappers";
 export default function SettingsPage() {
   return (
     <PageTransition>
-      <div className="mx-auto w-full max-w-[1280px] px-6 py-8">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 sm:py-8">
         <FadeIn>
           <div className="mb-6">
             <div className="text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -14,7 +14,7 @@ export default function SettingsPage() {
               Ayarlar
             </h1>
             <p className="mt-1 max-w-2xl text-[13px] text-text-2">
-              Profil, modeller, veri kaynakları ve geliştirici seçenekleri.
+              Görünüm, bildirim tercihleri ve hesap işlemleri.
             </p>
           </div>
         </FadeIn>

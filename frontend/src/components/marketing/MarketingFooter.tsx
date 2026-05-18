@@ -18,18 +18,19 @@ export function MarketingFooter() {
           title="Ürün"
           items={[
             { label: "Yeni Tez", href: "/app/thesis/live" },
+            { label: "Şirketler", href: "/app/companies" },
             { label: "Watchlist", href: "/app/watchlist" },
-            { label: "Geçmiş Tezler", href: "/app/history" },
+            { label: "Tezler", href: "/app/history" },
             { label: "Ayarlar", href: "/app/settings" },
           ]}
         />
         <FooterCol
-          title="Kaynaklar"
+          title="Yasal"
           items={[
-            { label: "BLUEPRINT", href: "#" },
-            { label: "Veri Sözleşmesi", href: "#" },
-            { label: "Disclaimer", href: "#" },
-            { label: "Hackathon Notları", href: "#" },
+            { label: "Yasal Uyarı", href: "/legal/disclaimer" },
+            { label: "Risk Bildirimi", href: "/legal/risk" },
+            { label: "Gizlilik", href: "/legal/privacy" },
+            { label: "Kullanım Şartları", href: "/legal/terms" },
           ]}
         />
         <FooterCol

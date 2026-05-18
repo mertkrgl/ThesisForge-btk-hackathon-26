@@ -25,6 +25,7 @@ import {
   listWatchlist,
   removeFromWatchlist,
 } from "@/lib/api/watchlist";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import type { WatchlistItem } from "@/lib/mock/types";
 
 const priceFormatter = new Intl.NumberFormat("tr-TR", {
@@ -39,6 +40,7 @@ function formatPrice(value: number | null): string {
 
 export default function WatchlistPage() {
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +63,15 @@ export default function WatchlistPage() {
 
   useEffect(() => {
     let cancelled = false;
-
+    // Anonim user için listeleme atla — JWT yoksa 401 alıp sign-out emit eder
+    // ve sayfa /login'e redirect olur; bu UX kötü. Önce isAuthenticated bekle.
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      queueMicrotask(() => {
+        if (!cancelled) setLoading(false);
+      });
+      return;
+    }
     const loadInitial = async () => {
       setError(null);
       try {
@@ -79,10 +89,19 @@ export default function WatchlistPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [authLoading, isAuthenticated]);
+
+  const requireAuth = () => {
+    if (!isAuthenticated) {
+      router.push(`/login?next=${encodeURIComponent("/app/watchlist")}`);
+      return false;
+    }
+    return true;
+  };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuth()) return;
     const t = newSymbol.trim().toUpperCase();
     if (!t) return;
     setBusy(true);
@@ -113,7 +132,7 @@ export default function WatchlistPage() {
 
   return (
     <PageTransition>
-      <div className="mx-auto w-full max-w-[1280px] px-6 py-8">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 sm:py-8">
         <FadeIn>
           <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
             <div>
@@ -129,7 +148,11 @@ export default function WatchlistPage() {
             </div>
             <button
               type="button"
-              onClick={() => setAddOpen(true)}
+              data-tour="watchlist-add"
+              onClick={() => {
+                if (!requireAuth()) return;
+                setAddOpen(true);
+              }}
               className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-accent/50 px-4 text-[13px] font-medium text-text-2 transition-colors hover:border-border hover:text-white"
             >
               <Plus className="h-4 w-4" />
@@ -152,6 +175,18 @@ export default function WatchlistPage() {
                 className="h-[200px] animate-pulse rounded-2xl border border-border bg-card/60"
               />
             ))}
+          </div>
+        ) : !isAuthenticated ? (
+          <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+            <p className="text-[14px] text-text-2">
+              Watchlist için giriş yapmanız gerekiyor.
+            </p>
+            <Link
+              href={`/login?next=${encodeURIComponent("/app/watchlist")}`}
+              className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-[13px] font-semibold text-primary-foreground hover:bg-[#2563EB]"
+            >
+              Giriş Yap
+            </Link>
           </div>
         ) : items.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">

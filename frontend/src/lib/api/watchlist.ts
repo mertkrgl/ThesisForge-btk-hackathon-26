@@ -1,15 +1,12 @@
-import { apiFetch, getDemoUserId } from "@/lib/api/client";
+import { apiFetch } from "@/lib/api/client";
 import { fetchMarketQuote } from "@/lib/api/market";
 import { companyName } from "@/lib/data/companyNames";
 import type { BackendWatchlistRow } from "@/lib/types/backend";
 import type { WatchlistItem } from "@/lib/mock/types";
 
 export async function listWatchlist(): Promise<WatchlistItem[]> {
-  const userId = getDemoUserId();
-  const qs = new URLSearchParams({ user_id: userId });
-  const rows = await apiFetch<BackendWatchlistRow[]>(
-    `/api/watchlist?${qs.toString()}`,
-  );
+  // user_id artık JWT'den; apiFetch Authorization header otomatik ekliyor
+  const rows = await apiFetch<BackendWatchlistRow[]>("/api/watchlist");
 
   const quotes = await Promise.allSettled(
     rows.map((r) => fetchMarketQuote(r.ticker)),
@@ -33,19 +30,12 @@ export async function addToWatchlist(
 ): Promise<{ status: "added" | "exists" }> {
   return apiFetch<{ status: "added" | "exists" }>(`/api/watchlist`, {
     method: "POST",
-    body: JSON.stringify({
-      user_id: getDemoUserId(),
-      ticker: ticker.toUpperCase(),
-    }),
+    body: JSON.stringify({ ticker: ticker.toUpperCase() }),
   });
 }
 
-export async function removeFromWatchlist(
-  ticker: string,
-): Promise<void> {
-  const qs = new URLSearchParams({ user_id: getDemoUserId() });
-  await apiFetch(
-    `/api/watchlist/${encodeURIComponent(ticker.toUpperCase())}?${qs.toString()}`,
-    { method: "DELETE" },
-  );
+export async function removeFromWatchlist(ticker: string): Promise<void> {
+  await apiFetch(`/api/watchlist/${encodeURIComponent(ticker.toUpperCase())}`, {
+    method: "DELETE",
+  });
 }

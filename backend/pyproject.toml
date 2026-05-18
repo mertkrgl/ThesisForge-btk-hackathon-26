@@ -42,6 +42,13 @@ dependencies = [
     "pandas_ta>=0.4.67b0",
     "beautifulsoup4",
     "googlenewsdecoder",
+    # PDF render (server-side, tarayıcı print yerine)
+    "markdown>=3.6",
+    "weasyprint>=62.3",
+    # Auth (P1 - email/şifre + JWT)
+    "bcrypt>=4.1",
+    "pyjwt>=2.8",
+    "email-validator>=2.1",
     # LLM (Gemini-only; Aşama 6+)
     "strands-agents[gemini]>=1.39",
     "google-genai>=1.0",

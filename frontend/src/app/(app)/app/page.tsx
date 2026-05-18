@@ -24,7 +24,7 @@ export default async function DashboardPage() {
 
   return (
     <PageTransition>
-      <div className="mx-auto w-full max-w-[1440px] px-6 py-8">
+      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
         <FadeIn>
           <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
             <div>
@@ -40,6 +40,7 @@ export default async function DashboardPage() {
             </div>
             <Link
               href="/app/thesis/live"
+              data-tour="dashboard-new-thesis"
               className="group inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-[13px] font-semibold text-primary-foreground shadow-[0_10px_25px_-10px_#3B82F6] transition-all hover:bg-[#2563EB]"
             >
               <Sparkles className="h-4 w-4" />
@@ -96,4 +97,3 @@ export default async function DashboardPage() {
     </PageTransition>
   );
 }
-

@@ -7,14 +7,16 @@ import uuid
 from functools import partial
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.agents.orchestrator import run_thesis
 from app.agents.sector_map import load_sector_map
+from app.api.deps import get_current_user
 from app.api.ws_hub import hub
 from app.core.logging import log
-from app.db.repo import create_thesis_skeleton, ensure_user_by_id
+from app.db.models import User
+from app.db.repo import create_thesis_skeleton
 from app.db.session import session_scope
 
 
@@ -23,7 +25,6 @@ router = APIRouter(tags=["chat"])
 
 class ChatRequest(BaseModel):
     message: str
-    user_id: uuid.UUID | None = None
     mode: Literal["default", "conservative"] = "default"
     ticker: str | None = Field(
         default=None,
@@ -100,7 +101,10 @@ async def _spawn_pipeline(
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest) -> ChatResponse:
+async def chat(
+    req: ChatRequest,
+    current: User = Depends(get_current_user),
+) -> ChatResponse:
     ticker = _parse_ticker(req.message, req.ticker)
     if not ticker:
         raise HTTPException(
@@ -109,21 +113,17 @@ async def chat(req: ChatRequest) -> ChatResponse:
         )
 
     async with session_scope() as s:
-        if req.user_id is not None:
-            # Demo user_id frontend tarafından üretildi; users tablosunda yoksa FK
-            # constraint'i için sentetik bir user oluştur.
-            await ensure_user_by_id(s, req.user_id)
         thesis_id = await create_thesis_skeleton(
             s,
             ticker=ticker,
-            user_id=req.user_id,
+            user_id=current.id,
             user_mode=req.mode,
             squad="Generic",
         )
         await s.commit()
 
     asyncio.create_task(
-        _spawn_pipeline(thesis_id, ticker, req.user_id, req.mode)
+        _spawn_pipeline(thesis_id, ticker, current.id, req.mode)
     )
 
     return ChatResponse(

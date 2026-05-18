@@ -1,11 +1,7 @@
-import {
-  MOCK_THESES,
-  getThesisById,
-  listThesesByTicker,
-} from "@/lib/mock/theses";
+import { getThesisById, listThesesByTicker } from "@/lib/mock/theses";
 import { createMockThesisStream } from "@/lib/mock/stream";
 import type { StreamEvent, Thesis } from "@/lib/mock/types";
-import { apiFetch, getDemoUserId } from "@/lib/api/client";
+import { apiFetch } from "@/lib/api/client";
 import {
   adaptThesis,
   adaptThesisSummary,
@@ -41,15 +37,57 @@ export async function getThesis(id: string): Promise<Thesis | undefined> {
   }
 }
 
+type ThesesPageResponse = {
+  items: BackendThesisSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export type ThesesPage = {
+  items: Thesis[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
 export async function listTheses(ticker?: string): Promise<Thesis[]> {
   if (USE_MOCKS) return listThesesByTicker(ticker);
+  const page = await listThesesPage({ ticker, limit: 50, offset: 0 });
+  return page.items;
+}
+
+export async function listThesesPage({
+  ticker,
+  limit = 10,
+  offset = 0,
+}: {
+  ticker?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<ThesesPage> {
+  if (USE_MOCKS) {
+    const all = listThesesByTicker(ticker);
+    return {
+      items: all.slice(offset, offset + limit),
+      total: all.length,
+      limit,
+      offset,
+    };
+  }
   const qs = new URLSearchParams();
   if (ticker) qs.set("ticker", ticker);
-  qs.set("limit", "50");
-  const list = await apiFetch<BackendThesisSummary[]>(
+  qs.set("limit", String(limit));
+  qs.set("offset", String(offset));
+  const res = await apiFetch<ThesesPageResponse>(
     `/api/theses?${qs.toString()}`,
   );
-  return list.map(adaptThesisSummary);
+  return {
+    items: res.items.map(adaptThesisSummary),
+    total: res.total,
+    limit: res.limit,
+    offset: res.offset,
+  };
 }
 
 export type StartThesisInput = {
@@ -74,7 +112,6 @@ export async function startThesis(
     message,
     ticker: input.symbol.toUpperCase(),
     mode: input.persona ?? "default",
-    user_id: getDemoUserId(),
   };
   const res = await apiFetch<BackendChatResponse>("/chat", {
     method: "POST",

@@ -348,7 +348,12 @@ async def _run_thesis_inner(
             _chunked_emit(report.md, emit),
         )
 
-        # ───── 10. Persist ─────
+        # ───── 10. Sentiment label (bull/bear score toplamından) ─────
+        sentiment_label = synth_mod.compute_sentiment_label(
+            structured.bull_points, structured.bear_points
+        )
+
+        # ───── 10b. Persist ─────
         await update_thesis_synthesis(
             session,
             thesis_id,
@@ -360,6 +365,7 @@ async def _run_thesis_inner(
             confidence_breakdown=breakdown.model_dump(mode="json"),
             memory_hits=[h.model_dump(mode="json") for h in memory_hits],
             squad=squad,
+            sentiment_label=sentiment_label,
         )
         await session.commit()
 
@@ -368,7 +374,24 @@ async def _run_thesis_inner(
             mem_mod.write_thesis_embedding_async(thesis_id, report.md)
         )
 
-        # ───── 12. done event ─────
+        # ───── 12. Sources count duyurusu ─────
+        # Frontend "kaynak: 0" görünmemesi için final tool_call_logs sayısını
+        # WS'e yay. Pipeline başarısız değil ama validator success kullanılabilen
+        # call_id sayısını burada görüyoruz.
+        final_total, final_success = await count_tool_calls_for_thesis(
+            session, thesis_id
+        )
+        await _safe_emit(
+            emit,
+            {
+                "type": "sources_count",
+                "total": final_total,
+                "success": final_success,
+                "cited": len([c for c in report.citations if c.call_id]),
+            },
+        )
+
+        # ───── 13. done event ─────
         await _safe_emit(
             emit,
             {
@@ -376,6 +399,7 @@ async def _run_thesis_inner(
                 "thesis_id": str(thesis_id),
                 "confidence": breakdown.final,
                 "had_kaynaksiz_flag": report.had_kaynaksiz,
+                "sentiment_label": sentiment_label,
             },
         )
         return thesis_id

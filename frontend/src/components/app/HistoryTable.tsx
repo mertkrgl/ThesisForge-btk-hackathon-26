@@ -32,7 +32,10 @@ export function HistoryTable({ theses }: { theses: Thesis[] }) {
   }, [theses, q, filter]);
 
   return (
-    <div className="rounded-2xl border border-border bg-card">
+    <div
+      data-tour="history-table"
+      className="rounded-2xl border border-border bg-card"
+    >
       <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3">
         <div className="flex w-[280px] items-center gap-2 rounded-lg border border-border bg-muted px-2.5 py-1.5 text-[13px] focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]">
           <Search className="h-4 w-4 text-muted-foreground" />
@@ -96,7 +99,7 @@ export function HistoryTable({ theses }: { theses: Thesis[] }) {
                 </td>
                 <td className="px-4 py-3 text-text-2">{t.sector}</td>
                 <td className="px-4 py-3">
-                  <VerdictBadge verdict={t.verdict} />
+                  <VerdictBadge verdict={t.verdict} showInfo={false} />
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">

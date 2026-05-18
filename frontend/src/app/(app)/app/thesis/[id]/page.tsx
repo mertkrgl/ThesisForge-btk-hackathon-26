@@ -40,7 +40,7 @@ export default async function ThesisViewerPage({
 
   return (
     <PageTransition>
-      <div className="mx-auto w-full max-w-[1280px] px-6 py-8">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 sm:py-8">
         <FadeIn>
           <Link
             href="/app/history"
@@ -53,7 +53,7 @@ export default async function ThesisViewerPage({
 
       {/* header */}
       <FadeIn delay={0.05}>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card p-6">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <div className="flex items-center gap-3">
@@ -77,8 +77,8 @@ export default async function ThesisViewerPage({
             </p>
           </div>
 
-          <div className="flex flex-col items-end gap-3">
-            <div className="w-[200px]">
+          <div className="flex w-full flex-col items-start gap-3 sm:w-auto sm:items-end">
+            <div className="w-full max-w-[260px] sm:w-[200px]">
               <ConfidenceBar value={thesis.confidence} size="lg" />
             </div>
             <ThesisExportButtons thesis={thesis} date={date} />
@@ -114,7 +114,7 @@ export default async function ThesisViewerPage({
       {/* tam markdown raporu — TL;DR + Bull + Bear + Katalist + Tarihsel + Risk + Güven */}
       {thesis.thesisMd && (
         <FadeIn delay={0.08}>
-          <div className="mt-6 rounded-2xl border border-border bg-card p-6">
+          <div className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">
                 Detaylı Rapor
@@ -157,7 +157,7 @@ export default async function ThesisViewerPage({
 
       {/* agent breakdown */}
       <FadeIn delay={0.15}>
-        <div className="mt-6 rounded-2xl border border-border bg-card p-6">
+        <div className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">
             Ajan Kırılımı
@@ -198,7 +198,7 @@ export default async function ThesisViewerPage({
 
       {/* citations */}
       <FadeIn delay={0.2}>
-        <div className="mt-6 rounded-2xl border border-border bg-card p-6">
+        <div className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-6">
           <h2 className="mb-3 text-[15px] font-semibold text-slate-900 dark:text-white">Kaynaklar</h2>
           <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {thesis.sources.map((s) => (

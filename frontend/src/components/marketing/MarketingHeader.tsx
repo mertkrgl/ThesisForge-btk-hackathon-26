@@ -18,6 +18,7 @@ const NAV = [
   { label: "Kimler İçin", href: "#personalar" },
   { label: "Ajanlar", href: "#ajanlar" },
   { label: "Nasıl Çalışır", href: "#nasil-calisir" },
+  { label: "Yasal Uyarı", href: "/legal/disclaimer" },
   { label: "S.S.S.", href: "#sss" },
 ];
 
@@ -38,7 +39,7 @@ export function MarketingHeader() {
       }
     );
 
-    NAV.forEach((item) => {
+    NAV.filter((item) => item.href.startsWith("#")).forEach((item) => {
       const el = document.querySelector(item.href);
       if (el) observer.observe(el);
     });
@@ -60,7 +61,7 @@ export function MarketingHeader() {
           {NAV.map((item) => {
             const isActive = activeSection === item.href;
             return (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 className={`rounded-md px-3.5 py-2 text-[13.5px] font-semibold tracking-tight transition-colors hover:bg-slate-100 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white ${
@@ -70,7 +71,7 @@ export function MarketingHeader() {
                 }`}
               >
                 {item.label}
-              </a>
+              </Link>
             );
           })}
         </nav>

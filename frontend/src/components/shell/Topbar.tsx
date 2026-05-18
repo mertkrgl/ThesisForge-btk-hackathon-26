@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import Link from "next/link";
+import { Search, Sparkles } from "lucide-react";
 import { Breadcrumbs } from "@/components/app/Breadcrumbs";
 import { CommandPalette } from "@/components/app/CommandPalette";
-import { NotificationPanel } from "@/components/app/NotificationPanel";
 import { UserMenu } from "@/components/app/UserMenu";
 
 export function Topbar() {
@@ -23,26 +23,42 @@ export function Topbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-20 flex h-[60px] items-center gap-3.5 border-b border-slate-200 dark:border-border bg-card/90 dark:bg-[rgba(7,10,18,0.78)] px-6 backdrop-blur-md">
-        <Breadcrumbs />
+      <header className="sticky top-0 z-20 flex h-[60px] items-center gap-2 border-b border-slate-200 bg-card/90 px-4 backdrop-blur-md dark:border-border dark:bg-[rgba(7,10,18,0.78)] sm:gap-3.5 sm:px-6">
+        {/* Mobilde logo + isim — sidebar gizli olduğu için marka kimliği burada */}
+        <Link
+          href="/app"
+          aria-label="ThesisForge"
+          className="flex items-center gap-2 md:hidden"
+        >
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[radial-gradient(120%_120%_at_20%_0%,#3B82F6_0%,#1D4ED8_50%,#0B1220_100%)] shadow-[0_6px_20px_-8px_#3B82F6,inset_0_0_0_1px_#2A4D9C]">
+            <Sparkles className="h-4 w-4 text-white" />
+          </span>
+          <span className="text-[14px] font-extrabold tracking-tight">
+            ThesisForge
+          </span>
+        </Link>
+
+        <div className="hidden md:block">
+          <Breadcrumbs />
+        </div>
 
         <button
           type="button"
           onClick={() => setPaletteOpen(true)}
-          className="ml-auto flex w-[320px] items-center gap-2 rounded-lg border border-slate-200 dark:border-border bg-slate-50 dark:bg-muted px-2.5 py-1.5 text-[13px] text-slate-500 dark:text-dim transition-colors hover:border-slate-300 dark:hover:border-border hover:text-slate-900 dark:hover:text-white focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]"
+          aria-label="Arama"
+          className="ml-auto flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[13px] text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-900 focus-within:border-primary focus-within:shadow-[0_0_0_3px_rgba(59,130,246,0.15)] dark:border-border dark:bg-muted dark:text-dim dark:hover:border-border dark:hover:text-white md:w-[320px]"
         >
           <Search className="h-4 w-4" />
-          <span className="flex-1 text-left text-muted-foreground">
+          <span className="hidden flex-1 text-left text-muted-foreground md:inline">
             Sembol, sektör veya tez ara…
           </span>
-          <span className="rounded border border-slate-300 dark:border-border bg-slate-100 dark:bg-[#1A243F] px-1.5 py-px font-mono text-[10.5px] text-slate-500 dark:text-muted-foreground">
+          <span className="hidden rounded border border-slate-300 bg-slate-100 px-1.5 py-px font-mono text-[10.5px] text-slate-500 dark:border-border dark:bg-[#1A243F] dark:text-muted-foreground md:inline">
             ⌘K
           </span>
         </button>
 
-        <div className="h-[22px] w-px bg-line" />
+        <div className="hidden h-[22px] w-px bg-line md:block" />
 
-        <NotificationPanel />
         <UserMenu />
       </header>
 

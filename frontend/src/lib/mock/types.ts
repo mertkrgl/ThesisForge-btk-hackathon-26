@@ -22,6 +22,7 @@ export type StreamEventType =
   | "source"
   | "confidence"
   | "agent_done"
+  | "tool_progress"
   | "done";
 
 export type StreamEvent = {
@@ -30,6 +31,9 @@ export type StreamEvent = {
   agentId?: string;
   payload?: string | number;
   phase?: string;
+  /** tool_progress için ek meta (tool adı, ok/failed). */
+  tool?: string;
+  status?: "ok" | "failed";
 };
 
 export type Source = {
@@ -40,6 +44,9 @@ export type Source = {
 };
 
 export type Verdict = "bull" | "bear" | "neutral";
+
+/** P2-20: bull/bear score toplamından türetilen kategorik sentiment. */
+export type SentimentLabel = "POZITIF" | "NEGATIF" | "NÖTR";
 
 export type ThesisPoint = {
   text: string;
@@ -54,6 +61,9 @@ export type Thesis = {
   createdAt: string;
   verdict: Verdict;
   confidence: number;
+  /** Bull/bear toplam skoruna göre kategorik etiket. Confidence (kanıt kalitesi)
+   * ile bağımsız ölçü; backend null dönerse undefined kalır ve badge gizlenir. */
+  sentimentLabel?: SentimentLabel;
   oneLiner: string;
   bull: ThesisPoint[];
   bear: ThesisPoint[];

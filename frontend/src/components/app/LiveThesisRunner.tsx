@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { AGENT_COUNT, AGENT_REGISTRY } from "@/lib/mock/agents";
 import { streamThesis } from "@/lib/api/thesis";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import type { StreamEvent } from "@/lib/mock/types";
 import { AgentCard, type AgentCardStatus } from "./AgentCard";
 import { SourceChip } from "./SourceChip";
@@ -35,7 +36,30 @@ type AgentState = {
   status: AgentCardStatus;
   text: string;
   confidence?: number;
+  /** Backend tool_progress event'lerinden türeyen 0-100 yüzde. */
+  pct?: number;
 };
+
+// Confidence formülünde EXPECTED_TOOL_TOTAL=18 (sector=0 + macro=3 + memory=1 +
+// tech=5 + fund=6 + devil=3). Bunu agent başına yüzde için kullanıyoruz.
+// MIN değer 2 — tool_progress'te (1/n)*100 hesabı yapmadan önce alt sınır
+// koruyalım, yoksa expected=1 olan ajanlar (sector-router, memory) ilk tool
+// event'inde direkt 100'e sıçrıyordu (sonra Math.min ile 99'a kırpılıp orada
+// donuyordu). Asimptotik creep ile birlikte bu sayılar yalnız "boost step" için.
+const AGENT_EXPECTED_TOOLS: Record<string, number> = {
+  "sector-router": 2,
+  macro: 3,
+  memory: 2,
+  technical: 5,
+  fundamental: 6,
+  "devils-advocate": 3,
+  synthesizer: 1,
+};
+
+// Per-agent ilerleme tavanı — `agent_done` gelene dek pct bu değeri geçmez.
+// Eski kod 99'a kadar dolduruyordu → bar uzun süre 99'da donmuş görünüyordu.
+// 88'e indirince done geldiğinde 88→100 sıçraması "tamamlandı" hissi veriyor.
+const AGENT_PCT_CEILING = 88;
 
 type PhaseId =
   | "Hazırlanıyor"
@@ -161,6 +185,7 @@ export function LiveThesisRunner({
   autoStart?: boolean;
 }) {
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [symbol, setSymbol] = useState(defaultSymbol);
   const [persona, setPersona] = useState<Persona>(defaultPersona);
   const [running, setRunning] = useState(false);
@@ -172,6 +197,7 @@ export function LiveThesisRunner({
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [thesisId, setThesisId] = useState<string | null>(null);
+  const [phaseProgress, setPhaseProgress] = useState(0);
   const handleRef = useRef<{ stop: () => void } | null>(null);
   const assemblyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -185,6 +211,12 @@ export function LiveThesisRunner({
   const start = (overrideSymbol?: string) => {
     const sym = (overrideSymbol ?? symbol).trim().toUpperCase();
     if (!sym) return;
+    // Auth guard — tez üretmek için login zorunlu (backend 401 dönerdi, kullanıcı
+    // hata mesajı görürdü; daha iyisi pre-emptive redirect).
+    if (!authLoading && !isAuthenticated) {
+      router.push(`/login?next=${encodeURIComponent("/app/thesis/live")}`);
+      return;
+    }
     clearAssemblyTimer();
     handleRef.current?.stop();
     setSymbol(sym);
@@ -197,6 +229,7 @@ export function LiveThesisRunner({
     setConfidence(0);
     setSources([]);
     setAgents(initAgents());
+    setPhaseProgress(0);
     assemblyTimerRef.current = setTimeout(() => {
       setAssembling(false);
       assemblyTimerRef.current = null;
@@ -225,19 +258,45 @@ export function LiveThesisRunner({
             );
             setAgents((p) =>
               p[e.agentId!]
-                ? { ...p, [e.agentId!]: { ...p[e.agentId!], status: "running" } }
+                ? {
+                    ...p,
+                    [e.agentId!]: {
+                      ...p[e.agentId!],
+                      status: "running",
+                      // pct'yi başlangıçta undefined bırak → AgentCard
+                      // indeterminate shimmer gösterir (sahte sayı yerine).
+                      // İlk tool_progress geldiğinde gerçek yüzdeye geçer.
+                      pct: p[e.agentId!]?.pct,
+                    },
+                  }
                 : p,
             );
           }
           if (e.type === "token" && e.agentId) {
-            setAgents((p) => ({
-              ...p,
-              [e.agentId!]: {
-                status: "running",
-                text: (p[e.agentId!]?.text ?? "") + (e.payload as string),
-                confidence: p[e.agentId!]?.confidence,
-              },
-            }));
+            setAgents((p) => {
+              const cur = p[e.agentId!];
+              const prevText = cur?.text ?? "";
+              const nextText = prevText + (e.payload as string);
+              // Synthesizer için pct proxy: tam tez ortalama ~5500 char. Her
+              // 55 char ~%1 ilerleme. CEILING ile diğer ajanlara hizalı — done
+              // gelene dek 88'i aşmasın (88→100 snap "tamamlandı" hissi verir).
+              const synthPct =
+                e.agentId === "synthesizer"
+                  ? Math.min(
+                      AGENT_PCT_CEILING,
+                      5 + Math.floor(nextText.length / 65),
+                    )
+                  : cur?.pct;
+              return {
+                ...p,
+                [e.agentId!]: {
+                  status: "running",
+                  text: nextText,
+                  confidence: cur?.confidence,
+                  pct: synthPct,
+                },
+              };
+            });
           }
           if (e.type === "source" && typeof e.payload === "string") {
             setPhase((p) => (p === "Hazırlanıyor" ? "Veri Toplanıyor" : p));
@@ -263,9 +322,39 @@ export function LiveThesisRunner({
           if (e.type === "agent_done" && e.agentId) {
             setAgents((p) =>
               p[e.agentId!]
-                ? { ...p, [e.agentId!]: { ...p[e.agentId!], status: "done" } }
+                ? {
+                    ...p,
+                    [e.agentId!]: {
+                      ...p[e.agentId!],
+                      status: "done",
+                      pct: 100,
+                    },
+                  }
                 : p,
             );
+          }
+          if (e.type === "tool_progress" && e.agentId) {
+            // Asimptotik boost: her tool, mevcut pct'yi CEILING'e olan farkın
+            // bir fraksiyonu kadar yaklaştırır → 0→44→69→81→86… şeklinde gider,
+            // CEILING'e ulaşmaz. expected=1 olan ajanlar bile artık ilk event'te
+            // 99'a sıçramıyor (önceki linear formül çok agresifti). tool_progress
+            // ayrıca time-based creep'in altına düşmemek için floor görevi görür.
+            setAgents((p) => {
+              const cur = p[e.agentId!];
+              if (!cur) return p;
+              const expected = AGENT_EXPECTED_TOOLS[e.agentId!] ?? 4;
+              const stepFrac = 1 / Math.max(2, expected);
+              const curPct = cur.pct ?? 0;
+              const proposed = curPct + (AGENT_PCT_CEILING - curPct) * stepFrac;
+              const newPct = Math.min(
+                AGENT_PCT_CEILING,
+                Math.max(curPct, proposed),
+              );
+              return {
+                ...p,
+                [e.agentId!]: { ...cur, status: "running", pct: newPct },
+              };
+            });
           }
           if (e.type === "done") {
             clearAssemblyTimer();
@@ -301,6 +390,37 @@ export function LiveThesisRunner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart, defaultSymbol]);
 
+  // Zaman tabanlı asimptotik creep — running ajanlar tool_progress event'i
+  // gelmese bile CEILING'e doğru sürekli ilerlesin. Bu sayede:
+  //  (a) `expected=1` ajanlar tek tool_progress'te 99'a sıçrayıp donmuyor,
+  //  (b) backend ajan içinde uzun bir LLM çağrısı yaparken bar hareketli kalıyor,
+  //  (c) agent_done geldiğinde pct ~70-85 civarındadır → 100 snap'i tatmin edici.
+  // Her tick: pct = pct + (CEILING - pct) * 0.022 → ~12-15 saniyede 85'e yaklaşır.
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      setAgents((p) => {
+        let changed = false;
+        const next: typeof p = { ...p };
+        for (const a of AGENT_REGISTRY) {
+          const cur = next[a.id];
+          if (!cur || cur.status !== "running") continue;
+          // Synthesizer token-based pct kullanıyor (token handler güncelliyor),
+          // creep ile çift güncellemeyelim — token akışı kendi hızında ilerler.
+          if (a.id === "synthesizer") continue;
+          const curPct = cur.pct ?? 4;
+          if (curPct >= AGENT_PCT_CEILING) continue;
+          const step = Math.max(0.35, (AGENT_PCT_CEILING - curPct) * 0.022);
+          const newPct = Math.min(AGENT_PCT_CEILING, curPct + step);
+          next[a.id] = { ...cur, pct: newPct };
+          changed = true;
+        }
+        return changed ? next : p;
+      });
+    }, 220);
+    return () => clearInterval(id);
+  }, [running]);
+
   const finishedAgents = useMemo(
     () => Object.values(agents).filter((a) => a.status === "done").length,
     [agents],
@@ -328,15 +448,43 @@ export function LiveThesisRunner({
     [agents],
   );
 
-  const phaseProgress = done
-    ? 100
-    : Math.min(
-        94,
-        Math.round(
-          ((finishedAgents + (runningAgents.length ? 0.45 : 0)) / AGENT_COUNT) *
-            100,
-        ),
-      );
+  // Hedef yüzde: her ajanın (creep + tool_progress kaynaklı) bireysel pct'sinin
+  // ortalaması. status="done" → 100, status="running" → ajanın pct'si (yoksa 6),
+  // status="idle" → 0. Done state ise sabit 100. Cap 95% — backend `done` gelene
+  // dek %100 göstermiyoruz; ajan tavanı 88 olduğundan toplam ortalama da
+  // doğal olarak bunun altında kalır (zaten 95 nadiren zorlanır).
+  const targetProgress = useMemo(() => {
+    if (done) return 100;
+    let sum = 0;
+    for (const a of AGENT_REGISTRY) {
+      const st = agents[a.id];
+      if (!st) continue;
+      if (st.status === "done") sum += 100;
+      else if (st.status === "running") {
+        sum += Math.max(6, st.pct ?? 6);
+      }
+    }
+    const avg = sum / AGENT_COUNT;
+    return Math.min(95, Math.round(avg));
+  }, [agents, done]);
+
+  // Smoothing: hedef yüzdeye 0.4%/100ms hızında ilerle. Bu sayede 0→55 gibi
+  // büyük sıçramalar kullanıcıya pürüzsüz bar olarak görünür. Done olduğunda
+  // 100'e bir defalık snap.
+  useEffect(() => {
+    if (done) {
+      const id = window.setTimeout(() => setPhaseProgress(100), 0);
+      return () => window.clearTimeout(id);
+    }
+    const id = setInterval(() => {
+      setPhaseProgress((cur) => {
+        if (cur >= targetProgress) return targetProgress;
+        const step = Math.max(0.4, (targetProgress - cur) * 0.08);
+        return Math.min(targetProgress, cur + step);
+      });
+    }, 120);
+    return () => clearInterval(id);
+  }, [targetProgress, done]);
 
   const openViewer = () => {
     if (thesisId) router.push(`/app/thesis/${thesisId}`);
@@ -355,6 +503,7 @@ export function LiveThesisRunner({
     setConfidence(0);
     setSources([]);
     setAgents(initAgents());
+    setPhaseProgress(0);
   };
 
   const state: "idle" | "assembling" | "running" | "done" = done
@@ -367,7 +516,7 @@ export function LiveThesisRunner({
 
   return (
     <PageTransition>
-      <div className="mx-auto w-full max-w-[1360px] px-5 py-7 sm:px-6">
+      <div className="mx-auto w-full max-w-[1360px] px-4 py-5 sm:px-6 sm:py-7">
         {error && (
           <FadeIn>
             <div className="mb-4 flex items-start gap-3 rounded-xl border border-bear/30 bg-bear/10 p-4 text-[13px] text-bear">
@@ -456,6 +605,7 @@ export function LiveThesisRunner({
                             status={agents[meta.id]?.status ?? "idle"}
                             text={agents[meta.id]?.text}
                             confidence={agents[meta.id]?.confidence}
+                            pct={agents[meta.id]?.pct}
                           />
                         </StaggerItem>
                       ))}
@@ -474,6 +624,7 @@ export function LiveThesisRunner({
                             status={agents[synth.id]?.status ?? "idle"}
                             text={agents[synth.id]?.text}
                             confidence={agents[synth.id]?.confidence}
+                            pct={agents[synth.id]?.pct}
                           />
                         </div>
                       </FadeIn>
@@ -530,13 +681,13 @@ function IdleHero({
 
   return (
     <FadeIn>
-      <div className="grid min-h-[calc(100vh-170px)] grid-cols-1 items-center gap-6 py-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="mx-auto flex min-h-[calc(100vh-170px)] w-full max-w-2xl items-center py-4">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             onStart();
           }}
-          className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-[0_30px_70px_-42px_rgba(15,23,42,0.55)] sm:p-6"
+          className="relative w-full overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-[0_30px_70px_-42px_rgba(15,23,42,0.55)] sm:p-6"
         >
           <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#2563EB,#22C55E,#F59E0B)]" />
 
@@ -571,6 +722,7 @@ function IdleHero({
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="hero-symbol"
+                  data-tour="new-thesis-symbol"
                   autoFocus
                   value={symbol}
                   onChange={(e) => setSymbol(e.target.value.toUpperCase())}
@@ -580,6 +732,7 @@ function IdleHero({
               </div>
               <button
                 type="submit"
+                data-tour="new-thesis-start"
                 disabled={!symbol.trim()}
                 className="group inline-flex h-[60px] items-center justify-center gap-2 rounded-xl bg-primary px-6 text-[14px] font-semibold text-primary-foreground shadow-[0_12px_28px_-12px_#3B82F6] transition-all hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -642,51 +795,6 @@ function IdleHero({
             </span>
           </div>
         </form>
-
-        <aside className="rounded-2xl border border-border bg-card p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
-                Seçili Komite
-              </div>
-              <div className="mt-1 font-mono text-3xl font-extrabold text-slate-900 dark:text-white">
-                {symbol || "----"}
-              </div>
-            </div>
-            <div
-              className={cn(
-                "grid h-12 w-12 place-items-center rounded-xl",
-                persona === "conservative"
-                  ? "bg-warn/10 text-warn"
-                  : "bg-primary/10 text-primary",
-              )}
-            >
-              {persona === "conservative" ? (
-                <ShieldAlert className="h-5 w-5" />
-              ) : (
-                <Sparkles className="h-5 w-5" />
-              )}
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <PhaseRail phase="Hazırlanıyor" done={false} />
-          </div>
-
-          <div className="mt-6 grid grid-cols-3 gap-2 border-y border-border py-4">
-            <MiniStat icon={Activity} label="Ajan" value={String(AGENT_COUNT)} />
-            <MiniStat icon={Gauge} label="Güven" value="0" suffix="%" />
-            <MiniStat icon={BarChart3} label="Kaynak" value="0" />
-          </div>
-
-          <div className="mt-5 text-[12.5px] leading-relaxed text-text-2">
-            <span className="font-semibold text-slate-900 dark:text-white">
-              Hazır:
-            </span>{" "}
-            sembol ve komite stratejisi. Başlatınca bu panel canlı ilerleme
-            görünümüne dönüşür.
-          </div>
-        </aside>
       </div>
     </FadeIn>
   );
@@ -1060,6 +1168,212 @@ function AssemblyScene({ symbol }: { symbol: string }) {
 }
 
 // ─────────────────────────────────────────────────────────
+// LoadingDots — sliding 3-dot conveyor (SVG SMIL animation)
+// ─────────────────────────────────────────────────────────
+
+function LoadingDots({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="-3 -3 30 30"
+      width="22"
+      height="22"
+      aria-hidden
+      className={cn("text-primary", className)}
+    >
+      <circle cx="4" cy="12" r="0" fill="currentColor">
+        <animate
+          fill="freeze"
+          attributeName="r"
+          begin="0;SVGUppsBdVN.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="0;3"
+        />
+        <animate
+          fill="freeze"
+          attributeName="cx"
+          begin="SVGqCgsydxJ.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="4;12"
+        />
+        <animate
+          fill="freeze"
+          attributeName="cx"
+          begin="SVG3PwDNd6F.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="12;20"
+        />
+        <animate
+          id="SVG3V8yEdYE"
+          fill="freeze"
+          attributeName="r"
+          begin="SVG6wCQhd9Q.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="3;0"
+        />
+        <animate
+          id="SVGUppsBdVN"
+          fill="freeze"
+          attributeName="cx"
+          begin="SVG3V8yEdYE.end"
+          dur="0.001s"
+          values="20;4"
+        />
+      </circle>
+      <circle cx="4" cy="12" r="3" fill="currentColor">
+        <animate
+          fill="freeze"
+          attributeName="cx"
+          begin="0;SVGUppsBdVN.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="4;12"
+        />
+        <animate
+          fill="freeze"
+          attributeName="cx"
+          begin="SVGqCgsydxJ.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="12;20"
+        />
+        <animate
+          id="SVG4PgJdbds"
+          fill="freeze"
+          attributeName="r"
+          begin="SVG3PwDNd6F.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="3;0"
+        />
+        <animate
+          id="SVG6wCQhd9Q"
+          fill="freeze"
+          attributeName="cx"
+          begin="SVG4PgJdbds.end"
+          dur="0.001s"
+          values="20;4"
+        />
+        <animate
+          fill="freeze"
+          attributeName="r"
+          begin="SVG6wCQhd9Q.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="0;3"
+        />
+      </circle>
+      <circle cx="12" cy="12" r="3" fill="currentColor">
+        <animate
+          fill="freeze"
+          attributeName="cx"
+          begin="0;SVGUppsBdVN.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="12;20"
+        />
+        <animate
+          id="SVG38aCdcdI"
+          fill="freeze"
+          attributeName="r"
+          begin="SVGqCgsydxJ.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="3;0"
+        />
+        <animate
+          id="SVG3PwDNd6F"
+          fill="freeze"
+          attributeName="cx"
+          begin="SVG38aCdcdI.end"
+          dur="0.001s"
+          values="20;4"
+        />
+        <animate
+          fill="freeze"
+          attributeName="r"
+          begin="SVG3PwDNd6F.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="0;3"
+        />
+        <animate
+          fill="freeze"
+          attributeName="cx"
+          begin="SVG6wCQhd9Q.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="4;12"
+        />
+      </circle>
+      <circle cx="20" cy="12" r="3" fill="currentColor">
+        <animate
+          id="SVGwaWzveSq"
+          fill="freeze"
+          attributeName="r"
+          begin="0;SVGUppsBdVN.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="3;0"
+        />
+        <animate
+          id="SVGqCgsydxJ"
+          fill="freeze"
+          attributeName="cx"
+          begin="SVGwaWzveSq.end"
+          dur="0.001s"
+          values="20;4"
+        />
+        <animate
+          fill="freeze"
+          attributeName="r"
+          begin="SVGqCgsydxJ.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="0;3"
+        />
+        <animate
+          fill="freeze"
+          attributeName="cx"
+          begin="SVG3PwDNd6F.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="4;12"
+        />
+        <animate
+          fill="freeze"
+          attributeName="cx"
+          begin="SVG6wCQhd9Q.end"
+          calcMode="spline"
+          dur="0.5s"
+          keySplines=".36,.6,.31,1"
+          values="12;20"
+        />
+      </circle>
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // RUNNING — Compact header
 // ─────────────────────────────────────────────────────────
 
@@ -1153,8 +1467,9 @@ function RunHeader({
             </span>
           </div>
 
-          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            {copy.title}
+          <h1 className="mt-3 flex flex-wrap items-center gap-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <span>{copy.title}</span>
+            {running && !done && <LoadingDots />}
           </h1>
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-text-2">
             {copy.body}
@@ -1200,7 +1515,7 @@ function RunHeader({
           />
         </div>
         <span className="w-10 text-right font-mono text-[11px] text-muted-foreground">
-          {progress}%
+          {Math.round(progress)}%
         </span>
       </div>
 

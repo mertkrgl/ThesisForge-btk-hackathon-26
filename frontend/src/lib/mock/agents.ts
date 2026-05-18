@@ -53,7 +53,7 @@ export const AGENT_REGISTRY: AgentMeta[] = [
   },
   {
     id: "devils-advocate",
-    name: "Şeytan Avukatı",
+    name: "Anti-tez Uzmanı",
     role: "Karşıt argüman",
     mandate:
       "Her bull argümanını sorgular, gözden kaçan riskleri ve baz oranı uyarılarını öne çıkarır.",

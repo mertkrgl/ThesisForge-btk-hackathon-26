@@ -140,6 +140,7 @@ export function MarketPulse() {
 
   return (
     <div
+      data-tour="dashboard-bist"
       className={cn(
         "flex h-full flex-col rounded-2xl border border-border p-5 transition-colors duration-300",
         bgClass,

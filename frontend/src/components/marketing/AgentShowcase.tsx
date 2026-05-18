@@ -6,13 +6,9 @@ import {
   Position,
   getSmoothStepPath,
   getBezierPath,
-  type Edge,
-  type EdgeProps,
-  type Node,
-  type NodeProps,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { motion, useInView } from "framer-motion";
 import {
   LineChart,
@@ -52,8 +48,8 @@ const SHOWCASE_AGENT_META: Record<
 > = {
   technical: { name: "Teknik Analist", icon: "LineChart" },
   fundamental: { name: "Temel Analist", icon: "Calculator" },
-  "devils-advocate": { name: "Şeytan Avukatı", icon: "ShieldAlert" },
-  devil: { name: "Şeytan Avukatı", icon: "ShieldAlert" },
+  "devils-advocate": { name: "Anti-tez Uzmanı", icon: "ShieldAlert" },
+  devil: { name: "Anti-tez Uzmanı", icon: "ShieldAlert" },
   synthesizer: { name: "Sentez", icon: "Sparkles" },
   memory: { name: "Bellek", icon: "History" },
   catalyst: { name: "Katalist Avcısı", icon: "Zap" },
@@ -78,6 +74,40 @@ const findAgent = (id: string) => {
 };
 
 // ----- Types -----
+type FlowNode<T extends Record<string, unknown>> = {
+  id: string;
+  type: string;
+  position: { x: number; y: number };
+  data: T;
+  draggable?: boolean;
+  selectable?: boolean;
+  connectable?: boolean;
+};
+
+type FlowEdge<T extends Record<string, unknown>> = {
+  id: string;
+  source: string;
+  target: string;
+  type: string;
+  data: T;
+  sourceHandle?: string;
+  targetHandle?: string;
+};
+
+type ChipNodeProps = {
+  data: Record<string, unknown>;
+};
+
+type FlowEdgeProps = {
+  id: string;
+  sourceX: number;
+  sourceY: number;
+  targetX: number;
+  targetY: number;
+  sourcePosition: Position;
+  targetPosition: Position;
+  data?: Record<string, unknown>;
+};
 
 type Variant = "source" | "worker" | "critic" | "context" | "hub" | "output";
 
@@ -157,21 +187,22 @@ const VARIANT_BORDER: Record<Variant, string> = {
 
 // ----- ChipNode -----
 
-function ChipNode({ data }: NodeProps<Node<ChipData>>) {
-  const Icon = data.icon;
-  const isHub = data.variant === "hub";
-  const isOutput = data.variant === "output";
+function ChipNode({ data }: ChipNodeProps) {
+  const nodeData = data as ChipData;
+  const Icon = nodeData.icon;
+  const isHub = nodeData.variant === "hub";
+  const isOutput = nodeData.variant === "output";
 
   const stageActive =
-    data.activeStage === undefined || data.activeStage >= data.stage;
+    nodeData.activeStage === undefined || nodeData.activeStage >= nodeData.stage;
   const hoverDimmed =
-    data.hoveredId !== null &&
-    data.hoveredId !== undefined &&
-    data.connected === false;
+    nodeData.hoveredId !== null &&
+    nodeData.hoveredId !== undefined &&
+    nodeData.connected === false;
   const hoverHighlighted =
-    data.hoveredId !== null &&
-    data.hoveredId !== undefined &&
-    data.connected === true;
+    nodeData.hoveredId !== null &&
+    nodeData.hoveredId !== undefined &&
+    nodeData.connected === true;
 
   const width = isHub ? 280 : isOutput ? 280 : 250;
 
@@ -189,12 +220,12 @@ function ChipNode({ data }: NodeProps<Node<ChipData>>) {
 
       <div
         className={`relative flex items-center gap-3.5 rounded-2xl border px-4.5 py-3.5 transition-all duration-200 ${
-          VARIANT_BORDER[data.variant]
-        } ${VARIANT_BG[data.variant]} ${
+          VARIANT_BORDER[nodeData.variant]
+        } ${VARIANT_BG[nodeData.variant]} ${
           isHub ? "text-white" : "text-slate-900 dark:text-white"
         } ${
           hoverHighlighted
-            ? `ring-2 ${VARIANT_RING[data.variant]} shadow-lg`
+            ? `ring-2 ${VARIANT_RING[nodeData.variant]} shadow-lg`
             : "ring-1 ring-black/[0.02] dark:ring-white/[0.04]"
         }`}
         style={{
@@ -205,7 +236,7 @@ function ChipNode({ data }: NodeProps<Node<ChipData>>) {
               : "0 1px 2px rgba(15,23,42,0.05), 0 10px 28px -18px rgba(15,23,42,0.2)",
         }}
       >
-        {(data.handles ?? []).map((h) => (
+        {(nodeData.handles ?? []).map((h) => (
           <Handle
             key={h.id}
             id={h.id}
@@ -220,18 +251,18 @@ function ChipNode({ data }: NodeProps<Node<ChipData>>) {
         ))}
 
         {/* Icon / logo */}
-        {data.logoSrc ? (
+        {nodeData.logoSrc ? (
           <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-slate-200 dark:border-border bg-white p-1.5 shadow-inner">
             <Image
-              src={data.logoSrc}
+              src={nodeData.logoSrc}
               alt=""
               width={44}
               height={44}
-              className={`h-full w-full object-contain ${data.logoDarkSrc ? "dark:hidden" : ""}`}
+              className={`h-full w-full object-contain ${nodeData.logoDarkSrc ? "dark:hidden" : ""}`}
             />
-            {data.logoDarkSrc && (
+            {nodeData.logoDarkSrc && (
               <Image
-                src={data.logoDarkSrc}
+                src={nodeData.logoDarkSrc}
                 alt=""
                 width={44}
                 height={44}
@@ -258,18 +289,18 @@ function ChipNode({ data }: NodeProps<Node<ChipData>>) {
               isHub ? "text-white" : ""
             }`}
           >
-            {data.label}
+            {nodeData.label}
           </div>
-          {data.sub && (
+          {nodeData.sub && (
             <div
               className={`mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] ${
                 isHub ? "text-white/70" : "text-muted-foreground"
               }`}
             >
-              {data.sub}
+              {nodeData.sub}
             </div>
           )}
-          {data.status && !isOutput && (
+          {nodeData.status && !isOutput && (
             <div
               className={`mt-1.5 flex items-center gap-1.5 text-[11px] ${
                 isHub ? "text-white/80" : "text-slate-600 dark:text-text-2"
@@ -283,7 +314,7 @@ function ChipNode({ data }: NodeProps<Node<ChipData>>) {
                 }`}
                 style={{ animation: "tf-debate-pulse 2s ease-in-out infinite" }}
               />
-              <span className="truncate">{data.status}</span>
+              <span className="truncate">{nodeData.status}</span>
             </div>
           )}
         </div>
@@ -364,8 +395,9 @@ function AnimatedFlowEdge({
   sourcePosition,
   targetPosition,
   data,
-}: EdgeProps<Edge<FlowEdgeData>>) {
-  const route = data?.route;
+}: FlowEdgeProps) {
+  const edgeData = data as FlowEdgeData | undefined;
+  const route = edgeData?.route;
   const edgePath =
     route && route.length > 0
       ? orthogonalPath([
@@ -383,15 +415,15 @@ function AnimatedFlowEdge({
           borderRadius: 18,
         })[0];
 
-  const kind = data?.kind ?? "data";
+  const kind = edgeData?.kind ?? "data";
   const color = STROKE[kind];
 
   const stageActive =
-    data?.activeStage === undefined ||
-    data?.stage === undefined ||
-    data.activeStage >= data.stage;
-  const hovered = data?.hoveredId != null;
-  const isConnected = data?.connected === true;
+    edgeData?.activeStage === undefined ||
+    edgeData?.stage === undefined ||
+    edgeData.activeStage >= edgeData.stage;
+  const hovered = edgeData?.hoveredId != null;
+  const isConnected = edgeData?.connected === true;
   const isDimmed = hovered && !isConnected;
 
   const opacity = stageActive ? (isDimmed ? 0.12 : isConnected ? 1 : 0.85) : 0;
@@ -444,7 +476,8 @@ function DebateEdge({
   sourcePosition,
   targetPosition,
   data,
-}: EdgeProps<Edge<FlowEdgeData>>) {
+}: FlowEdgeProps) {
+  const edgeData = data as FlowEdgeData | undefined;
   const [edgePath] = getBezierPath({
     sourceX,
     sourceY,
@@ -457,11 +490,11 @@ function DebateEdge({
 
   const color = STROKE.debate;
   const stageActive =
-    data?.activeStage === undefined ||
-    data?.stage === undefined ||
-    data.activeStage >= data.stage;
-  const hovered = data?.hoveredId != null;
-  const isConnected = data?.connected === true;
+    edgeData?.activeStage === undefined ||
+    edgeData?.stage === undefined ||
+    edgeData.activeStage >= edgeData.stage;
+  const hovered = edgeData?.hoveredId != null;
+  const isConnected = edgeData?.connected === true;
   const isDimmed = hovered && !isConnected;
   const opacity = stageActive ? (isDimmed ? 0.12 : isConnected ? 1 : 0.85) : 0;
   const strokeWidth = isConnected ? 2.6 : 1.8;
@@ -540,7 +573,7 @@ const STAGES = [
   {
     id: 3,
     label: "03 — Tartışma & Bağlam",
-    sub: "Şeytan, Bellek, Risk",
+    sub: "Anti-tez, Bellek, Risk",
     pct: 50.7,
   },
   { id: 4, label: "04 — Sentez", sub: "Konsensüs + tez", pct: 75.2 },
@@ -554,7 +587,7 @@ const chip = (
   x: number,
   y: number,
   data: ChipData
-): Node<ChipData> => ({
+): FlowNode<ChipData> => ({
   id,
   type: "chip",
   position: { x, y },
@@ -569,7 +602,7 @@ const H_TGT_IN: HandleSpec = { kind: "target", side: "left", id: "in" };
 
 // ----- Base nodes -----
 
-const BASE_NODES: Node<ChipData>[] = [
+const BASE_NODES: FlowNode<ChipData>[] = [
   // --- Stage 1: data sources ---
   chip("kap", X.src, Y_SRC[0], {
     variant: "source",
@@ -748,7 +781,7 @@ const fe = (
     targetHandle?: string;
     route?: FlowEdgeData["route"];
   } = {}
-): Edge<FlowEdgeData> => ({
+): FlowEdge<FlowEdgeData> => ({
   id,
   source,
   target,
@@ -758,7 +791,7 @@ const fe = (
   targetHandle: opts.targetHandle,
 });
 
-const BASE_EDGES: Edge<FlowEdgeData>[] = [
+const BASE_EDGES: FlowEdge<FlowEdgeData>[] = [
   // Stage 2 inflows (sources → workers)
   fe("kap→fund", "kap", "fundamental", "data", 2, { targetHandle: "in" }),
   fe("tcmb→fund", "tcmb", "fundamental", "data", 2, { targetHandle: "in" }),
@@ -985,7 +1018,7 @@ export function AgentShowcase() {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const { nodeIds, edgeIds } = useConnectedSets(hoveredId);
 
-  const nodes = useMemo<Node<ChipData>[]>(
+  const nodes = useMemo<FlowNode<ChipData>[]>(
     () =>
       BASE_NODES.map((n) => ({
         ...n,
@@ -999,7 +1032,7 @@ export function AgentShowcase() {
     [activeStage, hoveredId, nodeIds]
   );
 
-  const edges = useMemo<Edge<FlowEdgeData>[]>(
+  const edges = useMemo<FlowEdge<FlowEdgeData>[]>(
     () =>
       BASE_EDGES.map((e) => ({
         ...e,
@@ -1022,7 +1055,7 @@ export function AgentShowcase() {
         <SectionHeader
           kicker="Komite"
           title="8 ajan. Veri çekme, tartışma, sentez."
-          subtitle="Veri kaynakları workerlara akar, Şeytan Avukatı Temel & Teknik ajanların teziyle tartışır, Bellek ve Risk bağlam sağlar, Sentez hepsini kalibre eder. Aşağıda komitenin canlı haberleşme şeması."
+          subtitle="Veri kaynakları workerlara akar, Anti-tez Uzmanı Temel & Teknik ajanların teziyle tartışır, Bellek ve Risk bağlam sağlar, Sentez hepsini kalibre eder. Aşağıda komitenin canlı haberleşme şeması."
         />
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -1061,7 +1094,10 @@ export function AgentShowcase() {
               preventScrolling={false}
               proOptions={{ hideAttribution: true }}
               fitViewOptions={{ padding: 0.06 }}
-              onNodeMouseEnter={(_, n) => setHoveredId(n.id)}
+              onNodeMouseEnter={(
+                _event: ReactMouseEvent,
+                n: { id: string },
+              ) => setHoveredId(n.id)}
               onNodeMouseLeave={() => setHoveredId(null)}
             />
           </div>
