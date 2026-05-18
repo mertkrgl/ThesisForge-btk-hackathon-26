@@ -15,6 +15,8 @@ from typing import Any
 
 from fastapi import APIRouter, Query
 
+from app.agents.sector_map import squad_for_ticker
+
 router = APIRouter(prefix="/api/companies", tags=["companies"])
 
 
@@ -42,6 +44,10 @@ def _load_companies() -> list[dict[str, Any]]:
             code = code.split(",")[0].strip()
             if not code or not re.fullmatch(r"[A-Z0-9]{3,7}", code):
                 continue
+            # kfifUrl olmayan satırlar aracı kurum / fon yönetimi gibi
+            # MKK üyeleri; BIST'te işlem gören hisse değiller.
+            if not (row.get("kfifUrl") or "").strip():
+                continue
             if code in seen:
                 continue
             seen.add(code)
@@ -52,6 +58,7 @@ def _load_companies() -> list[dict[str, Any]]:
                     "ticker": code,
                     "title": title,
                     "member_type": member_type,
+                    "squad": squad_for_ticker(code),
                 }
             )
     out.sort(key=lambda r: r["ticker"])
@@ -61,18 +68,16 @@ def _load_companies() -> list[dict[str, Any]]:
 @router.get("")
 async def list_companies(
     search: str = Query("", description="Ticker veya unvan içinde geçen metin"),
+    squad: str = Query("", description="Squad adına göre filtrele (örn. Banking)"),
     limit: int = Query(40, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ) -> dict[str, Any]:
     rows = _load_companies()
     q = search.strip().upper()
     if q:
-        filtered = [
-            r for r in rows
-            if q in r["ticker"] or q in r["title"].upper()
-        ]
-    else:
-        filtered = rows
-    total = len(filtered)
-    page = filtered[offset : offset + limit]
+        rows = [r for r in rows if q in r["ticker"] or q in r["title"].upper()]
+    if squad.strip():
+        rows = [r for r in rows if r["squad"] == squad.strip()]
+    total = len(rows)
+    page = rows[offset : offset + limit]
     return {"items": page, "total": total, "limit": limit, "offset": offset}

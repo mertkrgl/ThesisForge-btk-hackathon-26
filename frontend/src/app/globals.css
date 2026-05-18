@@ -260,6 +260,9 @@
   .animate-marquee {
     animation: tf-marquee 30s linear infinite;
   }
+  .animate-marquee-reverse {
+    animation: tf-marquee 30s linear infinite reverse;
+  }
   .animate-blink {
     animation: tf-blink 1s ease-in-out infinite;
   }

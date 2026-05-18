@@ -16,13 +16,18 @@ export type CompanyCardData = {
   member_type: string;
 };
 
-export function CompanyCard({ company }: { company: CompanyCardData }) {
+export function CompanyCard({
+  company,
+  isFollowing = false,
+}: {
+  company: CompanyCardData;
+  isFollowing?: boolean;
+}) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "busy" | "added" | "exists">(
-    "idle",
-  );
+  const [status, setStatus] = useState<"idle" | "busy" | "added" | "exists">("idle");
   const [error, setError] = useState<string | null>(null);
+  const effectiveStatus = isFollowing && status !== "busy" ? "exists" : status;
 
   const handleAdd = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -32,7 +37,7 @@ export function CompanyCard({ company }: { company: CompanyCardData }) {
       );
       return;
     }
-    if (status === "busy") return;
+    if (effectiveStatus === "busy") return;
     setStatus("busy");
     setError(null);
     try {
@@ -45,13 +50,13 @@ export function CompanyCard({ company }: { company: CompanyCardData }) {
   };
 
   const addLabel =
-    status === "busy"
+    effectiveStatus === "busy"
       ? "Ekleniyor…"
-      : status === "added"
+      : effectiveStatus === "added"
         ? "Eklendi"
-        : status === "exists"
-          ? "Zaten var"
-          : "Watchlist";
+        : effectiveStatus === "exists"
+          ? "Takip ediliyor"
+          : "Takip Et";
 
   const detailHref = `/app/watchlist/${company.ticker}`;
   const goDetail = () => router.push(detailHref);
@@ -126,20 +131,20 @@ export function CompanyCard({ company }: { company: CompanyCardData }) {
           disabled={status === "busy"}
           className={cn(
             "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border px-3 text-[12px] font-semibold transition-colors",
-            status === "added" || status === "exists"
+            effectiveStatus === "added" || effectiveStatus === "exists"
               ? "border-bull/40 bg-bull/10 text-bull"
               : "border-border bg-card text-text-2 hover:border-primary/40 hover:text-primary",
-            status === "busy" && "opacity-60",
+            effectiveStatus === "busy" && "opacity-60",
           )}
           title={
             isAuthenticated
-              ? "Watchlist'e ekle"
+              ? "Takip listesine ekle"
               : "Giriş yapmak için tıklayın"
           }
         >
-          {status === "busy" ? (
+          {effectiveStatus === "busy" ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : status === "added" || status === "exists" ? (
+          ) : effectiveStatus === "added" || effectiveStatus === "exists" ? (
             <Check className="h-3.5 w-3.5" />
           ) : (
             <Plus className="h-3.5 w-3.5" />

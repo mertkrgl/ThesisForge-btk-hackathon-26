@@ -1,19 +1,25 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
 import { getThesis } from "@/lib/api/thesis";
 import { AGENT_REGISTRY } from "@/lib/mock/agents";
 import { ConfidenceBar } from "@/components/app/ConfidenceBar";
 import { CompanyLogo } from "@/components/app/CompanyLogo";
-import { SourceChip } from "@/components/app/SourceChip";
+import { SourceChipPopover } from "@/components/app/SourceChipPopover";
 import { ThesisExportButtons } from "@/components/app/ThesisExportButtons";
 import { VerdictBadge } from "@/components/app/VerdictBadge";
 import { DisclaimerBlock } from "@/components/shared/DisclaimerBlock";
+import { toolToSource } from "@/lib/data/toolLabels";
 import { cn } from "@/lib/utils";
-import type { AgentTone, Source, ThesisPoint } from "@/lib/mock/types";
+import type { AgentTone, CitationDetail, Source, ThesisPoint } from "@/lib/mock/types";
 import { PageTransition, FadeIn } from "@/components/shared/MotionWrappers";
 import { InlineMarkdown } from "@/components/shared/InlineMarkdown";
 import { ThesisReport } from "@/components/shared/ThesisReport";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import type { Thesis } from "@/lib/mock/types";
 
 const KPI_TONE: Record<AgentTone, string> = {
   bull: "text-bull",
@@ -24,14 +30,78 @@ const KPI_TONE: Record<AgentTone, string> = {
   primary: "text-primary",
 };
 
-export default async function ThesisViewerPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const thesis = await getThesis(id);
-  if (!thesis) return notFound();
+export default function ThesisViewerPage() {
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [thesis, setThesis] = useState<Thesis | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      router.push(`/login?next=${encodeURIComponent(`/app/thesis/${params.id}`)}`);
+      return;
+    }
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setLoading(true);
+      setError(null);
+    });
+    getThesis(params.id)
+      .then((row) => {
+        if (cancelled) return;
+        if (!row) {
+          setError("Tez bulunamadı veya bu teze erişim yetkiniz yok.");
+          setThesis(null);
+          return;
+        }
+        setThesis(row);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Tez alınamadı.");
+        setThesis(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, isAuthenticated, params.id, router]);
+
+  if (authLoading || loading) {
+    return (
+      <PageTransition>
+        <div className="mx-auto flex min-h-[420px] w-full max-w-[1280px] items-center justify-center px-4 py-6 text-[13px] text-muted-foreground sm:px-6 sm:py-8">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Tez yükleniyor
+        </div>
+      </PageTransition>
+    );
+  }
+
+  if (error || !thesis) {
+    return (
+      <PageTransition>
+        <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 sm:py-8">
+          <Link
+            href="/app/history"
+            className="mb-4 inline-flex items-center gap-1.5 text-[12px] text-text-2 transition-colors hover:text-white"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Tüm tezler
+          </Link>
+          <div className="rounded-2xl border border-bear/30 bg-bear/10 p-5 text-[13px] text-bear">
+            {error ?? "Tez bulunamadı."}
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
 
   const date = new Date(thesis.createdAt).toLocaleString("tr-TR", {
     dateStyle: "medium",
@@ -139,19 +209,24 @@ export default async function ThesisViewerPage({
           tone="bull"
           items={thesis.bull}
           sources={thesis.sources}
+          citations={thesis.citationLookup}
         />
         <Column
           title="Bear"
           tone="bear"
           items={thesis.bear}
           sources={thesis.sources}
+          citations={thesis.citationLookup}
         />
-        <Column
-          title="Katalist"
-          tone="violet"
-          items={thesis.catalysts}
-          sources={thesis.sources}
-        />
+        {thesis.catalysts.length > 0 && (
+          <Column
+            title="Katalist"
+            tone="violet"
+            items={thesis.catalysts}
+            sources={thesis.sources}
+            citations={thesis.citationLookup}
+          />
+        )}
         </div>
       </FadeIn>
 
@@ -201,30 +276,44 @@ export default async function ThesisViewerPage({
         <div className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-6">
           <h2 className="mb-3 text-[15px] font-semibold text-slate-900 dark:text-white">Kaynaklar</h2>
           <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
-            {thesis.sources.map((s) => (
-              <li
-                key={s.id}
-                className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2"
-              >
-                <SourceChip source={s} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[12.5px] text-text-2">
-                    {s.label}
+            {thesis.sources.map((s) => {
+              const cit = thesis.citationLookup?.find((c) => c.call_id === s.id) ?? null;
+              const inner = (
+                <>
+                  <SourceChipPopover citation={cit} source={s} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[12.5px] text-text-2">
+                      {s.label}
+                    </div>
+                    {s.url && (
+                      <div className="mt-0.5 flex max-w-full items-center gap-1 text-[11px] text-primary">
+                        <span className="truncate">{s.url}</span>
+                        <ExternalLink className="h-3 w-3 shrink-0" />
+                      </div>
+                    )}
                   </div>
-                  {s.url && (
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-0.5 inline-flex max-w-full items-center gap-1 text-[11px] text-primary hover:underline"
-                    >
-                      <span className="truncate">{s.url}</span>
-                      <ExternalLink className="h-3 w-3 shrink-0" />
-                    </a>
-                  )}
-                </div>
-              </li>
-            ))}
+                </>
+              );
+              return s.url ? (
+                <li key={s.id}>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-primary/40 hover:bg-accent/30"
+                  >
+                    {inner}
+                  </a>
+                </li>
+              ) : (
+                <li
+                  key={s.id}
+                  className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2"
+                >
+                  {inner}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </FadeIn>
@@ -244,11 +333,13 @@ function Column({
   tone,
   items,
   sources,
+  citations,
 }: {
   title: string;
   tone: AgentTone;
   items: ThesisPoint[];
   sources: Source[];
+  citations?: CitationDetail[];
 }) {
   const TONE_BORDER: Record<AgentTone, string> = {
     bull: "border-bull/30",
@@ -296,11 +387,12 @@ function Column({
             {p.sources.length > 0 && (
               <span className="ml-1 inline-flex flex-wrap gap-1 align-middle">
                 {p.sources.map((sid) => {
-                  const src = sources.find((s) => s.id === sid) ?? {
-                    id: sid,
-                    kind: "filing" as const,
-                  };
-                  return <SourceChip key={sid} source={src} />;
+                  const existing = sources.find((s) => s.id === sid);
+                  const cit = citations?.find((c) => c.call_id === sid) ?? null;
+                  const src: Source = existing ?? toolToSource(sid, cit?.tool_name ?? null);
+                  return (
+                    <SourceChipPopover key={sid} citation={cit} source={src} />
+                  );
                 })}
               </span>
             )}

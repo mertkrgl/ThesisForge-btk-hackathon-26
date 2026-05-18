@@ -45,6 +45,7 @@ const PERIOD_OPTIONS: Array<{
   { value: "1d", label: "Bugün (intraday)", short: "1G" },
   { value: "1w", label: "Son 5 gün", short: "1H" },
   { value: "1mo", label: "Son 1 ay", short: "1A" },
+  { value: "1y", label: "Son 1 yıl", short: "1Y" },
 ];
 
 const priceFormatter = new Intl.NumberFormat("tr-TR", {
@@ -57,6 +58,18 @@ const volumeFormatter = new Intl.NumberFormat("tr-TR", {
   maximumFractionDigits: 1,
 });
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function formatPrice(value: number | null | undefined): string {
+  return isFiniteNumber(value) ? priceFormatter.format(value) : "Veri yok";
+}
+
+function formatVolume(value: number | null | undefined): string {
+  return isFiniteNumber(value) ? volumeFormatter.format(value) : "Veri yok";
+}
+
 function formatTickTime(iso: string, period: MarketHistoryPeriod): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
@@ -64,6 +77,12 @@ function formatTickTime(iso: string, period: MarketHistoryPeriod): string {
     return d.toLocaleTimeString("tr-TR", {
       hour: "2-digit",
       minute: "2-digit",
+    });
+  }
+  if (period === "1y") {
+    return d.toLocaleDateString("tr-TR", {
+      month: "short",
+      year: "2-digit",
     });
   }
   return d.toLocaleDateString("tr-TR", {
@@ -75,7 +94,7 @@ function formatTickTime(iso: string, period: MarketHistoryPeriod): string {
 function formatTooltipTime(iso: string, period: MarketHistoryPeriod): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  if (period === "1mo") {
+  if (period === "1mo" || period === "1y") {
     return d.toLocaleDateString("tr-TR", {
       day: "2-digit",
       month: "long",
@@ -138,7 +157,13 @@ export function PriceChartCard({
   const gradientId = `price-${positive ? "bull" : "bear"}`;
   const periodMeta = PERIOD_OPTIONS.find((p) => p.value === period)!;
   const candleOption = React.useMemo<EChartsOption>(() => {
-    const points = data?.points ?? [];
+    const points = (data?.points ?? []).filter(
+      (p) =>
+        isFiniteNumber(p.o) &&
+        isFiniteNumber(p.c) &&
+        isFiniteNumber(p.l) &&
+        isFiniteNumber(p.h),
+    );
     const axis = points.map((p) => formatTickTime(p.t, period));
     return {
       animation: true,
@@ -155,11 +180,11 @@ export function PriceChartCard({
           if (!point) return "";
           return [
             `<strong>${formatTooltipTime(point.t, period)}</strong>`,
-            `Açılış: ${priceFormatter.format(point.o)}`,
-            `Kapanış: ${priceFormatter.format(point.c)}`,
-            `Yüksek: ${priceFormatter.format(point.h)}`,
-            `Düşük: ${priceFormatter.format(point.l)}`,
-            `Hacim: ${volumeFormatter.format(point.v)}`,
+            `Açılış: ${formatPrice(point.o)}`,
+            `Kapanış: ${formatPrice(point.c)}`,
+            `Yüksek: ${formatPrice(point.h)}`,
+            `Düşük: ${formatPrice(point.l)}`,
+            `Hacim: ${formatVolume(point.v)}`,
           ].join("<br/>");
         },
       },
@@ -216,7 +241,9 @@ export function PriceChartCard({
                 ) : (
                   <ArrowDownRight className="h-3 w-3" />
                 )}
-                {Math.abs(data.delta_pct).toFixed(2)}%
+                {isFiniteNumber(data.delta_pct)
+                  ? `${Math.abs(data.delta_pct).toFixed(2)}%`
+                  : "Veri yok"}
               </span>
             )}
             {fetching && data && (
@@ -350,19 +377,19 @@ export function PriceChartCard({
                       <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 font-mono">
                         <span className="text-muted-foreground">Kapanış</span>
                         <span className="text-right font-semibold text-slate-900 dark:text-white">
-                          {priceFormatter.format(point.c)}
+                          {formatPrice(point.c)}
                         </span>
                         <span className="text-muted-foreground">Yüksek</span>
                         <span className="text-right text-bull">
-                          {priceFormatter.format(point.h)}
+                          {formatPrice(point.h)}
                         </span>
                         <span className="text-muted-foreground">Düşük</span>
                         <span className="text-right text-bear">
-                          {priceFormatter.format(point.l)}
+                          {formatPrice(point.l)}
                         </span>
                         <span className="text-muted-foreground">Hacim</span>
                         <span className="text-right text-text-2">
-                          {volumeFormatter.format(point.v)}
+                          {formatVolume(point.v)}
                         </span>
                       </div>
                     </div>
@@ -386,21 +413,21 @@ export function PriceChartCard({
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-b-xl border-t border-border bg-border md:grid-cols-4">
         <Stat
           label="Açılış"
-          value={data ? priceFormatter.format(data.first) : "—"}
+          value={formatPrice(data?.first)}
         />
         <Stat
           label="En Yüksek"
-          value={data ? priceFormatter.format(data.high) : "—"}
+          value={formatPrice(data?.high)}
           tone="bull"
         />
         <Stat
           label="En Düşük"
-          value={data ? priceFormatter.format(data.low) : "—"}
+          value={formatPrice(data?.low)}
           tone="bear"
         />
         <Stat
           label="Hacim"
-          value={data ? volumeFormatter.format(data.volume) : "—"}
+          value={formatVolume(data?.volume)}
         />
       </div>
     </Card>

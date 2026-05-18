@@ -9,7 +9,6 @@ import {
   Plus,
   Sparkles,
   Trash2,
-  X,
 } from "lucide-react";
 import { CompanyLogo } from "@/components/app/CompanyLogo";
 import { Sparkline } from "@/components/app/Sparkline";
@@ -21,7 +20,6 @@ import {
   StaggerItem,
 } from "@/components/shared/MotionWrappers";
 import {
-  addToWatchlist,
   listWatchlist,
   removeFromWatchlist,
 } from "@/lib/api/watchlist";
@@ -44,22 +42,7 @@ export default function WatchlistPage() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
-  const [newSymbol, setNewSymbol] = useState("");
   const [busy, setBusy] = useState(false);
-
-  const refresh = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await listWatchlist();
-      setItems(rows);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Watchlist alınamadı");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -91,33 +74,6 @@ export default function WatchlistPage() {
     };
   }, [authLoading, isAuthenticated]);
 
-  const requireAuth = () => {
-    if (!isAuthenticated) {
-      router.push(`/login?next=${encodeURIComponent("/app/watchlist")}`);
-      return false;
-    }
-    return true;
-  };
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!requireAuth()) return;
-    const t = newSymbol.trim().toUpperCase();
-    if (!t) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await addToWatchlist(t);
-      setNewSymbol("");
-      setAddOpen(false);
-      await refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Eklenemedi");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const handleRemove = async (ticker: string) => {
     setBusy(true);
     try {
@@ -140,24 +96,20 @@ export default function WatchlistPage() {
                 Takip
               </div>
               <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Watchlist
+                Takip Edilen Hisseler
               </h1>
               <p className="mt-1 max-w-2xl text-[13px] text-text-2">
                 Takip ettiğiniz hisseler ve hızlı tez başlatma.
               </p>
             </div>
-            <button
-              type="button"
+            <Link
+              href={isAuthenticated ? "/app/companies" : `/login?next=${encodeURIComponent("/app/companies")}`}
               data-tour="watchlist-add"
-              onClick={() => {
-                if (!requireAuth()) return;
-                setAddOpen(true);
-              }}
               className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-accent/50 px-4 text-[13px] font-medium text-text-2 transition-colors hover:border-border hover:text-white"
             >
               <Plus className="h-4 w-4" />
               Sembol Ekle
-            </button>
+            </Link>
           </div>
         </FadeIn>
 
@@ -179,7 +131,7 @@ export default function WatchlistPage() {
         ) : !isAuthenticated ? (
           <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
             <p className="text-[14px] text-text-2">
-              Watchlist için giriş yapmanız gerekiyor.
+              Takip listesi için giriş yapmanız gerekiyor.
             </p>
             <Link
               href={`/login?next=${encodeURIComponent("/app/watchlist")}`}
@@ -193,14 +145,13 @@ export default function WatchlistPage() {
             <p className="text-[14px] text-text-2">
               Henüz takip ettiğin sembol yok.
             </p>
-            <button
-              type="button"
-              onClick={() => setAddOpen(true)}
+            <Link
+              href="/app/companies"
               className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-[13px] font-semibold text-primary-foreground hover:bg-[#2563EB]"
             >
               <Plus className="h-4 w-4" />
               İlk sembolünü ekle
-            </button>
+            </Link>
           </div>
         ) : (
           <StaggerContainer
@@ -319,58 +270,6 @@ export default function WatchlistPage() {
         )}
       </div>
 
-      {addOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <form
-            onSubmit={handleAdd}
-            className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl"
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-[16px] font-semibold text-slate-900 dark:text-white">
-                Yeni sembol ekle
-              </h2>
-              <button
-                type="button"
-                onClick={() => setAddOpen(false)}
-                className="rounded-md p-1 text-text-2 hover:bg-accent hover:text-white"
-                aria-label="Kapat"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <label
-              htmlFor="ticker-input"
-              className="mb-2 block text-[11.5px] uppercase tracking-wider text-muted-foreground"
-            >
-              BIST sembolü
-            </label>
-            <input
-              id="ticker-input"
-              autoFocus
-              value={newSymbol}
-              onChange={(e) => setNewSymbol(e.target.value.toUpperCase())}
-              placeholder="ASELS"
-              className="h-11 w-full rounded-lg border border-border bg-card px-3 font-mono text-[14px] font-semibold uppercase tracking-wider text-slate-900 dark:text-white focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/20"
-            />
-            <div className="mt-5 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setAddOpen(false)}
-                className="h-10 rounded-lg border border-border bg-transparent px-4 text-[13px] font-medium text-text-2 hover:text-white"
-              >
-                İptal
-              </button>
-              <button
-                type="submit"
-                disabled={!newSymbol.trim() || busy}
-                className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-[13px] font-semibold text-primary-foreground hover:bg-[#2563EB] disabled:opacity-50"
-              >
-                Ekle
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </PageTransition>
   );
 }

@@ -23,7 +23,7 @@ const TABS: TabItem[] = [
     highlight: true,
     matchPrefix: true,
   },
-  { label: "Watchlist", href: "/app/watchlist", icon: Star },
+  { label: "Takip Listesi", href: "/app/watchlist", icon: Star },
   { label: "Profil", href: "/app/profile", icon: UserRound, matchPrefix: true },
 ];
 

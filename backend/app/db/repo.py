@@ -128,6 +128,22 @@ async def get_thesis(
     return res.scalar_one_or_none()
 
 
+async def delete_thesis_for_user(
+    session: AsyncSession,
+    *,
+    thesis_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> bool:
+    """Belirli user'a ait tezi sil; silindiyse True döndür."""
+    row = await get_thesis(session, thesis_id)
+    if row is None:
+        return False
+    if row.user_id != user_id:
+        return False
+    await session.delete(row)
+    return True
+
+
 async def list_theses(
     session: AsyncSession,
     *,

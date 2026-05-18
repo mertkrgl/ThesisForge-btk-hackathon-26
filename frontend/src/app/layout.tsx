@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
-import { OnboardingTour } from "@/components/app/OnboardingTour";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,13 +36,11 @@ export default function RootLayout({
       <body className="min-h-full bg-background text-foreground">
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          enableSystem
+          defaultTheme="light"
           disableTransitionOnChange
         >
           <AuthProvider>
             {children}
-            <OnboardingTour />
           </AuthProvider>
         </ThemeProvider>
       </body>

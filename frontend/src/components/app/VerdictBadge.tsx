@@ -40,7 +40,6 @@ export function VerdictBadge({
 }: {
   verdict: Verdict;
   className?: string;
-  /** Yanına info ikonu + tıklanınca açıklama popover'ı koy. False → sade badge. */
   showInfo?: boolean;
 }) {
   const { label, cls, dot } = MAP[verdict];
@@ -65,12 +64,12 @@ export function VerdictBadge({
   if (!showInfo) return badge;
 
   return (
-    <div ref={ref} className="relative inline-flex items-center gap-1">
+    <div ref={ref} className="relative inline-flex items-center gap-1.5">
       {badge}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="grid h-4 w-4 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-text-2"
+        className="grid h-5 w-5 place-items-center rounded-full border border-border/70 bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-text-2"
         aria-label="Sentiment etiketi nedir?"
         aria-expanded={open}
       >
@@ -79,27 +78,24 @@ export function VerdictBadge({
       {open && (
         <div
           role="dialog"
-          className="absolute left-0 top-[calc(100%+8px)] z-40 w-[300px] rounded-xl border border-border bg-card/95 p-3.5 text-[12px] leading-relaxed text-text-2 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] backdrop-blur"
+          className="absolute left-0 top-[calc(100%+10px)] z-40 w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-popover p-4 text-[12.5px] leading-relaxed text-text-2 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.6)]"
         >
-          <div className="mb-1.5 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Sentiment etiketi
+          <div className="mb-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            Sentiment Etiketi
           </div>
           <p className="text-slate-900 dark:text-white">
-            <span className="font-semibold">{label}</span> ·{" "}
-            {DESCRIPTION[verdict]}
+            <span className="font-semibold">{label}</span>: {DESCRIPTION[verdict]}
           </p>
-          <div className="mt-2 border-t border-border pt-2">
+          <div className="mt-3 border-t border-border pt-3">
             <p>
-              Bull ve bear maddelerinin <span className="font-mono">0–10</span>{" "}
-              arası skor toplamlarından türetilir. Eşik <span className="font-mono">±6</span>:
-              {" "}<span className="text-bull">+6 ve üzeri POZITIF</span>,
-              {" "}<span className="text-bear">−6 ve altı NEGATIF</span>,
-              {" "}arası <span className="text-warn">NÖTR</span>.
+              Bull ve bear maddelerinin <span className="font-mono">0-10</span> arası skor
+              toplamlarından türetilir. Eşik <span className="font-mono">±6</span>: {" "}
+              <span className="text-bull">+6 ve üzeri POZITIF</span>, {" "}
+              <span className="text-bear">-6 ve altı NEGATIF</span>, arası {" "}
+              <span className="text-warn">NÖTR</span>.
             </p>
             <p className="mt-2 text-muted-foreground">
-              Güven skoru bu argümanların ne kadar sağlam veriye dayandığını
-              ölçer. İki ölçü <span className="font-semibold text-text-2">birbirinden bağımsızdır</span>:
-              {" "}güçlü kanıtla NEGATIF, zayıf kanıtla POZITIF olabilir.
+              Güven skoru argümanların veri kalitesini ölçer; sentiment sonucu ile birebir aynı şey değildir.
             </p>
           </div>
         </div>

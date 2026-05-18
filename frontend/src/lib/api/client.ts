@@ -144,6 +144,46 @@ export async function apiFetch<T>(
   return (await res.json()) as T;
 }
 
+export async function apiFetchBlob(
+  path: string,
+  init?: RequestInit,
+): Promise<Blob> {
+  const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+  let access = getAccessToken();
+  let res = await doFetch(url, init, access);
+
+  if (res.status === 401 && access) {
+    const newToken = await tryRefresh();
+    if (newToken) {
+      access = newToken;
+      res = await doFetch(url, init, access);
+    }
+    if (res.status === 401) {
+      clearAuth();
+      emitSignOut();
+    }
+  }
+
+  if (!res.ok) {
+    let body: unknown = undefined;
+    try {
+      body = await res.json();
+    } catch {
+      try {
+        body = await res.text();
+      } catch {
+        /* ignore */
+      }
+    }
+    const detail =
+      (body && typeof body === "object" && "detail" in body
+        ? String((body as { detail: unknown }).detail)
+        : undefined) || res.statusText;
+    throw new ApiError(res.status, detail, body);
+  }
+  return res.blob();
+}
+
 export function wsUrl(path: string): string {
   if (path.startsWith("ws://") || path.startsWith("wss://")) return path;
   if (!path.startsWith("/")) path = `/${path}`;

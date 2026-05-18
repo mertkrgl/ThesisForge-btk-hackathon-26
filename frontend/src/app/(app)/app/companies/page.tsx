@@ -4,21 +4,36 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { CompanyCard } from "@/components/app/CompanyCard";
 import { listCompanies, type CompanyRow } from "@/lib/api/companies";
+import { listWatchlist } from "@/lib/api/watchlist";
+import { SQUAD_LABELS } from "@/lib/data/squadLabels";
 import { PageTransition, FadeIn } from "@/components/shared/MotionWrappers";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 const PAGE_SIZE = 30;
 
+// Squad pill sırası — anlamlı gruplar halinde
+const SQUAD_ORDER = [
+  "Banking", "Insurance", "Finance", "Brokerage", "RealEstate", "Holding",
+  "Energy", "Mining", "Chemical", "CementGlass", "BasicMetal", "Textile",
+  "WoodPaper", "Machinery", "Automotive", "Defense", "Technology",
+  "Healthcare", "Food", "Retail", "Construction", "Industrial",
+  "Transportation", "Telecom", "Tourism", "Sports", "Agriculture", "Generic",
+] as const;
+
 export default function CompaniesPage() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
+  const [selectedSquad, setSelectedSquad] = useState("");
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<CompanyRow[]>([]);
+  const [watchlistTickers, setWatchlistTickers] = useState<Set<string>>(new Set());
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Debounce arama input'u (250ms) — her tuş vuruşunda fetch atmamak için
+  // Debounce arama input'u (250ms)
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search.trim()), 250);
     return () => clearTimeout(t);
@@ -33,7 +48,7 @@ export default function CompaniesPage() {
         setError(null);
       }
     });
-    listCompanies({ search: debounced, limit: PAGE_SIZE, offset })
+    listCompanies({ search: debounced, squad: selectedSquad, limit: PAGE_SIZE, offset })
       .then((res) => {
         if (cancelled) return;
         setItems(res.items);
@@ -44,14 +59,34 @@ export default function CompaniesPage() {
         setError(e instanceof Error ? e.message : "Şirket listesi alınamadı");
       })
       .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [debounced, page]);
+  }, [debounced, selectedSquad, page]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (authLoading) return;
+    if (!isAuthenticated) return;
+    listWatchlist()
+      .then((rows) => {
+        if (cancelled) return;
+        setWatchlistTickers(new Set(rows.map((r) => r.ticker.toUpperCase())));
+      })
+      .catch(() => {
+        if (!cancelled) setWatchlistTickers(new Set());
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, isAuthenticated]);
+
+  const handleSquadSelect = (squad: string) => {
+    setSelectedSquad(squad);
+    setPage(1);
+  };
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const firstLoad = loading && items.length === 0 && total === 0;
@@ -68,14 +103,15 @@ export default function CompaniesPage() {
               Şirketler
             </h1>
             <p className="mt-1 max-w-2xl text-[13px] text-text-2">
-              BIST&apos;te işlem gören şirketlerin tamamı. Sembolle veya unvanla
-              arayın, doğrudan tez başlatın.
+              BIST&apos;te işlem gören şirketlerin tamamı. Sektöre göre filtreleyin,
+              sembolle veya unvanla arayın, doğrudan tez başlatın.
             </p>
           </div>
         </FadeIn>
 
+        {/* Arama + toplam */}
         <FadeIn delay={0.05}>
-          <div className="mb-5 flex flex-wrap items-center gap-3">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
             <div className="relative flex-1 min-w-[240px]">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -104,8 +140,46 @@ export default function CompaniesPage() {
               )}
             </div>
             <div className="rounded-lg border border-border bg-card px-3 py-2 text-[12px] text-muted-foreground">
-              Toplam{" "}
-              <span className="font-semibold text-text-2">{total}</span> şirket
+              {selectedSquad ? (
+                <>
+                  <span className="font-semibold text-text-2">{total}</span> şirket
+                  {" · "}
+                  <span className="text-primary">{SQUAD_LABELS[selectedSquad as keyof typeof SQUAD_LABELS] ?? selectedSquad}</span>
+                </>
+              ) : (
+                <>Toplam <span className="font-semibold text-text-2">{total}</span> şirket</>
+              )}
+            </div>
+          </div>
+        </FadeIn>
+
+        {/* Squad filtre — yatay kayan sekme şeridi */}
+        <FadeIn delay={0.08}>
+          <div className="relative mb-5">
+            {/* gradient fade — sol */}
+            <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-10 bg-gradient-to-r from-background to-transparent" />
+            {/* gradient fade — sağ */}
+            <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-10 bg-gradient-to-l from-background to-transparent" />
+
+            <div
+              className="flex overflow-x-auto border-b border-border [&::-webkit-scrollbar]:hidden"
+              style={{ scrollbarWidth: "none" }}
+            >
+              <TabBtn
+                active={selectedSquad === ""}
+                onClick={() => handleSquadSelect("")}
+              >
+                Tümü
+              </TabBtn>
+              {SQUAD_ORDER.map((squad) => (
+                <TabBtn
+                  key={squad}
+                  active={selectedSquad === squad}
+                  onClick={() => handleSquadSelect(selectedSquad === squad ? "" : squad)}
+                >
+                  {SQUAD_LABELS[squad]}
+                </TabBtn>
+              ))}
             </div>
           </div>
         </FadeIn>
@@ -147,8 +221,23 @@ export default function CompaniesPage() {
             <p className="text-[14px] text-text-2">
               {debounced
                 ? `"${debounced}" için sonuç bulunamadı.`
-                : "Şirket listesi boş."}
+                : selectedSquad
+                  ? `Bu sektörde kayıtlı şirket bulunamadı.`
+                  : "Şirket listesi boş."}
             </p>
+            {(debounced || selectedSquad) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setSelectedSquad("");
+                  setPage(1);
+                }}
+                className="mt-3 text-[12px] text-primary hover:underline"
+              >
+                Filtreleri temizle
+              </button>
+            )}
           </div>
         ) : (
           <div
@@ -158,7 +247,13 @@ export default function CompaniesPage() {
             )}
           >
             {items.map((c) => (
-              <CompanyCard key={c.ticker} company={c} />
+              <CompanyCard
+                key={c.ticker}
+                company={c}
+                isFollowing={
+                  isAuthenticated && watchlistTickers.has(c.ticker.toUpperCase())
+                }
+              />
             ))}
           </div>
         )}
@@ -268,6 +363,31 @@ function Pagination({
         </PageBtn>
       </div>
     </nav>
+  );
+}
+
+function TabBtn({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex-shrink-0 whitespace-nowrap border-b-2 px-4 pb-2.5 pt-2 text-[13px] font-medium transition-colors",
+        active
+          ? "-mb-px border-primary text-primary"
+          : "border-transparent text-muted-foreground hover:border-border hover:text-foreground",
+      )}
+    >
+      {children}
+    </button>
   );
 }
 

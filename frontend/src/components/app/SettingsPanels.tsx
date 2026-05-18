@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Bell, Check, Monitor, Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Monitor, Trash2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
@@ -9,20 +9,10 @@ const STORAGE_KEY = "thesisforge.settings.v2";
 
 type Settings = {
   theme: "light" | "dark" | "system";
-  notifications: {
-    thesisDone: boolean;
-    watchlistEvents: boolean;
-    weeklyDigest: boolean;
-  };
 };
 
 const DEFAULTS: Settings = {
   theme: "system",
-  notifications: {
-    thesisDone: true,
-    watchlistEvents: false,
-    weeklyDigest: true,
-  },
 };
 
 export function SettingsPanels() {
@@ -54,7 +44,7 @@ export function SettingsPanels() {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <section className="rounded-xl border border-border bg-card p-5">
         <SectionTitle
           icon={<Monitor className="h-4 w-4" />}
@@ -97,49 +87,6 @@ export function SettingsPanels() {
         </button>
       </section>
 
-      <section className="rounded-xl border border-border bg-card p-5 lg:col-span-2">
-        <SectionTitle
-          icon={<Bell className="h-4 w-4" />}
-          title="Bildirimler"
-          subtitle="Tercihler şimdilik yerel saklanır; bildirim kanalları açıldığında bu ayarlar kullanılacak."
-        />
-        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-          <ToggleRow
-            label="Tez tamamlandı"
-            hint="Canlı tez bitince haber ver."
-            on={settings.notifications.thesisDone}
-            onChange={(v) =>
-              setSettings((s) => ({
-                ...s,
-                notifications: { ...s.notifications, thesisDone: v },
-              }))
-            }
-          />
-          <ToggleRow
-            label="Watchlist olayları"
-            hint="Takip edilen hisselerde önemli akış."
-            on={settings.notifications.watchlistEvents}
-            onChange={(v) =>
-              setSettings((s) => ({
-                ...s,
-                notifications: { ...s.notifications, watchlistEvents: v },
-              }))
-            }
-          />
-          <ToggleRow
-            label="Haftalık özet"
-            hint="Tez ve watchlist özeti."
-            on={settings.notifications.weeklyDigest}
-            onChange={(v) =>
-              setSettings((s) => ({
-                ...s,
-                notifications: { ...s.notifications, weeklyDigest: v },
-              }))
-            }
-          />
-        </div>
-      </section>
-
       <div className="flex justify-end lg:col-span-2">
         <button
           type="button"
@@ -176,48 +123,6 @@ function SectionTitle({
           {subtitle}
         </p>
       </div>
-    </div>
-  );
-}
-
-function ToggleRow({
-  label,
-  hint,
-  on,
-  onChange,
-}: {
-  label: string;
-  hint: string;
-  on: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <div className="flex min-h-[92px] flex-col justify-between rounded-lg border border-border bg-card px-4 py-3">
-      <div>
-        <div className="text-[13px] font-semibold text-slate-900 dark:text-white">
-          {label}
-        </div>
-        <div className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">
-          {hint}
-        </div>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={on}
-        onClick={() => onChange(!on)}
-        className={cn(
-          "mt-3 h-6 w-11 rounded-full border transition-colors",
-          on ? "border-primary/50 bg-primary/40" : "border-border bg-muted",
-        )}
-      >
-        <span
-          className={cn(
-            "block h-[18px] w-[18px] rounded-full bg-card shadow transition-transform",
-            on ? "translate-x-[22px]" : "translate-x-[2px]",
-          )}
-        />
-      </button>
     </div>
   );
 }

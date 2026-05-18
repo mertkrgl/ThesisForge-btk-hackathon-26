@@ -18,6 +18,16 @@ export const SQUAD_LABELS: Record<SquadType, string> = {
   Mining: "Madencilik",
   Transportation: "Ulaştırma",
   Holding: "Holding",
+  Agriculture: "Tarım",
+  Textile: "Tekstil",
+  WoodPaper: "Orman/Kağıt",
+  Chemical: "Kimya/İlaç",
+  CementGlass: "Çimento/Cam",
+  BasicMetal: "Ana Metal",
+  Machinery: "Makine/Elektronik",
+  Tourism: "Turizm",
+  Telecom: "Telekomünikasyon",
+  Sports: "Spor/Eğlence",
   Generic: "Genel",
 };
 

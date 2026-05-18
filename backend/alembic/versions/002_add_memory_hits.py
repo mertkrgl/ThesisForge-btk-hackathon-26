@@ -18,8 +18,8 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("theses", sa.Column("memory_hits", JSONB, nullable=True))
+    pass
 
 
 def downgrade() -> None:
-    op.drop_column("theses", "memory_hits")
+    pass
