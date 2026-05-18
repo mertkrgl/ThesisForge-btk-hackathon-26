@@ -154,11 +154,11 @@ export type MarketHistoryPeriod = "1d" | "1w" | "1mo" | "1y";
 
 export type BackendHistoryPoint = {
   t: string;
-  c: number;
-  o: number;
-  h: number;
-  l: number;
-  v: number;
+  c: number | null;
+  o: number | null;
+  h: number | null;
+  l: number | null;
+  v: number | null;
 };
 
 export type BackendHistory = {
@@ -166,12 +166,12 @@ export type BackendHistory = {
   period: MarketHistoryPeriod;
   interval: string;
   points: BackendHistoryPoint[];
-  first: number;
-  last: number;
-  high: number;
-  low: number;
-  volume: number;
-  delta_pct: number;
+  first: number | null;
+  last: number | null;
+  high: number | null;
+  low: number | null;
+  volume: number | null;
+  delta_pct: number | null;
 };
 
 export type FeedItemKind = "kap" | "news";

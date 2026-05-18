@@ -1,7 +1,9 @@
 "use client";
 
-import { Download, FileText } from "lucide-react";
-import { API_BASE_URL } from "@/lib/api/client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Download, FileText, Loader2, Trash2 } from "lucide-react";
+import { deleteThesis, fetchThesisPdf } from "@/lib/api/thesis";
 import type { Source, Thesis, ThesisPoint } from "@/lib/mock/types";
 
 function sourceMap(sources: Source[]) {
@@ -92,14 +94,6 @@ function downloadMarkdown(thesis: Thesis, date: string) {
   URL.revokeObjectURL(url);
 }
 
-function openPdfPrint(thesis: Thesis) {
-  // Server-side weasyprint render: GET /api/thesis/{id}/pdf doğrudan PDF döner.
-  // Tarayıcı print sheet'i pop-up engelleyici / stil senkronu nedeniyle bazen
-  // boş PDF üretiyordu; server tarafında deterministik bytes geliyor.
-  const url = `${API_BASE_URL}/api/thesis/${thesis.id}/pdf`;
-  window.open(url, "_blank", "noopener,noreferrer");
-}
-
 export function ThesisExportButtons({
   thesis,
   date,
@@ -107,23 +101,88 @@ export function ThesisExportButtons({
   thesis: Thesis;
   date: string;
 }) {
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
+
+  const handleDelete = async () => {
+    if (deleting) return;
+    const ok = window.confirm(
+      `${thesis.ticker} tezini kalıcı olarak silmek istediğine emin misin?`,
+    );
+    if (!ok) return;
+    setDeleting(true);
+    try {
+      await deleteThesis(thesis.id);
+      router.push("/app/history?deleted=1");
+      router.refresh();
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Tez silinemedi. Lütfen tekrar deneyin.";
+      window.alert(
+        msg.includes("bulunamad")
+          ? "Bu tez silinemedi. Tez başka bir hesaba ait olabilir veya daha önce silinmiş olabilir."
+          : msg,
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handlePdf = async () => {
+    if (pdfBusy) return;
+    setPdfBusy(true);
+    try {
+      const blob = await fetchThesisPdf(thesis.id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "PDF açılamadı.");
+    } finally {
+      setPdfBusy(false);
+    }
+  };
+
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-col items-end gap-2">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => downloadMarkdown(thesis, date)}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-accent/50 px-3 text-[12px] text-text-2 transition-colors hover:border-border hover:text-white"
+        >
+          <FileText className="h-3.5 w-3.5" />
+          Markdown
+        </button>
+        <button
+          type="button"
+          onClick={handlePdf}
+          disabled={pdfBusy}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-accent/50 px-3 text-[12px] text-text-2 transition-colors hover:border-border hover:text-white"
+        >
+          {pdfBusy ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Download className="h-3.5 w-3.5" />
+          )}
+          PDF
+        </button>
+      </div>
       <button
         type="button"
-        onClick={() => downloadMarkdown(thesis, date)}
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-accent/50 px-3 text-[12px] text-text-2 transition-colors hover:border-border hover:text-white"
+        onClick={handleDelete}
+        disabled={deleting}
+        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-bear/30 bg-bear/10 px-3 text-[11.5px] font-medium text-bear transition-colors hover:bg-bear/15 disabled:opacity-60"
       >
-        <FileText className="h-3.5 w-3.5" />
-        Markdown
-      </button>
-      <button
-        type="button"
-        onClick={() => openPdfPrint(thesis)}
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-accent/50 px-3 text-[12px] text-text-2 transition-colors hover:border-border hover:text-white"
-      >
-        <Download className="h-3.5 w-3.5" />
-        PDF
+        {deleting ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Trash2 className="h-3.5 w-3.5" />
+        )}
+        Tezi Sil
       </button>
     </div>
   );

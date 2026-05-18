@@ -1,27 +1,15 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
-import { listTheses } from "@/lib/api/thesis";
 import { WatchlistStrip } from "@/components/app/WatchlistStrip";
-import { ThesisCard } from "@/components/app/ThesisCard";
 import { MarketPulse } from "@/components/app/MarketPulse";
 import { AgentActivityFeed } from "@/components/app/AgentActivityFeed";
+import { RecentTheses } from "@/components/app/RecentTheses";
 import {
   PageTransition,
   FadeIn,
-  StaggerContainer,
-  StaggerItem,
 } from "@/components/shared/MotionWrappers";
-import type { Thesis } from "@/lib/mock/types";
 
-export default async function DashboardPage() {
-  let theses: Thesis[] = [];
-  try {
-    theses = await listTheses();
-  } catch {
-    theses = [];
-  }
-  const recent = theses.slice(0, 4);
-
+export default function DashboardPage() {
   return (
     <PageTransition>
       <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
@@ -71,27 +59,7 @@ export default async function DashboardPage() {
 
         {/* row 3 */}
         <FadeIn delay={0.3}>
-          <div className="mt-6">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-[14px] font-semibold text-slate-900 dark:text-white">Son Tezler</h2>
-              <Link
-                href="/app/history"
-                className="text-[12px] text-text-2 hover:text-white"
-              >
-                Tümü →
-              </Link>
-            </div>
-            <StaggerContainer
-              stagger={0.08}
-              className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
-            >
-              {recent.map((t) => (
-                <StaggerItem key={t.id}>
-                  <ThesisCard thesis={t} />
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
-          </div>
+          <RecentTheses />
         </FadeIn>
       </div>
     </PageTransition>

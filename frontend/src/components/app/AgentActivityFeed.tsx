@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 import { AGENT_REGISTRY } from "@/lib/mock/agents";
 import { listThesesPage } from "@/lib/api/thesis";
-import { squadLabel } from "@/lib/data/squadLabels";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { cn } from "@/lib/utils";
 import type { AgentTone } from "@/lib/mock/types";
 import type { Thesis } from "@/lib/mock/types";
@@ -92,12 +92,18 @@ function thesisToRows(thesis: Thesis): FeedRow[] {
 }
 
 export function AgentActivityFeed() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [rows, setRows] = useState<FeedRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const load = async () => {
+    if (!isAuthenticated) {
+      setRows([]);
+      setLoading(false);
+      return;
+    }
     try {
       const page = await listThesesPage({ limit: 3, offset: 0 });
       const feed: FeedRow[] = [];
@@ -116,11 +122,12 @@ export function AgentActivityFeed() {
   };
 
   useEffect(() => {
-    load();
+    if (authLoading) return;
+    queueMicrotask(load);
     const interval = setInterval(load, REFRESH_MS);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authLoading, isAuthenticated]);
 
   const displayRows = rows.slice(0, 10);
 

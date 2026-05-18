@@ -8,9 +8,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_current_user
 from app.core.logging import log
+from app.db.models import User
 from app.db.repo import (
     count_theses,
+    delete_thesis_for_user,
     get_thesis,
     list_citations_with_tool_results,
     list_theses,
@@ -128,18 +131,18 @@ def _thesis_summary(t) -> dict[str, Any]:
 async def read_theses(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    user_id: uuid.UUID | None = Query(default=None),
     ticker: str | None = Query(default=None),
+    current: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     rows = await list_theses(
         session,
         limit=limit,
         offset=offset,
-        user_id=user_id,
+        user_id=current.id,
         ticker=ticker,
     )
-    total = await count_theses(session, user_id=user_id, ticker=ticker)
+    total = await count_theses(session, user_id=current.id, ticker=ticker)
     return {
         "items": [_thesis_summary(t) for t in rows],
         "total": total,
@@ -151,21 +154,38 @@ async def read_theses(
 @router.get("/thesis/{thesis_id}")
 async def read_thesis(
     thesis_id: uuid.UUID,
+    current: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     t = await get_thesis(session, thesis_id)
-    if t is None:
+    if t is None or t.user_id != current.id:
         raise HTTPException(status_code=404, detail="Thesis bulunamadı.")
     return _thesis_to_dict(t)
+
+
+@router.delete("/thesis/{thesis_id}", status_code=204)
+async def delete_thesis(
+    thesis_id: uuid.UUID,
+    current: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> Response:
+    removed = await delete_thesis_for_user(
+        session, thesis_id=thesis_id, user_id=current.id
+    )
+    if not removed:
+        raise HTTPException(status_code=404, detail="Thesis bulunamadı.")
+    await session.commit()
+    return Response(status_code=204)
 
 
 @router.get("/thesis/{thesis_id}/citations")
 async def read_citations(
     thesis_id: uuid.UUID,
+    current: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[dict[str, Any]]:
     t = await get_thesis(session, thesis_id)
-    if t is None:
+    if t is None or t.user_id != current.id:
         raise HTTPException(status_code=404, detail="Thesis bulunamadı.")
     rows = await list_citations_with_tool_results(session, thesis_id)
     # source_label + url alanlarını cevaba ekle (frontend "açılamayan kaynak"
@@ -182,6 +202,7 @@ async def read_citations(
 @router.get("/thesis/{thesis_id}/pdf")
 async def export_thesis_pdf(
     thesis_id: uuid.UUID,
+    current: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> Response:
     """Server-side PDF render — weasyprint.
@@ -190,7 +211,7 @@ async def export_thesis_pdf(
     nedeniyle güvenilmezdi. Burada deterministik bytes döner.
     """
     t = await get_thesis(session, thesis_id)
-    if t is None:
+    if t is None or t.user_id != current.id:
         raise HTTPException(status_code=404, detail="Thesis bulunamadı.")
     if not t.thesis_md:
         raise HTTPException(

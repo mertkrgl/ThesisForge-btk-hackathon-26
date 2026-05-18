@@ -31,6 +31,10 @@ function formatMarketNumber(value: number | null | undefined): string {
   return numberFormatter.format(value);
 }
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
 function buildOhlcData(series: number[]) {
   return series.map((close, i, arr) => {
     const open = i === 0 ? close : arr[i - 1];
@@ -398,9 +402,16 @@ function BistDetailChart() {
 
   const positive = (data?.delta_pct ?? 0) >= 0;
   const lineColor = positive ? "#089981" : "#f23645";
+  const detailDeltaPct = isFiniteNumber(data?.delta_pct) ? data.delta_pct : null;
 
   const option = useMemo(() => {
-    const points = data?.points ?? [];
+    const points = (data?.points ?? []).filter(
+      (p) =>
+        isFiniteNumber(p.o) &&
+        isFiniteNumber(p.c) &&
+        isFiniteNumber(p.l) &&
+        isFiniteNumber(p.h),
+    );
     const categories = points.map((p) => formatTickLabel(p.t, period));
     const ohlc = points.map((p) => [p.o, p.c, p.l, p.h]);
     const closes = points.map((p) => p.c);
@@ -454,13 +465,14 @@ function BistDetailChart() {
           const p = arr[0];
           const i = p.dataIndex;
           const volume = points[i]?.v;
-          const fmt = (n: number) => detailNumberFormatter.format(n);
+          const fmt = (n: number | null | undefined) =>
+            isFiniteNumber(n) ? detailNumberFormatter.format(n) : "Veri yok";
           if (chartType === "line") {
             const close = p.data as number;
             return [
               `<div style="font-weight:600;margin-bottom:4px">${p.axisValue}</div>`,
               `Kapanış: <b>${fmt(close)}</b>`,
-              volume != null
+              isFiniteNumber(volume)
                 ? `<br/>Hacim: <b>${compactFormatter.format(volume)}</b>`
                 : "",
             ].join("");
@@ -472,7 +484,7 @@ function BistDetailChart() {
             `Kapanış: <b>${fmt(v[2])}</b><br/>`,
             `Yüksek: <b>${fmt(v[4])}</b><br/>`,
             `Düşük: <b>${fmt(v[3])}</b>`,
-            volume != null
+            isFiniteNumber(volume)
               ? `<br/>Hacim: <b>${compactFormatter.format(volume)}</b>`
               : "",
           ].join("");
@@ -532,24 +544,30 @@ function BistDetailChart() {
           {data && !loading && (
             <>
               <span className="font-mono text-2xl font-extrabold text-slate-900 dark:text-white">
-                {detailNumberFormatter.format(data.last)}
+                {formatMarketNumber(data.last)}
               </span>
-              <span
-                className={cn(
-                  "inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 font-mono text-[11.5px] font-bold",
-                  positive
-                    ? "border-bull/30 bg-bull/10 text-bull"
-                    : "border-bear/30 bg-bear/10 text-bear",
-                )}
-              >
-                {positive ? (
-                  <ArrowUpRight className="h-3 w-3" />
-                ) : (
-                  <ArrowDownRight className="h-3 w-3" />
-                )}
-                {data.delta_pct >= 0 ? "+" : ""}
-                {data.delta_pct.toFixed(2)}%
-              </span>
+              {detailDeltaPct == null ? (
+                <span className="font-mono text-[12px] text-muted-foreground">
+                  değişim yok
+                </span>
+              ) : (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 font-mono text-[11.5px] font-bold",
+                    positive
+                      ? "border-bull/30 bg-bull/10 text-bull"
+                      : "border-bear/30 bg-bear/10 text-bear",
+                  )}
+                >
+                  {positive ? (
+                    <ArrowUpRight className="h-3 w-3" />
+                  ) : (
+                    <ArrowDownRight className="h-3 w-3" />
+                  )}
+                  {detailDeltaPct >= 0 ? "+" : ""}
+                  {detailDeltaPct.toFixed(2)}%
+                </span>
+              )}
             </>
           )}
           {loading && (
@@ -634,21 +652,21 @@ function BistDetailChart() {
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-4">
           <DetailStat
             label="Açılış"
-            value={detailNumberFormatter.format(data.first)}
+            value={formatMarketNumber(data.first)}
           />
           <DetailStat
             label="En Yüksek"
-            value={detailNumberFormatter.format(data.high)}
+            value={formatMarketNumber(data.high)}
             tone="bull"
           />
           <DetailStat
             label="En Düşük"
-            value={detailNumberFormatter.format(data.low)}
+            value={formatMarketNumber(data.low)}
             tone="bear"
           />
           <DetailStat
             label="Hacim"
-            value={compactFormatter.format(data.volume)}
+            value={isFiniteNumber(data.volume) ? compactFormatter.format(data.volume) : "Veri yok"}
           />
         </div>
       )}

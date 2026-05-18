@@ -58,6 +58,18 @@ const volumeFormatter = new Intl.NumberFormat("tr-TR", {
   maximumFractionDigits: 1,
 });
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function formatPrice(value: number | null | undefined): string {
+  return isFiniteNumber(value) ? priceFormatter.format(value) : "Veri yok";
+}
+
+function formatVolume(value: number | null | undefined): string {
+  return isFiniteNumber(value) ? volumeFormatter.format(value) : "Veri yok";
+}
+
 function formatTickTime(iso: string, period: MarketHistoryPeriod): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
@@ -145,7 +157,13 @@ export function PriceChartCard({
   const gradientId = `price-${positive ? "bull" : "bear"}`;
   const periodMeta = PERIOD_OPTIONS.find((p) => p.value === period)!;
   const candleOption = React.useMemo<EChartsOption>(() => {
-    const points = data?.points ?? [];
+    const points = (data?.points ?? []).filter(
+      (p) =>
+        isFiniteNumber(p.o) &&
+        isFiniteNumber(p.c) &&
+        isFiniteNumber(p.l) &&
+        isFiniteNumber(p.h),
+    );
     const axis = points.map((p) => formatTickTime(p.t, period));
     return {
       animation: true,
@@ -162,11 +180,11 @@ export function PriceChartCard({
           if (!point) return "";
           return [
             `<strong>${formatTooltipTime(point.t, period)}</strong>`,
-            `Açılış: ${priceFormatter.format(point.o)}`,
-            `Kapanış: ${priceFormatter.format(point.c)}`,
-            `Yüksek: ${priceFormatter.format(point.h)}`,
-            `Düşük: ${priceFormatter.format(point.l)}`,
-            `Hacim: ${volumeFormatter.format(point.v)}`,
+            `Açılış: ${formatPrice(point.o)}`,
+            `Kapanış: ${formatPrice(point.c)}`,
+            `Yüksek: ${formatPrice(point.h)}`,
+            `Düşük: ${formatPrice(point.l)}`,
+            `Hacim: ${formatVolume(point.v)}`,
           ].join("<br/>");
         },
       },
@@ -223,7 +241,9 @@ export function PriceChartCard({
                 ) : (
                   <ArrowDownRight className="h-3 w-3" />
                 )}
-                {Math.abs(data.delta_pct).toFixed(2)}%
+                {isFiniteNumber(data.delta_pct)
+                  ? `${Math.abs(data.delta_pct).toFixed(2)}%`
+                  : "Veri yok"}
               </span>
             )}
             {fetching && data && (
@@ -357,19 +377,19 @@ export function PriceChartCard({
                       <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 font-mono">
                         <span className="text-muted-foreground">Kapanış</span>
                         <span className="text-right font-semibold text-slate-900 dark:text-white">
-                          {priceFormatter.format(point.c)}
+                          {formatPrice(point.c)}
                         </span>
                         <span className="text-muted-foreground">Yüksek</span>
                         <span className="text-right text-bull">
-                          {priceFormatter.format(point.h)}
+                          {formatPrice(point.h)}
                         </span>
                         <span className="text-muted-foreground">Düşük</span>
                         <span className="text-right text-bear">
-                          {priceFormatter.format(point.l)}
+                          {formatPrice(point.l)}
                         </span>
                         <span className="text-muted-foreground">Hacim</span>
                         <span className="text-right text-text-2">
-                          {volumeFormatter.format(point.v)}
+                          {formatVolume(point.v)}
                         </span>
                       </div>
                     </div>

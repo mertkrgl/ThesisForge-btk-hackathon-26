@@ -42,6 +42,37 @@ export function SourceChipPopover({
 }) {
   const tone = KIND_TONE[source.kind] ?? KIND_TONE.filing;
   const chipLabel = source.label ?? source.id.slice(0, 8);
+  const [open, setOpen] = React.useState(false);
+  const [hoverCapable, setHoverCapable] = React.useState(false);
+  const closeTimer = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const sync = () => setHoverCapable(mq.matches);
+    sync();
+    mq.addEventListener?.("change", sync);
+    return () => mq.removeEventListener?.("change", sync);
+  }, []);
+
+  const clearCloseTimer = () => {
+    if (closeTimer.current != null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+
+  const handleEnter = () => {
+    if (!hoverCapable) return;
+    clearCloseTimer();
+    setOpen(true);
+  };
+
+  const handleLeave = () => {
+    if (!hoverCapable) return;
+    clearCloseTimer();
+    closeTimer.current = window.setTimeout(() => setOpen(false), 180);
+  };
 
   // Citation yoksa (kaynaksız claim) sade chip, popover yok.
   if (!citation || !citation.tool_name) {
@@ -66,10 +97,23 @@ export function SourceChipPopover({
   const fetched = formatFetchedAt(detail.fetchedAt);
 
   return (
-    <Popover.Root>
+    <Popover.Root
+      open={open}
+      onOpenChange={(next) => {
+        // Hover destekli masaüstünde state'i sadece mouse enter/leave yönetir.
+        if (hoverCapable) return;
+        setOpen(next);
+      }}
+    >
       <Popover.Trigger
+        onMouseEnter={handleEnter}
+        onMouseLeave={handleLeave}
+        onClick={(e) => {
+          if (!hoverCapable) return;
+          e.preventDefault();
+        }}
         className={cn(
-          "inline-flex max-w-[260px] items-center gap-1 truncate rounded border bg-secondary px-1.5 py-0.5 text-[10.5px] align-middle transition-colors cursor-pointer hover:bg-accent",
+          "inline-flex max-w-[260px] cursor-pointer items-center gap-1 truncate rounded border bg-secondary px-1.5 py-0.5 text-[10.5px] align-middle transition-colors hover:bg-accent",
           source.label ? "font-sans" : "font-mono",
           tone,
           "data-[popup-open]:bg-accent data-[popup-open]:ring-1 data-[popup-open]:ring-primary/40",
@@ -82,13 +126,14 @@ export function SourceChipPopover({
         <span className="opacity-60">]</span>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Positioner sideOffset={6} align="start">
+        <Popover.Positioner sideOffset={2} align="start">
           <Popover.Popup
+            onMouseEnter={handleEnter}
+            onMouseLeave={handleLeave}
             className={cn(
-              "z-50 w-[340px] max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl outline-none",
-              "data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
-              "data-[ending-style]:scale-95 data-[ending-style]:opacity-0",
-              "transition-[transform,opacity] duration-150",
+              "z-50 w-[340px] max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-card text-popover-foreground shadow-2xl outline-none",
+              "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
+              "transition-opacity duration-150",
             )}
           >
             <div className="border-b border-border px-4 py-3">
@@ -97,12 +142,6 @@ export function SourceChipPopover({
                   <Popover.Title className="text-[13px] font-semibold text-slate-900 dark:text-white">
                     {detail.label}
                   </Popover.Title>
-                  {citation.tool_name && (
-                    <code className="mt-0.5 block truncate font-mono text-[10.5px] text-muted-foreground">
-                      {citation.tool_name}
-                      {detail.args ? `(${detail.args})` : "()"}
-                    </code>
-                  )}
                 </div>
                 <span className="shrink-0 rounded-full border border-border bg-card px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-2">
                   {source.kind}
@@ -147,10 +186,6 @@ export function SourceChipPopover({
                 </a>
               </div>
             )}
-
-            <div className="border-t border-border px-4 py-2 font-mono text-[10px] text-muted-foreground">
-              call_id: {citation.call_id.slice(0, 8)}…
-            </div>
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>

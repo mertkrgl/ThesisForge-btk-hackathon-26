@@ -4,9 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { CompanyCard } from "@/components/app/CompanyCard";
 import { listCompanies, type CompanyRow } from "@/lib/api/companies";
+import { listWatchlist } from "@/lib/api/watchlist";
 import { SQUAD_LABELS } from "@/lib/data/squadLabels";
 import { PageTransition, FadeIn } from "@/components/shared/MotionWrappers";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 const PAGE_SIZE = 30;
 
@@ -20,11 +22,13 @@ const SQUAD_ORDER = [
 ] as const;
 
 export default function CompaniesPage() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [selectedSquad, setSelectedSquad] = useState("");
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<CompanyRow[]>([]);
+  const [watchlistTickers, setWatchlistTickers] = useState<Set<string>>(new Set());
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +65,23 @@ export default function CompaniesPage() {
       cancelled = true;
     };
   }, [debounced, selectedSquad, page]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (authLoading) return;
+    if (!isAuthenticated) return;
+    listWatchlist()
+      .then((rows) => {
+        if (cancelled) return;
+        setWatchlistTickers(new Set(rows.map((r) => r.ticker.toUpperCase())));
+      })
+      .catch(() => {
+        if (!cancelled) setWatchlistTickers(new Set());
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, isAuthenticated]);
 
   const handleSquadSelect = (squad: string) => {
     setSelectedSquad(squad);
@@ -226,7 +247,13 @@ export default function CompaniesPage() {
             )}
           >
             {items.map((c) => (
-              <CompanyCard key={c.ticker} company={c} />
+              <CompanyCard
+                key={c.ticker}
+                company={c}
+                isFollowing={
+                  isAuthenticated && watchlistTickers.has(c.ticker.toUpperCase())
+                }
+              />
             ))}
           </div>
         )}

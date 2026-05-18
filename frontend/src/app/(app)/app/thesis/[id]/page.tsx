@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
 import { getThesis } from "@/lib/api/thesis";
 import { AGENT_REGISTRY } from "@/lib/mock/agents";
 import { ConfidenceBar } from "@/components/app/ConfidenceBar";
@@ -15,6 +18,8 @@ import type { AgentTone, CitationDetail, Source, ThesisPoint } from "@/lib/mock/
 import { PageTransition, FadeIn } from "@/components/shared/MotionWrappers";
 import { InlineMarkdown } from "@/components/shared/InlineMarkdown";
 import { ThesisReport } from "@/components/shared/ThesisReport";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import type { Thesis } from "@/lib/mock/types";
 
 const KPI_TONE: Record<AgentTone, string> = {
   bull: "text-bull",
@@ -25,14 +30,78 @@ const KPI_TONE: Record<AgentTone, string> = {
   primary: "text-primary",
 };
 
-export default async function ThesisViewerPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const thesis = await getThesis(id);
-  if (!thesis) return notFound();
+export default function ThesisViewerPage() {
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [thesis, setThesis] = useState<Thesis | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      router.push(`/login?next=${encodeURIComponent(`/app/thesis/${params.id}`)}`);
+      return;
+    }
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setLoading(true);
+      setError(null);
+    });
+    getThesis(params.id)
+      .then((row) => {
+        if (cancelled) return;
+        if (!row) {
+          setError("Tez bulunamadı veya bu teze erişim yetkiniz yok.");
+          setThesis(null);
+          return;
+        }
+        setThesis(row);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Tez alınamadı.");
+        setThesis(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, isAuthenticated, params.id, router]);
+
+  if (authLoading || loading) {
+    return (
+      <PageTransition>
+        <div className="mx-auto flex min-h-[420px] w-full max-w-[1280px] items-center justify-center px-4 py-6 text-[13px] text-muted-foreground sm:px-6 sm:py-8">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Tez yükleniyor
+        </div>
+      </PageTransition>
+    );
+  }
+
+  if (error || !thesis) {
+    return (
+      <PageTransition>
+        <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 sm:py-8">
+          <Link
+            href="/app/history"
+            className="mb-4 inline-flex items-center gap-1.5 text-[12px] text-text-2 transition-colors hover:text-white"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Tüm tezler
+          </Link>
+          <div className="rounded-2xl border border-bear/30 bg-bear/10 p-5 text-[13px] text-bear">
+            {error ?? "Tez bulunamadı."}
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
 
   const date = new Date(thesis.createdAt).toLocaleString("tr-TR", {
     dateStyle: "medium",
@@ -149,13 +218,15 @@ export default async function ThesisViewerPage({
           sources={thesis.sources}
           citations={thesis.citationLookup}
         />
-        <Column
-          title="Katalist"
-          tone="violet"
-          items={thesis.catalysts}
-          sources={thesis.sources}
-          citations={thesis.citationLookup}
-        />
+        {thesis.catalysts.length > 0 && (
+          <Column
+            title="Katalist"
+            tone="violet"
+            items={thesis.catalysts}
+            sources={thesis.sources}
+            citations={thesis.citationLookup}
+          />
+        )}
         </div>
       </FadeIn>
 

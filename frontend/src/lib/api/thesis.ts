@@ -1,7 +1,7 @@
 import { getThesisById, listThesesByTicker } from "@/lib/mock/theses";
 import { createMockThesisStream } from "@/lib/mock/stream";
 import type { StreamEvent, Thesis } from "@/lib/mock/types";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, apiFetchBlob } from "@/lib/api/client";
 import {
   adaptThesis,
   adaptThesisSummary,
@@ -88,6 +88,15 @@ export async function listThesesPage({
     limit: res.limit,
     offset: res.offset,
   };
+}
+
+export async function deleteThesis(id: string): Promise<void> {
+  if (USE_MOCKS) return;
+  await apiFetch<void>(`/api/thesis/${id}`, { method: "DELETE" });
+}
+
+export async function fetchThesisPdf(id: string): Promise<Blob> {
+  return apiFetchBlob(`/api/thesis/${id}/pdf`);
 }
 
 export type StartThesisInput = {
