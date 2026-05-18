@@ -4,11 +4,9 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import {
   ChevronDown,
-  Keyboard,
   LogIn,
   LogOut,
   Settings,
-  User,
   UserPlus,
 } from "lucide-react";
 import { useClickOutside } from "@/components/shared/useClickOutside";
@@ -28,7 +26,6 @@ export function UserMenu() {
   useClickOutside(ref, () => setOpen(false), open);
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
-  // Loading sırasında skeleton — flash önleyici
   if (isLoading) {
     return (
       <div className="h-9 w-[120px] animate-pulse rounded-lg border border-border bg-card/60" />
@@ -62,8 +59,6 @@ export function UserMenu() {
   const handleLogout = () => {
     logout();
     setOpen(false);
-    // Sayfada kal — anonim state'e geçince ilgili componentlar (Watchlist,
-    // UserMenu, IdleHero guard) kendi anonim render'larına re-render eder.
   };
 
   return (
@@ -83,7 +78,7 @@ export function UserMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-40 w-[240px] overflow-hidden rounded-xl border border-border bg-card/95 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] glass-strong tf-rise">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-40 w-[220px] overflow-hidden rounded-xl border border-border bg-card/95 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] glass-strong tf-rise">
           <div className="border-b border-border px-4 py-3">
             <div className="truncate text-[13px] font-semibold text-slate-900 dark:text-white">
               {displayName}
@@ -93,17 +88,10 @@ export function UserMenu() {
             </div>
           </div>
           <div className="py-1">
-            <MenuItem href="/app/profile" icon={User} label="Profil" />
             <MenuItem
               href="/app/settings"
               icon={Settings}
-              label="Ayarlar"
-              hint="⌘,"
-            />
-            <MenuItem
-              icon={Keyboard}
-              label="Kısayollar"
-              hint="?"
+              label="Hesabım"
               onClick={() => setOpen(false)}
             />
           </div>
@@ -125,31 +113,24 @@ function MenuItem({
   href,
   icon: Icon,
   label,
-  hint,
   destructive,
   onClick,
 }: {
   href?: string;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
-  hint?: string;
   destructive?: boolean;
   onClick?: () => void;
 }) {
   const base =
-    "flex w-full items-center gap-2.5 px-4 py-2 text-left text-[12.5px] transition-colors hover:bg-white/[0.03]";
+    "flex w-full items-center gap-2.5 px-4 py-2 text-left text-[12.5px] transition-colors hover:bg-accent/40";
   const color = destructive
-    ? "text-bear"
+    ? "text-bear hover:text-bear"
     : "text-slate-600 hover:text-slate-900 dark:text-text-2 dark:hover:text-white";
   const body = (
     <>
       <Icon className="h-3.5 w-3.5 opacity-80" />
       <span className="flex-1">{label}</span>
-      {hint && (
-        <span className="rounded border border-border bg-[#1A243F] px-1 py-px font-mono text-[10px] text-muted-foreground">
-          {hint}
-        </span>
-      )}
     </>
   );
   if (href) {

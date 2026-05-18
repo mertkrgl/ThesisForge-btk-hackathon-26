@@ -46,7 +46,7 @@ export default async function WatchlistTickerDetailPage({
             className="mb-4 inline-flex items-center gap-1.5 text-[12px] text-text-2 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Watchlist
+            Takip Edilen Hisseler
           </Link>
         </FadeIn>
 

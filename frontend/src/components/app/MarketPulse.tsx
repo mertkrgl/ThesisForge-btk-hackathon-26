@@ -47,6 +47,7 @@ export function MarketPulse() {
   const [error, setError] = useState<string | null>(null);
   const [flashColor, setFlashColor] = useState<"up" | "down" | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [chartType, setChartType] = useState<ChartType>("candlestick");
   const lastRef = useRef<number | null>(null);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -95,33 +96,50 @@ export function MarketPulse() {
 
   const deltaPct = quote?.delta_pct ?? null;
   const positive = deltaPct == null || deltaPct >= 0;
+  const sparkLineColor = positive ? "#089981" : "#f23645";
   const ohlcData = useMemo(() => buildOhlcData(chartSeries), [chartSeries]);
   const categoryData = useMemo(
     () => chartSeries.map((_, i) => `T-${chartSeries.length - i}`),
     [chartSeries],
   );
 
-  const option = {
-    grid: { left: 4, right: 4, top: 8, bottom: 4 },
-    xAxis: {
-      type: "category",
-      data: categoryData,
-      show: false,
-    },
-    yAxis: {
-      type: "value",
-      scale: true,
-      show: false,
-    },
-    tooltip: {
-      trigger: "axis",
-      axisPointer: { type: "cross", lineStyle: { color: "#1E2A44", type: "dashed" } },
-      backgroundColor: "#0B1220",
-      borderColor: "#1E2A44",
-      textStyle: { color: "#E6ECF5", fontSize: 11, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" },
-    },
-    series: [
-      {
+  const option = useMemo(() => {
+    const baseAxes = {
+      grid: { left: 4, right: 4, top: 8, bottom: 4 },
+      xAxis: { type: "category", data: categoryData, show: false },
+      yAxis: { type: "value", scale: true, show: false },
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "cross", lineStyle: { color: "#1E2A44", type: "dashed" } },
+        backgroundColor: "#0B1220",
+        borderColor: "#1E2A44",
+        textStyle: { color: "#E6ECF5", fontSize: 11, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" },
+      },
+    };
+    if (chartType === "line") {
+      return {
+        ...baseAxes,
+        series: [{
+          type: "line",
+          data: chartSeries,
+          smooth: true,
+          symbol: "none",
+          lineStyle: { color: sparkLineColor, width: 2 },
+          areaStyle: {
+            color: {
+              type: "linear", x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: `${sparkLineColor}44` },
+                { offset: 1, color: `${sparkLineColor}00` },
+              ],
+            },
+          },
+        }],
+      };
+    }
+    return {
+      ...baseAxes,
+      series: [{
         type: "candlestick",
         data: ohlcData,
         itemStyle: {
@@ -130,9 +148,9 @@ export function MarketPulse() {
           borderColor: "#089981",
           borderColor0: "#f23645",
         },
-      },
-    ],
-  };
+      }],
+    };
+  }, [chartSeries, categoryData, ohlcData, chartType, sparkLineColor]);
 
   let bgClass = "bg-card";
   if (flashColor === "up") bgClass = "bg-bull/20";
@@ -163,6 +181,25 @@ export function MarketPulse() {
             <h2 className="text-[14px] font-bold text-slate-900 dark:text-white">
               BIST 100
             </h2>
+            {/* Mum / Çizgi toggle */}
+            <div className="ml-2 inline-flex items-center gap-px rounded-md border border-border bg-card/60 p-px">
+              {(["candlestick", "line"] as ChartType[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setChartType(t)}
+                  aria-pressed={chartType === t}
+                  className={cn(
+                    "h-5 rounded px-2 text-[10.5px] font-semibold transition-colors",
+                    chartType === t
+                      ? "bg-primary text-primary-foreground"
+                      : "text-text-2 hover:text-white",
+                  )}
+                >
+                  {t === "candlestick" ? "Mum" : "Çizgi"}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={() => setExpanded(true)}
@@ -220,7 +257,7 @@ export function MarketPulse() {
         </div>
       </div>
 
-      {/* Candlestick Chart */}
+      {/* Chart */}
       <div className="flex-1 w-full mt-2 min-h-[200px]">
         {loading && !quote ? (
           <div className="h-full min-h-[200px] animate-pulse rounded-xl border border-border bg-card/60" />
@@ -277,7 +314,7 @@ export function MarketPulse() {
                     BIST 100 · Detaylı Görünüm
                   </Dialog.Title>
                   <Dialog.Description className="text-[11.5px] text-muted-foreground">
-                    Mum grafiği · 1 gün / 1 hafta / 1 ay
+                    Mum / Çizgi grafik · 1 gün / 1 hafta / 1 ay
                   </Dialog.Description>
                 </div>
               </div>
@@ -308,6 +345,8 @@ const PERIODS: Array<{ value: MarketHistoryPeriod; label: string }> = [
   { value: "1mo", label: "1 Ay" },
 ];
 
+type ChartType = "candlestick" | "line";
+
 const detailNumberFormatter = new Intl.NumberFormat("tr-TR", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
@@ -332,6 +371,7 @@ function formatTickLabel(iso: string, period: MarketHistoryPeriod): string {
 
 function BistDetailChart() {
   const [period, setPeriod] = useState<MarketHistoryPeriod>("1w");
+  const [chartType, setChartType] = useState<ChartType>("candlestick");
   const [data, setData] = useState<BackendHistory | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retryNonce, setRetryNonce] = useState(0);
@@ -357,26 +397,24 @@ function BistDetailChart() {
   }, [period, retryNonce]);
 
   const positive = (data?.delta_pct ?? 0) >= 0;
+  const lineColor = positive ? "#089981" : "#f23645";
 
   const option = useMemo(() => {
     const points = data?.points ?? [];
     const categories = points.map((p) => formatTickLabel(p.t, period));
-    // ECharts candlestick data format: [open, close, low, high]
     const ohlc = points.map((p) => [p.o, p.c, p.l, p.h]);
-    return {
+    const closes = points.map((p) => p.c);
+
+    const baseAxes = {
       animation: true,
       animationDuration: 600,
       grid: { left: 56, right: 16, top: 16, bottom: 36 },
       xAxis: {
         type: "category",
         data: categories,
-        boundaryGap: true,
+        boundaryGap: chartType === "candlestick",
         axisLine: { lineStyle: { color: "rgba(148,163,184,0.3)" } },
-        axisLabel: {
-          color: "#94a3b8",
-          fontSize: 10.5,
-          hideOverlap: true,
-        },
+        axisLabel: { color: "#94a3b8", fontSize: 10.5, hideOverlap: true },
         splitLine: { show: false },
       },
       yAxis: {
@@ -409,15 +447,25 @@ function BistDetailChart() {
         formatter: (params: unknown) => {
           const arr = params as Array<{
             dataIndex: number;
-            data: number[];
+            data: number | number[];
             axisValue: string;
           }>;
           if (!arr?.length) return "";
           const p = arr[0];
-          const v = p.data;
           const i = p.dataIndex;
           const volume = points[i]?.v;
           const fmt = (n: number) => detailNumberFormatter.format(n);
+          if (chartType === "line") {
+            const close = p.data as number;
+            return [
+              `<div style="font-weight:600;margin-bottom:4px">${p.axisValue}</div>`,
+              `Kapanış: <b>${fmt(close)}</b>`,
+              volume != null
+                ? `<br/>Hacim: <b>${compactFormatter.format(volume)}</b>`
+                : "",
+            ].join("");
+          }
+          const v = p.data as number[];
           return [
             `<div style="font-weight:600;margin-bottom:4px">${p.axisValue}</div>`,
             `Açılış: <b>${fmt(v[1])}</b><br/>`,
@@ -430,6 +478,38 @@ function BistDetailChart() {
           ].join("");
         },
       },
+    };
+
+    if (chartType === "line") {
+      return {
+        ...baseAxes,
+        series: [
+          {
+            type: "line",
+            data: closes,
+            smooth: true,
+            symbol: "none",
+            lineStyle: { color: lineColor, width: 2 },
+            areaStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: `${lineColor}33` },
+                  { offset: 1, color: `${lineColor}00` },
+                ],
+              },
+            },
+          },
+        ],
+      };
+    }
+
+    return {
+      ...baseAxes,
       series: [
         {
           type: "candlestick",
@@ -443,7 +523,7 @@ function BistDetailChart() {
         },
       ],
     };
-  }, [data, period]);
+  }, [data, period, chartType, lineColor]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -478,26 +558,48 @@ function BistDetailChart() {
             </span>
           )}
         </div>
-        <div className="inline-flex items-center gap-0.5 rounded-lg border border-border bg-card/60 p-0.5">
-          {PERIODS.map((p) => {
-            const active = p.value === period;
-            return (
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Chart type toggle */}
+          <div className="inline-flex items-center gap-0.5 rounded-lg border border-border bg-card/60 p-0.5">
+            {(["candlestick", "line"] as ChartType[]).map((t) => (
               <button
-                key={p.value}
+                key={t}
                 type="button"
-                onClick={() => setPeriod(p.value)}
-                aria-pressed={active}
+                onClick={() => setChartType(t)}
+                aria-pressed={chartType === t}
                 className={cn(
                   "h-8 rounded-md px-3 text-[12px] font-semibold transition-colors",
-                  active
+                  chartType === t
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-text-2 hover:bg-accent hover:text-white",
                 )}
               >
-                {p.label}
+                {t === "candlestick" ? "Mum" : "Çizgi"}
               </button>
-            );
-          })}
+            ))}
+          </div>
+          {/* Period toggle */}
+          <div className="inline-flex items-center gap-0.5 rounded-lg border border-border bg-card/60 p-0.5">
+            {PERIODS.map((p) => {
+              const active = p.value === period;
+              return (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => setPeriod(p.value)}
+                  aria-pressed={active}
+                  className={cn(
+                    "h-8 rounded-md px-3 text-[12px] font-semibold transition-colors",
+                    active
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-text-2 hover:bg-accent hover:text-white",
+                  )}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

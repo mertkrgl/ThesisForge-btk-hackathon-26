@@ -5,12 +5,13 @@ import { getThesis } from "@/lib/api/thesis";
 import { AGENT_REGISTRY } from "@/lib/mock/agents";
 import { ConfidenceBar } from "@/components/app/ConfidenceBar";
 import { CompanyLogo } from "@/components/app/CompanyLogo";
-import { SourceChip } from "@/components/app/SourceChip";
+import { SourceChipPopover } from "@/components/app/SourceChipPopover";
 import { ThesisExportButtons } from "@/components/app/ThesisExportButtons";
 import { VerdictBadge } from "@/components/app/VerdictBadge";
 import { DisclaimerBlock } from "@/components/shared/DisclaimerBlock";
+import { toolToSource } from "@/lib/data/toolLabels";
 import { cn } from "@/lib/utils";
-import type { AgentTone, Source, ThesisPoint } from "@/lib/mock/types";
+import type { AgentTone, CitationDetail, Source, ThesisPoint } from "@/lib/mock/types";
 import { PageTransition, FadeIn } from "@/components/shared/MotionWrappers";
 import { InlineMarkdown } from "@/components/shared/InlineMarkdown";
 import { ThesisReport } from "@/components/shared/ThesisReport";
@@ -139,18 +140,21 @@ export default async function ThesisViewerPage({
           tone="bull"
           items={thesis.bull}
           sources={thesis.sources}
+          citations={thesis.citationLookup}
         />
         <Column
           title="Bear"
           tone="bear"
           items={thesis.bear}
           sources={thesis.sources}
+          citations={thesis.citationLookup}
         />
         <Column
           title="Katalist"
           tone="violet"
           items={thesis.catalysts}
           sources={thesis.sources}
+          citations={thesis.citationLookup}
         />
         </div>
       </FadeIn>
@@ -201,30 +205,44 @@ export default async function ThesisViewerPage({
         <div className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-6">
           <h2 className="mb-3 text-[15px] font-semibold text-slate-900 dark:text-white">Kaynaklar</h2>
           <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
-            {thesis.sources.map((s) => (
-              <li
-                key={s.id}
-                className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2"
-              >
-                <SourceChip source={s} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[12.5px] text-text-2">
-                    {s.label}
+            {thesis.sources.map((s) => {
+              const cit = thesis.citationLookup?.find((c) => c.call_id === s.id) ?? null;
+              const inner = (
+                <>
+                  <SourceChipPopover citation={cit} source={s} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[12.5px] text-text-2">
+                      {s.label}
+                    </div>
+                    {s.url && (
+                      <div className="mt-0.5 flex max-w-full items-center gap-1 text-[11px] text-primary">
+                        <span className="truncate">{s.url}</span>
+                        <ExternalLink className="h-3 w-3 shrink-0" />
+                      </div>
+                    )}
                   </div>
-                  {s.url && (
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-0.5 inline-flex max-w-full items-center gap-1 text-[11px] text-primary hover:underline"
-                    >
-                      <span className="truncate">{s.url}</span>
-                      <ExternalLink className="h-3 w-3 shrink-0" />
-                    </a>
-                  )}
-                </div>
-              </li>
-            ))}
+                </>
+              );
+              return s.url ? (
+                <li key={s.id}>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-primary/40 hover:bg-accent/30"
+                  >
+                    {inner}
+                  </a>
+                </li>
+              ) : (
+                <li
+                  key={s.id}
+                  className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2"
+                >
+                  {inner}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </FadeIn>
@@ -244,11 +262,13 @@ function Column({
   tone,
   items,
   sources,
+  citations,
 }: {
   title: string;
   tone: AgentTone;
   items: ThesisPoint[];
   sources: Source[];
+  citations?: CitationDetail[];
 }) {
   const TONE_BORDER: Record<AgentTone, string> = {
     bull: "border-bull/30",
@@ -296,11 +316,12 @@ function Column({
             {p.sources.length > 0 && (
               <span className="ml-1 inline-flex flex-wrap gap-1 align-middle">
                 {p.sources.map((sid) => {
-                  const src = sources.find((s) => s.id === sid) ?? {
-                    id: sid,
-                    kind: "filing" as const,
-                  };
-                  return <SourceChip key={sid} source={src} />;
+                  const existing = sources.find((s) => s.id === sid);
+                  const cit = citations?.find((c) => c.call_id === sid) ?? null;
+                  const src: Source = existing ?? toolToSource(sid, cit?.tool_name ?? null);
+                  return (
+                    <SourceChipPopover key={sid} citation={cit} source={src} />
+                  );
                 })}
               </span>
             )}

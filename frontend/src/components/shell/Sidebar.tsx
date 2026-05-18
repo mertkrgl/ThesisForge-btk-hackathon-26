@@ -9,11 +9,11 @@ import {
   Star,
   History,
   Settings,
-  UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 type NavItem = {
   label: string;
@@ -53,7 +53,7 @@ const NAV: NavSection[] = [
     title: "Takip",
     items: [
       {
-        label: "Watchlist",
+        label: "Takip Edilen Hisseler",
         href: "/app/watchlist",
         icon: Star,
       },
@@ -67,8 +67,7 @@ const NAV: NavSection[] = [
   {
     title: "Sistem",
     items: [
-      { label: "Profil", href: "/app/profile", icon: UserRound },
-      { label: "Ayarlar", href: "/app/settings", icon: Settings },
+      { label: "Hesabım", href: "/app/settings", icon: Settings },
     ],
   },
 ];
@@ -80,6 +79,15 @@ function isActive(pathname: string, item: NavItem): boolean {
 
 export function Sidebar() {
   const pathname = usePathname() ?? "/app";
+  const { user } = useAuth();
+
+  const displayName = user?.name ?? user?.email ?? "Kullanıcı";
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("");
 
   return (
     <aside className="sticky top-0 hidden h-screen flex-col gap-1 border-r border-slate-200 bg-card px-3.5 py-4 dark:border-border dark:bg-[linear-gradient(180deg,#0A1020,#070A12)] md:flex">
@@ -87,9 +95,7 @@ export function Sidebar() {
         href="/app"
         className="mb-2.5 flex items-center gap-2.5 border-b border-dashed border-border px-2.5 pb-4 pt-2"
       >
-        <div className="grid h-[30px] w-[30px] place-items-center rounded-lg bg-[radial-gradient(120%_120%_at_20%_0%,#3B82F6_0%,#1D4ED8_50%,#0B1220_100%)] shadow-[0_6px_20px_-8px_#3B82F6,inset_0_0_0_1px_#2A4D9C]">
-          <Sparkles className="h-[18px] w-[18px] text-white" />
-        </div>
+
         <div>
           <div className="text-[16px] font-extrabold leading-tight tracking-tight">
             ThesisForge
@@ -150,11 +156,11 @@ export function Sidebar() {
       <div className="mt-auto flex items-center gap-2.5 border-t border-dashed border-border pt-3">
         <div className="flex-1 flex items-center gap-2.5">
           <div className="grid h-[30px] w-[30px] place-items-center rounded-full bg-[linear-gradient(135deg,#3B82F6,#A78BFA)] text-[12px] font-bold text-white">
-            MG
+            {initials}
           </div>
-          <div className="text-[12.5px] leading-tight">
-            <div className="font-semibold text-slate-900 dark:text-white">Melih Genel</div>
-            <div className="text-[10.5px] text-muted-foreground">Hackathon</div>
+          <div className="min-w-0 text-[12.5px] leading-tight">
+            <div className="truncate font-semibold text-slate-900 dark:text-white">{displayName}</div>
+            <div className="text-[10.5px] text-muted-foreground">{user?.email ?? ""}</div>
           </div>
         </div>
         <ThemeToggle />

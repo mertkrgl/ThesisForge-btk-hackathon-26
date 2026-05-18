@@ -207,11 +207,11 @@ export function OnboardingTour() {
   }, []);
 
   useEffect(() => {
-    if (localStorage.getItem(STORAGE_KEY) !== "1") {
+    if (pathname === "/app" && localStorage.getItem(STORAGE_KEY) !== "1") {
       const id = window.setTimeout(() => setOpen(true), 250);
       return () => window.clearTimeout(id);
     }
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (!open || isWelcome || !current.target || !samePath(pathname, current.href)) {

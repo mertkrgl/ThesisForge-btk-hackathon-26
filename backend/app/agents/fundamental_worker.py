@@ -29,7 +29,7 @@ def _agent(squad: str):
 def _empty(ticker: str, squad: str) -> FundamentalAnalysis:
     return FundamentalAnalysis(
         ticker=ticker.upper(),
-        squad=cast(SquadType, squad if squad in {"Banking", "Insurance", "Finance", "Brokerage", "RealEstate", "Energy", "Defense", "Automotive", "Technology", "Healthcare", "Food", "Retail", "Construction", "Industrial", "Mining", "Transportation", "Holding", "Generic"} else "Generic"),
+        squad=cast(SquadType, squad if squad in {"Banking", "Insurance", "Finance", "Brokerage", "RealEstate", "Energy", "Defense", "Automotive", "Technology", "Healthcare", "Food", "Retail", "Construction", "Industrial", "Mining", "Transportation", "Holding", "Agriculture", "Textile", "WoodPaper", "Chemical", "CementGlass", "BasicMetal", "Machinery", "Tourism", "Telecom", "Sports", "Generic"} else "Generic"),
         summary="Fundamental veriler şu anda alınamadı.",
         key_metrics_json="{}",
         peer_compare_json="{}",

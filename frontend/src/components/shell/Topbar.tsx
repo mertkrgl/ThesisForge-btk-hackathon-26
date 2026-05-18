@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, Sparkles } from "lucide-react";
+import { Search } from "lucide-react";
 import { Breadcrumbs } from "@/components/app/Breadcrumbs";
 import { CommandPalette } from "@/components/app/CommandPalette";
 import { UserMenu } from "@/components/app/UserMenu";
@@ -24,15 +24,11 @@ export function Topbar() {
   return (
     <>
       <header className="sticky top-0 z-20 flex h-[60px] items-center gap-2 border-b border-slate-200 bg-card/90 px-4 backdrop-blur-md dark:border-border dark:bg-[rgba(7,10,18,0.78)] sm:gap-3.5 sm:px-6">
-        {/* Mobilde logo + isim — sidebar gizli olduğu için marka kimliği burada */}
         <Link
           href="/app"
           aria-label="ThesisForge"
           className="flex items-center gap-2 md:hidden"
         >
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[radial-gradient(120%_120%_at_20%_0%,#3B82F6_0%,#1D4ED8_50%,#0B1220_100%)] shadow-[0_6px_20px_-8px_#3B82F6,inset_0_0_0_1px_#2A4D9C]">
-            <Sparkles className="h-4 w-4 text-white" />
-          </span>
           <span className="text-[14px] font-extrabold tracking-tight">
             ThesisForge
           </span>

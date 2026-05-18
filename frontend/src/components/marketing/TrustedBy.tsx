@@ -3,6 +3,8 @@ import Image from "next/image";
 type Logo = {
   src: string;
   darkSrc?: string;
+  invertInDark?: boolean;
+  whiteBgInDark?: boolean;
   alt: string;
   /** Per-logo visual sizing — compensates for aspect-ratio differences so all logos read at the same optical weight. */
   sizeClass: string;
@@ -13,6 +15,7 @@ const LOGOS: Logo[] = [
     src: "/logos/borsa-istanbul-logo.png",
     alt: "Borsa İstanbul",
     sizeClass: "h-12",
+    whiteBgInDark: true,
   },
   {
     src: "/logos/kap-logo.jpeg",
@@ -23,11 +26,13 @@ const LOGOS: Logo[] = [
     src: "/logos/TCMB_logo.svg",
     alt: "TCMB",
     sizeClass: "h-10",
+    whiteBgInDark: true,
   },
   {
     src: "/logos/MKK-EN-Dikey-Logo-Siyah.png",
     alt: "MKK",
     sizeClass: "h-20",
+    invertInDark: true,
   },
 ];
 
@@ -42,7 +47,15 @@ function LogoMark({ logo }: { logo: Logo }) {
         alt={logo.alt}
         width={320}
         height={96}
-        className={`${logo.sizeClass} w-auto object-contain ${logo.darkSrc ? "dark:hidden" : ""}`}
+        className={`${logo.sizeClass} w-auto object-contain ${
+          logo.darkSrc
+            ? "dark:hidden"
+            : logo.invertInDark
+              ? "dark:invert"
+              : logo.whiteBgInDark
+                ? "dark:bg-white dark:p-2 dark:rounded-xl"
+                : ""
+        }`}
       />
       {logo.darkSrc && (
         <Image

@@ -35,7 +35,7 @@ export default async function DashboardPage() {
                 Dashboard
               </h1>
               <p className="mt-1 max-w-2xl text-[13px] text-text-2">
-                Watchlist, son tezler ve komite aktivitesi tek bakışta.
+                Takip edilen hisseler, son tezler ve komite aktivitesi tek bakışta.
               </p>
             </div>
             <Link

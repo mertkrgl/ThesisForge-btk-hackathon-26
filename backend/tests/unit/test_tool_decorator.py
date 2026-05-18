@@ -79,6 +79,7 @@ async def test_squad_for_ticker_known_and_unknown():
 @pytest.mark.parametrize(
     "ticker, expected_squad",
     [
+        # ── Mevcut squads ──────────────────────────────────────────────────
         ("GARAN", "Banking"),
         ("AKBNK", "Banking"),
         ("AKGRT", "Insurance"),
@@ -89,35 +90,47 @@ async def test_squad_for_ticker_known_and_unknown():
         ("ISMEN", "Brokerage"),
         ("EKGYO", "RealEstate"),
         ("ISGYO", "RealEstate"),
-        ("TUPRS", "Energy"),
-        ("AYGAZ", "Energy"),
+        ("TUPRS", "Chemical"),   # rafineriler → Chemical
+        ("AYGAZ", "Chemical"),   # LPG dağıtım → Chemical
         ("ASELS", "Defense"),
-        ("OTKAR", "Defense"),
+        ("OTKAR", "Machinery"),  # zırhlı araç → Machinery
         ("FROTO", "Automotive"),
         ("TOASO", "Automotive"),
         ("LOGO", "Technology"),
-        ("TCELL", "Technology"),
+        ("TCELL", "Telecom"),    # telekomünikasyon → Telecom
         ("MPARK", "Healthcare"),
         ("SELEC", "Healthcare"),
         ("ULKER", "Food"),
         ("CCOLA", "Food"),
         ("BIMAS", "Retail"),
         ("MGROS", "Retail"),
-        ("AKCNS", "Construction"),
-        ("CIMSA", "Construction"),
-        ("EREGL", "Industrial"),
-        ("ARCLK", "Industrial"),
+        ("AKCNS", "CementGlass"),  # çimento → CementGlass
+        ("CIMSA", "CementGlass"),  # çimento → CementGlass
+        ("EREGL", "BasicMetal"),   # çelik → BasicMetal
+        ("ARCLK", "Machinery"),    # beyaz eşya → Machinery
         ("KOZAL", "Mining"),
         ("KOZAA", "Mining"),
         ("THYAO", "Transportation"),
         ("PGSUS", "Transportation"),
         ("KCHOL", "Holding"),
         ("SAHOL", "Holding"),
+        # ── Yeni squads (28'e tamamlayan 10 squad) ────────────────────────
+        ("AGROT", "Agriculture"),   # tarım
+        ("BOSSA", "Textile"),       # tekstil
+        ("KARTN", "WoodPaper"),     # karton/kağıt
+        ("SASA", "Chemical"),       # petrokimya
+        ("BTCIM", "CementGlass"),   # çimento
+        ("ISDMR", "BasicMetal"),    # demir-çelik
+        ("VESTL", "Machinery"),     # elektronik cihaz
+        ("MARTI", "Tourism"),       # turizm/otel
+        ("TTKOM", "Telecom"),       # telekomünikasyon
+        ("BJKAS", "Sports"),        # spor kulübü
+        # ── Fallback ──────────────────────────────────────────────────────
         ("UNKNOWN_TICKER_XYZ", "Generic"),
     ],
 )
 def test_squad_for_ticker_parametric(ticker: str, expected_squad: str) -> None:
-    """sector_map.yaml'ın 17+1 squad kapsamasını verify eder.
+    """sector_map.yaml'ın 27+1 squad kapsamasını verify eder.
 
     Yeni bir squad eklendiğinde veya bir ticker yanlış sektöre düşerse
     burada açık bir hata ile yakalanır.
@@ -196,7 +209,7 @@ async def test_real_tool_get_sector_peers(pg_session):
     )
     out = await get_sector_peers(ctx, ticker="ASELS")
     assert out["result"]["squad"] == "Defense"
-    assert "OTKAR" in out["result"]["peers"]
+    assert "FORTE" in out["result"]["peers"]  # OTKAR → Machinery'e taşındı
     assert uuid.UUID(out["call_id"])
 
 

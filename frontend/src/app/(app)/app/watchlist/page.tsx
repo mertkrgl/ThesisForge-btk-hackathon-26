@@ -140,7 +140,7 @@ export default function WatchlistPage() {
                 Takip
               </div>
               <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Watchlist
+                Takip Edilen Hisseler
               </h1>
               <p className="mt-1 max-w-2xl text-[13px] text-text-2">
                 Takip ettiğiniz hisseler ve hızlı tez başlatma.
@@ -179,7 +179,7 @@ export default function WatchlistPage() {
         ) : !isAuthenticated ? (
           <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
             <p className="text-[14px] text-text-2">
-              Watchlist için giriş yapmanız gerekiyor.
+              Takip listesi için giriş yapmanız gerekiyor.
             </p>
             <Link
               href={`/login?next=${encodeURIComponent("/app/watchlist")}`}

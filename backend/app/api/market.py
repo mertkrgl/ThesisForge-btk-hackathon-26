@@ -33,6 +33,7 @@ _HISTORY_PARAMS: dict[str, tuple[str, str, int]] = {
     "1d": ("1d", "5m", 60),
     "1w": ("5d", "30m", 300),
     "1mo": ("1mo", "1d", 900),
+    "1y": ("1y", "1d", 900),   # ~252 günlük mum; 15dk cache
 }
 
 

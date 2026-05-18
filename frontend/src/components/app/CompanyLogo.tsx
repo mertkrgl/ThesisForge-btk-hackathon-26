@@ -60,7 +60,7 @@ export function CompanyLogo({
   return (
     <span
       className={cn(
-        "grid shrink-0 place-items-center overflow-hidden border border-border bg-white p-1.5 dark:bg-slate-950",
+        "grid shrink-0 place-items-center overflow-hidden border border-border bg-white p-1.5",
         sizeClass[size],
         className
       )}

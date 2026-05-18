@@ -50,8 +50,8 @@ export function CompanyCard({ company }: { company: CompanyCardData }) {
       : status === "added"
         ? "Eklendi"
         : status === "exists"
-          ? "Zaten var"
-          : "Watchlist";
+          ? "Zaten takipte"
+          : "Takip Et";
 
   const detailHref = `/app/watchlist/${company.ticker}`;
   const goDetail = () => router.push(detailHref);
@@ -133,7 +133,7 @@ export function CompanyCard({ company }: { company: CompanyCardData }) {
           )}
           title={
             isAuthenticated
-              ? "Watchlist'e ekle"
+              ? "Takip listesine ekle"
               : "Giriş yapmak için tıklayın"
           }
         >

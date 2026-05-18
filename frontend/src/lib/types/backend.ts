@@ -23,6 +23,16 @@ export type SquadType =
   | "Mining"
   | "Transportation"
   | "Holding"
+  | "Agriculture"
+  | "Textile"
+  | "WoodPaper"
+  | "Chemical"
+  | "CementGlass"
+  | "BasicMetal"
+  | "Machinery"
+  | "Tourism"
+  | "Telecom"
+  | "Sports"
   | "Generic";
 
 export type BackendBullBearPoint = {
@@ -140,7 +150,7 @@ export type BackendQuote = {
   spark: number[];
 };
 
-export type MarketHistoryPeriod = "1d" | "1w" | "1mo";
+export type MarketHistoryPeriod = "1d" | "1w" | "1mo" | "1y";
 
 export type BackendHistoryPoint = {
   t: string;

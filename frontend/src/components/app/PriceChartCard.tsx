@@ -45,6 +45,7 @@ const PERIOD_OPTIONS: Array<{
   { value: "1d", label: "Bugün (intraday)", short: "1G" },
   { value: "1w", label: "Son 5 gün", short: "1H" },
   { value: "1mo", label: "Son 1 ay", short: "1A" },
+  { value: "1y", label: "Son 1 yıl", short: "1Y" },
 ];
 
 const priceFormatter = new Intl.NumberFormat("tr-TR", {
@@ -66,6 +67,12 @@ function formatTickTime(iso: string, period: MarketHistoryPeriod): string {
       minute: "2-digit",
     });
   }
+  if (period === "1y") {
+    return d.toLocaleDateString("tr-TR", {
+      month: "short",
+      year: "2-digit",
+    });
+  }
   return d.toLocaleDateString("tr-TR", {
     day: "2-digit",
     month: "short",
@@ -75,7 +82,7 @@ function formatTickTime(iso: string, period: MarketHistoryPeriod): string {
 function formatTooltipTime(iso: string, period: MarketHistoryPeriod): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  if (period === "1mo") {
+  if (period === "1mo" || period === "1y") {
     return d.toLocaleDateString("tr-TR", {
       day: "2-digit",
       month: "long",
