@@ -13,7 +13,6 @@ ThesisForge, Borsa İstanbul hisseleri için kaynaklı ve tartışmalı yatırı
 - [ThesisForge](#thesisforge)
   - [İçindekiler](#i̇çindekiler)
   - [Proje Özeti](#proje-özeti)
-  - [Demo Videosu](#demo-videosu)
   - [Öne Çıkan Özellikler](#öne-çıkan-özellikler)
   - [Problem ve Yaklaşım](#problem-ve-yaklaşım)
   - [Kullanıcı Deneyimi](#kullanıcı-deneyimi)
@@ -47,12 +46,6 @@ Türkiye'deki bireysel yatırımcılar bir hisseyi araştırırken çoğunlukla 
 4. Devil's Advocate ajanı tezin zayıf noktalarını sorgular.
 5. Synthesizer ajanı bull case, bear case, katalizörler, riskler ve güven skorunu tek bir Markdown raporda birleştirir.
 6. Her önemli iddia mümkün olduğunca `tool_call_logs` kaydına bağlanır ve citation olarak UI'da gösterilir.
-
-## Demo Videosu
-
-<video src="https://media.githubusercontent.com/media/mertkrgl/btk-hackathon-26/main/docs/assets/thesis-forge-demo.mp4" controls width="100%" title="ThesisForge Demo"></video>
-
-[Demo videosunu izlemek için tıklayın](docs/assets/thesis-forge-demo.mp4)
 
 ## Öne Çıkan Özellikler
 
