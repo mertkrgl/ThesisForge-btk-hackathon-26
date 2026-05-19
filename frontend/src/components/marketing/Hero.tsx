@@ -6,10 +6,7 @@ export function Hero({ demo }: { demo?: React.ReactNode }) {
     <section className="relative overflow-hidden border-b border-border/60 bg-background">
       <div className="relative mx-auto grid w-full max-w-[1280px] gap-12 px-6 pb-20 pt-16 md:grid-cols-[1.05fr_1fr] md:pb-28 md:pt-24">
         <div className="flex flex-col">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 dark:border-border bg-card dark:bg-white/[0.03] px-3 py-1 text-[11px] font-medium text-slate-500 dark:text-text-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-bull" />
-            BIST için yatırım komitesi · Demo modu
-          </div>
+          
 
           <h1 className="mt-5 text-balance text-4xl font-extrabold leading-[1.05] tracking-tight md:text-[64px]">
             <span className="block text-slate-900 dark:text-white">8 ajanlı yapay zekâ</span>

@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { Breadcrumbs } from "@/components/app/Breadcrumbs";
 import { CommandPalette } from "@/components/app/CommandPalette";
 import { UserMenu } from "@/components/app/UserMenu";
+import { Logo } from "@/components/shared/Logo";
 
 export function Topbar() {
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -29,9 +30,7 @@ export function Topbar() {
           aria-label="ThesisForge"
           className="flex items-center gap-2 md:hidden"
         >
-          <span className="text-[14px] font-extrabold tracking-tight">
-            ThesisForge
-          </span>
+          <Logo size="sm" showSubtitle={false} />
         </Link>
 
         <div className="hidden md:block">

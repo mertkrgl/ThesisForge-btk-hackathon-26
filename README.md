@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="frontend/public/logos/tf-white-logo.svg" alt="ThesisForge" width="180" />
+</p>
+
 # ThesisForge
 
 ThesisForge, Borsa İstanbul hisseleri için kaynaklı ve tartışmalı yatırım tezi üreten multi-agent AI uygulamasıdır. Sistem tek bir "al/sat" sinyali vermek yerine teknik analiz, temel analiz, makro bağlam, geçmiş tez hafızası ve karşı argümanları bir araya getirerek kullanıcıya dengeli bir karar zemini sunar.
@@ -6,22 +10,31 @@ ThesisForge, Borsa İstanbul hisseleri için kaynaklı ve tartışmalı yatırı
 
 ## İçindekiler
 
-- [Proje Özeti](#proje-özeti)
-- [Öne Çıkan Özellikler](#öne-çıkan-özellikler)
-- [Problem ve Yaklaşım](#problem-ve-yaklaşım)
-- [Kullanıcı Deneyimi](#kullanıcı-deneyimi)
-- [Ajan Komitesi](#ajan-komitesi)
-- [Güven ve Kaynaklandırma](#güven-ve-kaynaklandırma)
-- [Tez Raporu](#tez-raporu)
-- [Mimari](#mimari)
-- [Teknoloji Yığını](#teknoloji-yığını)
-- [Kurulum ve Hızlı Başlangıç](#kurulum-ve-hızlı-başlangıç)
-- [Ortam Değişkenleri](#ortam-değişkenleri)
-- [API Kullanım Örneği](#api-kullanım-örneği)
-- [Proje Yapısı](#proje-yapısı)
-- [Test ve Kalite](#test-ve-kalite)
-- [Lisans ve Atıf](#lisans-ve-atıf)
-- [Yasal Uyarı](#yasal-uyarı)
+- [ThesisForge](#thesisforge)
+  - [İçindekiler](#i̇çindekiler)
+  - [Proje Özeti](#proje-özeti)
+  - [Öne Çıkan Özellikler](#öne-çıkan-özellikler)
+  - [Problem ve Yaklaşım](#problem-ve-yaklaşım)
+  - [Kullanıcı Deneyimi](#kullanıcı-deneyimi)
+  - [Ajan Komitesi](#ajan-komitesi)
+  - [Güven ve Kaynaklandırma](#güven-ve-kaynaklandırma)
+  - [Tez Raporu](#tez-raporu)
+  - [Mimari](#mimari)
+    - [Tez Üretim Akışı](#tez-üretim-akışı)
+  - [Teknoloji Yığını](#teknoloji-yığını)
+  - [Kurulum ve Hızlı Başlangıç](#kurulum-ve-hızlı-başlangıç)
+    - [Gereksinimler](#gereksinimler)
+    - [1. Backend Ortam Dosyasını Hazırla](#1-backend-ortam-dosyasını-hazırla)
+    - [2. PostgreSQL ve PgBouncer'ı Başlat](#2-postgresql-ve-pgbouncerı-başlat)
+    - [3. Backend'i Kur ve Migration Çalıştır](#3-backendi-kur-ve-migration-çalıştır)
+    - [4. Frontend'i Başlat](#4-frontendi-başlat)
+    - [5. Uygulamayı Kullan](#5-uygulamayı-kullan)
+  - [Ortam Değişkenleri](#ortam-değişkenleri)
+  - [API Kullanım Örneği](#api-kullanım-örneği)
+  - [Proje Yapısı](#proje-yapısı)
+  - [Test ve Kalite](#test-ve-kalite)
+  - [Lisans ve Atıf](#lisans-ve-atıf)
+  - [Yasal Uyarı](#yasal-uyarı)
 
 ## Proje Özeti
 

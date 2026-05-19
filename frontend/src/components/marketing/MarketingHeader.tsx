@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { Logo } from "@/components/shared/Logo";
 
 function GithubMark({ className }: { className?: string }) {
   return (
@@ -52,9 +53,9 @@ export function MarketingHeader() {
       <div className="mx-auto grid h-[72px] w-full max-w-[1280px] grid-cols-[1fr_auto_1fr] items-center px-6">
         <Link
           href="/"
-          className="flex items-center text-[15.5px] font-bold tracking-[-0.01em] text-slate-900 dark:text-white"
+          className="flex items-center text-slate-900 dark:text-white"
         >
-          ThesisForge
+          <Logo size="sm" showSubtitle={false} />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

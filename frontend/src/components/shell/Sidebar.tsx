@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Logo } from "@/components/shared/Logo";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useState } from "react";
@@ -137,15 +138,14 @@ export function Sidebar() {
 
       <Link
         href="/app"
+        aria-label="ThesisForge"
         className={cn(
           "mb-2.5 flex shrink-0 items-center gap-2.5 border-b border-dashed border-border pb-4 pt-2",
           collapsed ? "h-[76px] justify-center px-0" : "px-2.5",
         )}
       >
         {collapsed && (
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-[linear-gradient(135deg,#2563EB,#7C3AED)] text-[13px] font-extrabold text-white shadow-[0_12px_26px_-18px_rgba(37,99,235,0.9)]">
-            TF
-          </div>
+          <Logo size="lg" markOnly />
         )}
         <div
           className={cn(
@@ -153,12 +153,7 @@ export function Sidebar() {
             collapsed && "pointer-events-none sr-only opacity-0",
           )}
         >
-          <div className="text-[16px] font-extrabold leading-tight tracking-tight">
-            ThesisForge
-          </div>
-          <div className="mt-[1px] text-[10.5px] uppercase tracking-[0.14em] text-muted-foreground">
-            Yatırım Komitesi
-          </div>
+          <Logo size="md" />
         </div>
       </Link>
 
