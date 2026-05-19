@@ -12,6 +12,7 @@ ThesisForge, Borsa İstanbul hisseleri için kaynaklı ve tartışmalı yatırı
 
 - [ThesisForge](#thesisforge)
   - [İçindekiler](#i̇çindekiler)
+  - [Demo Videosu](#demo-videosu)
   - [Proje Özeti](#proje-özeti)
   - [Öne Çıkan Özellikler](#öne-çıkan-özellikler)
   - [Problem ve Yaklaşım](#problem-ve-yaklaşım)
@@ -35,6 +36,11 @@ ThesisForge, Borsa İstanbul hisseleri için kaynaklı ve tartışmalı yatırı
   - [Test ve Kalite](#test-ve-kalite)
   - [Lisans ve Atıf](#lisans-ve-atıf)
   - [Yasal Uyarı](#yasal-uyarı)
+
+## Demo Videosu
+
+[Youtube demo videosu linki](https://youtu.be/huWrrYgAAYA)
+
 
 ## Proje Özeti
 
