@@ -93,7 +93,7 @@ async def _spawn_pipeline(
             user_mode=mode,
             thesis_id=thesis_id,
             websocket_emit=publish,
-            timeout_sec=200.0,
+            timeout_sec=240.0,
         )
     except Exception as e:
         log.error("pipeline_fail", thesis_id=str(thesis_id), error=str(e)[:300])

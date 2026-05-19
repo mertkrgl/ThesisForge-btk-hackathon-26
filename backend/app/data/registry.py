@@ -57,9 +57,14 @@ class ChainedDataProvider:
 
         # ─── Provider chain
         last_err: Exception | None = None
-        for provider in self.providers:
+        for idx, provider in enumerate(self.providers):
             try:
                 result = await provider.fetch(**kwargs)
+                # İlk başarılı provider primary ise "live", aksi takdirde
+                # önceki provider'lar fail ettiği için "fallback" olarak işaretle.
+                # Provider'ın kendi source_type'ı ("stub" gibi) varsa korunur.
+                if result.source_type == "live" and idx > 0:
+                    result = result.model_copy(update={"source_type": "fallback"})
                 if self.cache is not None and self.cache_ttl:
                     await self.cache.set(
                         key, result.model_dump(), self.cache_ttl
@@ -69,6 +74,7 @@ class ChainedDataProvider:
                     domain=self.domain,
                     key=key,
                     source=result.source,
+                    source_type=result.source_type,
                 )
                 return result
             except Exception as e:

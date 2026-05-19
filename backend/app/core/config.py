@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL_PRO: str = "gemini-2.5-pro"
     GEMINI_MODEL_FLASH: str = "gemini-2.5-flash"
+    # P1-B: Pro path fallback. Primary model (quota/timeout/5xx) fail
+    # ederse runtime henüz buna otomatik geçmiyor — config sadece konfigure
+    # edilebilir bırakıldı, runtime entegrasyonu sonraki sprint kapsamında.
+    # Free tier'da Flash'a düşmek pratik default; billing aktifse Pro koşumu
+    # için aynı modeli tekrar yazılabilir veya `gemini-2.5-pro` bırakılır.
+    GEMINI_MODEL_PRO_FALLBACK: str = "gemini-2.5-flash"
     GEMINI_EMBED_MODEL: str = "text-embedding-004"
     GEMINI_EMBED_DIMENSIONS: int = 768
 
