@@ -32,7 +32,6 @@ from app.agents import (
 from app.agents.confidence import (
     EXPECTED_TOOL_TOTAL,
     compute_confidence,
-    count_resolved_memory_hits,
     memory_base_rate,
 )
 from app.agents.schemas import (
@@ -48,7 +47,6 @@ from app.agents.tools import AgentContext
 from app.citations.validator import validate_citations
 from app.core.logging import log
 from app.db.repo import (
-    aggregate_source_types_for_thesis,
     count_tool_calls_for_thesis,
     create_thesis_skeleton,
     update_thesis_squad,
@@ -133,7 +131,7 @@ async def run_thesis(
     user_mode: str = "default",
     thesis_id: uuid.UUID | None = None,
     websocket_emit: EmitFn | None = None,
-    timeout_sec: float = 240.0,
+    timeout_sec: float = 200.0,
 ) -> uuid.UUID:
     """Tek bir tezi uçtan uca üret. thesis_id döndürür.
 
@@ -340,24 +338,6 @@ async def _run_thesis_inner(
             thesis_md, thesis_id, session, synthesizer_retry_fn=_retry_fn
         )
 
-        # ───── 8b. Confidence recompute (P1-A kalibrasyonu) ─────
-        # Citation health validator çıkışından sonra hesaplanabilir; ilk breakdown
-        # synthesizer'a girdi olarak verilmişti, persist için final breakdown'ı
-        # citation_health + numeric_issue_rate + memory_resolved_count ile yeniden
-        # üret. Pre-validator breakdown korunmaz; UI ve smoke final değeri görür.
-        breakdown = compute_confidence(
-            data_quality=data_quality,
-            technical=float(tech.momentum_score),
-            fundamental=float(fund.fundamental_score),
-            news_macro=_news_macro_score(macro),
-            memory_base=memory_base_rate(memory_hits),
-            devil_inverse=100.0 - float(critique.overall_critique_strength),
-            user_mode=user_mode,  # type: ignore[arg-type]
-            citation_health=report.citation_health_score,
-            numeric_issue_rate=report.numeric_issue_rate,
-            memory_resolved_count=count_resolved_memory_hits(memory_hits),
-        )
-
         # ───── 9. Structured extract + WS stream PARALEL ─────
         # extract_structured ayrı bir LLM çağrısı (~5-15s). Kullanıcının
         # markdown'ı görmek için bunu beklemesine gerek yok — chunked emit'i
@@ -374,16 +354,6 @@ async def _run_thesis_inner(
         )
 
         # ───── 10b. Persist ─────
-        citation_audit = {
-            "claim_count": report.claim_count,
-            "cited_claim_count": report.cited_claim_count,
-            "uncited_claim_count": report.uncited_claim_count,
-            "numeric_issue_count": report.numeric_issue_count,
-            "catalyst_count": report.catalyst_count,
-            "catalyst_cited_count": report.catalyst_cited_count,
-            "citation_retry_count": report.citation_retry_count,
-            "had_kaynaksiz": report.had_kaynaksiz,
-        }
         await update_thesis_synthesis(
             session,
             thesis_id,
@@ -396,7 +366,6 @@ async def _run_thesis_inner(
             memory_hits=[h.model_dump(mode="json") for h in memory_hits],
             squad=squad,
             sentiment_label=sentiment_label,
-            citation_audit=citation_audit,
         )
         await session.commit()
 
@@ -412,8 +381,6 @@ async def _run_thesis_inner(
         final_total, final_success = await count_tool_calls_for_thesis(
             session, thesis_id
         )
-        # P2-A: ProviderResult.source_type kategorilerini bu tezde topla.
-        provider_stats = await aggregate_source_types_for_thesis(session, thesis_id)
         await _safe_emit(
             emit,
             {
@@ -421,17 +388,6 @@ async def _run_thesis_inner(
                 "total": final_total,
                 "success": final_success,
                 "cited": len([c for c in report.citations if c.call_id]),
-                # P0-B citation health metrikleri (additive payload — frontend
-                # geriye dönük uyumlu, bilinmeyen alanları yoksayar).
-                "claim_count": report.claim_count,
-                "cited_claim_count": report.cited_claim_count,
-                "uncited_claim_count": report.uncited_claim_count,
-                "numeric_issue_count": report.numeric_issue_count,
-                "catalyst_count": report.catalyst_count,
-                "catalyst_cited_count": report.catalyst_cited_count,
-                "citation_retry_count": report.citation_retry_count,
-                # P2-A provider observability (live/fallback/fixture/stub/unknown).
-                "provider_stats": provider_stats,
             },
         )
 

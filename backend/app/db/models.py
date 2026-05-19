@@ -126,7 +126,6 @@ class Thesis(Base):
     had_kaynaksiz_flag: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default=text("false")
     )
-    citation_audit: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     __table_args__ = (
         CheckConstraint(

@@ -9,14 +9,6 @@
 # `fundamental_generic.md`'ye düşer, sistem hata vermez.
 #
 # Toplam: 27 aktif squad + 1 Generic fallback = 28 squad.
-#
-# `ticker_overrides:` bloğu duplicate ticker'lar için squad kararını YAML
-# sırasından ayırır. `squad_for_ticker()` önce buraya bakar, sonra squad
-# listelerine düşer. Domain-net duplicate'ler (ör. SELEC hem Retail hem
-# Healthcare listesindeyse buraya `SELEC: Healthcare` yazılır.
-
-ticker_overrides:
-  SELEC: Healthcare
 
 # ─── MALİ SEKTÖRLER ──────────────────────────────────────────────────────────
 

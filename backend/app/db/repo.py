@@ -256,35 +256,6 @@ async def count_tool_calls_for_thesis(
     return int(row[0] or 0), int(row[1] or 0)
 
 
-async def aggregate_source_types_for_thesis(
-    session: AsyncSession, thesis_id: uuid.UUID
-) -> dict[str, int]:
-    """P2-A: ProviderResult.source_type kategorilerini bir tez için sayar.
-
-    Tool çağrıları `result.payload`'a ChainedDataProvider üzerinden gelir;
-    `_fetch` her çağrıda `result.model_dump()` döndürdüğü için `source_type`
-    alanı JSONB içinde görünür. Bu helper kategorilerin sayımını döndürür:
-        { "live": int, "fallback": int, "fixture": int, "stub": int, "unknown": int }
-    """
-    res = await session.execute(
-        select(ToolCallLog.result).where(
-            ToolCallLog.thesis_id == thesis_id,
-            ToolCallLog.result.is_not(None),
-        )
-    )
-    stats = {"live": 0, "fallback": 0, "fixture": 0, "stub": 0, "unknown": 0}
-    for (result_json,) in res.all():
-        if not isinstance(result_json, dict):
-            stats["unknown"] += 1
-            continue
-        st = result_json.get("source_type")
-        if st in stats:
-            stats[st] += 1
-        else:
-            stats["unknown"] += 1
-    return stats
-
-
 async def get_tool_call_log(
     session: AsyncSession,
     call_id: uuid.UUID | str,
@@ -420,7 +391,6 @@ async def update_thesis_synthesis(
     memory_hits: list[dict] | None = None,
     squad: str | None = None,
     sentiment_label: str | None = None,
-    citation_audit: dict | None = None,
 ) -> None:
     values: dict[str, Any] = {
         "thesis_md": thesis_md,
@@ -431,7 +401,6 @@ async def update_thesis_synthesis(
         "confidence_breakdown": confidence_breakdown,
         "memory_hits": memory_hits,
         "sentiment_label": sentiment_label,
-        "citation_audit": citation_audit,
     }
     if squad:
         values["squad"] = squad

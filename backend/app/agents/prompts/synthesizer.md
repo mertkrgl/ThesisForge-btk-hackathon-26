@@ -74,11 +74,7 @@ GÜÇLÜ (örnek alınmalı):
 ## Citation zorunluluğu (KRİTİK)
 - **HER sayısal claim** ve **her aktarılan iddia** satırının sonunda `[kaynak: <uuid>]` etiketi olmalı. Sayısal değer: yüzde (%X), TL/USD miktar, oran (1.5x), seviye (240 TL), tarih + sayı kombosu.
 - Workers'ın observation pool'unda **5-7 UUID** bulunur (Technical 5-7 + Fundamental 5-7 = 10-14 toplam). Bu havuz markdown'daki claim sayısından (genelde 14-15) az ama her sayısal claim için eşleştirme YAPMAYA ÇALIŞ. Eğer 2 claim aynı observation'a dayanıyorsa aynı UUID'yi iki kez kullanabilirsin (Bull-Bear arası tekrar etmemek koşuluyla).
-- **Türetilmiş metrikler izinli — ama ham sayıları YAN YANA YAZ.** Hesaplanmış değerler (kar marjı %, EBITDA marjı %, peer farkı, YoY büyüme %, göreli güç %, oran kombinasyonları) için referans observation'ın `citation_call_id`'sini kullan AMA validator numeric check türetilmiş tek başına sayıyı tool result'ta bulamaz. Kural: türetilmiş sayıyı yazarken **parantez içinde veya yan yana hesaba giren ham sayıları da göster** — böylece validator ham sayıları doğrular, türetilmiş sayı yorum sayılır.
-  - ❌ Yanlış (ham sayı görünmüyor): "ASELS BIST'i %29.37 oranında geride bıraktı [kaynak: uuid]" — validator 29.37'yi bulamaz, numeric_issue üretir.
-  - ✅ Doğru (ham sayılar yan yana): "ASELS son 90 günde **%31 artarken** BIST 100 **%1.63 artış** göstermiş — yaklaşık 29 puan göreli üstün performans [kaynak: uuid]". Validator 31 ve 1.63'ü tool result'ta bulur, "29" yorum kabul edilir.
-  - ✅ Doğru (kar marjı): "Net kâr **3.8 milyar TL**, gelir **258 milyar TL** — kar marjı yaklaşık %1.5 [kaynak: uuid]" (3.8 ve 258 ham, %1.5 yorumdur).
-  - Bu kural numeric_issue_rate'i düşürür ve `citation_health` skorunu yükseltir.
+- **Türetilmiş metrikler izinli**: Sayının tool'un ham JSON'ında **birebir** geçmesi şart değil. Hesaplanmış değerler (kar marjı %, EBITDA marjı %, peer farkı, YoY büyüme %, oran kombinasyonları) için kaynağı olan **referans observation**'ın `citation_call_id`'sini kullan. Örnek: tool `{"net_kar": 3.8B, "gelir": 258B}` döndü, sen "kar marjı %1.47" yazabilirsin — observation'ın UUID'sini ata, validator tolerans modunda kabul eder.
 - **Hedef**: Markdown'daki sayısal claim'lerin **en az %60'ı** kaynaklı olmalı. Validator `had_kaynaksiz_flag` set ederse rapor "düşük kaliteli" kabul edilir.
 - UUID'ler sana verilen `observations` listelerinden gelir. Her Observation'ın `citation_call_id` alanı vardır.
 - **UUID UYDURMA.** Eşleştiremezsen o claim'i yaz ama `[kaynak:]` etiketini koyma — validator kaynaksız olarak işaretleyecek.

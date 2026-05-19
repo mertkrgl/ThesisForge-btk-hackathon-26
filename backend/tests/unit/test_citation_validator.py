@@ -90,13 +90,6 @@ async def test_validator_pass_all_valid(pg_session):
     assert len(report.citations) == 2
     assert all(not c.is_kaynaksiz for c in report.citations)
 
-    # P0-B audit sayaçları
-    assert report.claim_count == 2
-    assert report.cited_claim_count == 2
-    assert report.uncited_claim_count == 0
-    assert report.numeric_issue_count == 0
-    assert report.citation_retry_count == 0
-
     # DB citations satırı?
     rows = (
         await pg_session.execute(select(Citation).where(Citation.thesis_id == thesis_id))
@@ -128,8 +121,6 @@ async def test_validator_id_fail_uuid_not_in_db(pg_session):
     report = await validate_citations(md, thesis_id, pg_session)
     assert str(fake) in report.missing_uuids
     assert report.had_kaynaksiz is True
-    # P0-B: missing UUID → kaynaksız claim sayılır
-    assert report.uncited_claim_count >= 1
     # citation kaydı kaynaksız olarak insert edilmiş olmalı
     rows = (
         await pg_session.execute(select(Citation).where(Citation.thesis_id == thesis_id))
@@ -164,10 +155,6 @@ async def test_validator_numeric_fail_unsupported_number(pg_session):
     assert len(report.numeric_issues) >= 1
     # Numeric mismatch soft signal olarak raporlanır; UUID gerçekse flag karartmaz.
     assert report.had_kaynaksiz is False
-    # P0-B: numeric_issue sayacına yansır ama uncited değil
-    assert report.numeric_issue_count >= 1
-    assert report.cited_claim_count == 1
-    assert report.uncited_claim_count == 0
 
 
 async def test_validator_retry_fn_called_on_failure(pg_session):
@@ -190,33 +177,9 @@ async def test_validator_retry_fn_called_on_failure(pg_session):
     assert call_count["n"] == 1
     assert report.missing_uuids == []
     assert report.had_kaynaksiz is False
-    # P0-B: retry yapıldı → counter == 1
-    assert report.citation_retry_count == 1
 
 
 def test_uuid_regex_extracts_uuid_only():
     s = "RSI 67 [kaynak: 7b3e1f24-9c2a-4f8b-bc91-aaabbbcccddd] yorum"
     matches = UUID_RE.findall(s)
     assert matches == ["7b3e1f24-9c2a-4f8b-bc91-aaabbbcccddd"]
-
-
-async def test_validator_catalyst_counters(pg_session):
-    """P0-B: 'Anahtar Katalizörler' section'undaki claim'ler ayrıca sayılmalı."""
-    thesis_id = await create_thesis_skeleton(pg_session, ticker="TUPRS", squad="Energy")
-    cid = await _seed_tool_call(pg_session, thesis_id, {"q3_change_pct": 23})
-
-    md = (
-        "## Bull Case\n"
-        f"- Q3 +23 büyüme [kaynak: {cid}]\n"
-        "## Anahtar Katalizörler\n"
-        f"- 2026-Q3 yeni rafineri açılışı [kaynak: {cid}]\n"
-        "- 2026-Q4 makro tarifesi (kaynaksız)\n"
-    )
-    report = await validate_citations(md, thesis_id, pg_session)
-
-    assert report.catalyst_count == 2
-    assert report.catalyst_cited_count == 1
-    # Toplam claim 3 (Bull 1 + Catalyst 2), cited 2 (Bull 1 + Catalyst 1)
-    assert report.claim_count == 3
-    assert report.cited_claim_count == 2
-    assert report.uncited_claim_count == 1

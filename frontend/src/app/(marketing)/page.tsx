@@ -7,6 +7,7 @@ import { DataSources } from "@/components/marketing/DataSources";
 import { TrustedBy } from "@/components/marketing/TrustedBy";
 import { Personas } from "@/components/marketing/Personas";
 import { Faq } from "@/components/marketing/Faq";
+import { CtaBand } from "@/components/marketing/CtaBand";
 import { DisclaimerBlock } from "@/components/shared/DisclaimerBlock";
 import { PageTransition, ScrollReveal } from "@/components/shared/MotionWrappers";
 
@@ -40,6 +41,10 @@ export default function LandingPage() {
         <section className="mx-auto w-full max-w-[1280px] px-6 py-12">
           <DisclaimerBlock />
         </section>
+      </ScrollReveal>
+
+      <ScrollReveal>
+        <CtaBand />
       </ScrollReveal>
     </PageTransition>
   );

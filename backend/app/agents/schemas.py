@@ -183,11 +183,6 @@ class ConfidenceBreakdown(BaseModel):
     computed_raw: float
     applied_cap: float | None = None
     final: float
-    # P1-A audit-tabanlı şeffaflık alanları (geriye dönük uyumlu — default None).
-    citation_health: float | None = None
-    numeric_issue_rate: float | None = None
-    numeric_cap_applied: bool = False
-    memory_shrink_applied: bool = False
 
 
 class BullBearPoint(BaseModel):

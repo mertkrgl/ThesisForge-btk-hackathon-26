@@ -1,31 +1,57 @@
 [
   {
+    "ticker": "ASELS",
+    "mode": "default",
+    "ok": true,
+    "errors": [],
+    "duration_sec": 94.49,
+    "confidence": 66.81,
+    "had_kaynaksiz_flag": false,
+    "bull_count": 5,
+    "bear_count": 5
+  },
+  {
+    "ticker": "GARAN",
+    "mode": "default",
+    "ok": true,
+    "errors": [],
+    "duration_sec": 108.22,
+    "confidence": 46.97,
+    "had_kaynaksiz_flag": false,
+    "bull_count": 4,
+    "bear_count": 5
+  },
+  {
+    "ticker": "TUPRS",
+    "mode": "default",
+    "ok": true,
+    "errors": [],
+    "duration_sec": 97.08,
+    "confidence": 62.91,
+    "had_kaynaksiz_flag": false,
+    "bull_count": 5,
+    "bear_count": 6
+  },
+  {
+    "ticker": "MGROS",
+    "mode": "default",
+    "ok": true,
+    "errors": [],
+    "duration_sec": 93.4,
+    "confidence": 64.01,
+    "had_kaynaksiz_flag": false,
+    "bull_count": 5,
+    "bear_count": 5
+  },
+  {
     "ticker": "EREGL",
     "mode": "default",
     "ok": true,
     "errors": [],
-    "duration_sec": 116.09,
-    "confidence": 57.99,
+    "duration_sec": 109.78,
+    "confidence": 60.16,
     "had_kaynaksiz_flag": false,
-    "bull_count": 4,
-    "bear_count": 3,
-    "citation_audit": {
-      "claim_count": 15,
-      "cited_claim_count": 12,
-      "uncited_claim_count": 3,
-      "numeric_issue_count": 10,
-      "catalyst_count": 3,
-      "catalyst_cited_count": 3,
-      "citation_retry_count": 0
-    },
-    "provider_stats": {
-      "live": 13,
-      "fallback": 0,
-      "fixture": 0,
-      "stub": 0,
-      "unknown": 5
-    },
-    "applied_cap": 70.0,
-    "squad": "BasicMetal"
+    "bull_count": 6,
+    "bear_count": 6
   }
 ]

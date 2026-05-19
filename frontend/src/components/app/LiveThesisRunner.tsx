@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -19,14 +19,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AGENT_COUNT, AGENT_REGISTRY } from "@/lib/mock/agents";
+import { streamThesis } from "@/lib/api/thesis";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import {
-  liveSessionActions,
-  useLiveSession,
-  type AgentState,
-  type PhaseId,
-  type Persona,
-} from "@/lib/state/liveSession";
+import type { StreamEvent } from "@/lib/mock/types";
 import { AgentCard, type AgentCardStatus } from "./AgentCard";
 import { SourceChip } from "./SourceChip";
 import { cn } from "@/lib/utils";
@@ -37,13 +32,46 @@ import {
   StaggerItem,
 } from "@/components/shared/MotionWrappers";
 
+type AgentState = {
+  status: AgentCardStatus;
+  text: string;
+  confidence?: number;
+  /** Backend tool_progress event'lerinden türeyen 0-100 yüzde. */
+  pct?: number;
+};
+
+// Confidence formülünde EXPECTED_TOOL_TOTAL=18 (sector=0 + macro=3 + memory=1 +
+// tech=5 + fund=6 + devil=3). Bunu agent başına yüzde için kullanıyoruz.
+// MIN değer 2 — tool_progress'te (1/n)*100 hesabı yapmadan önce alt sınır
+// koruyalım, yoksa expected=1 olan ajanlar (sector-router, memory) ilk tool
+// event'inde direkt 100'e sıçrıyordu (sonra Math.min ile 99'a kırpılıp orada
+// donuyordu). Asimptotik creep ile birlikte bu sayılar yalnız "boost step" için.
+const AGENT_EXPECTED_TOOLS: Record<string, number> = {
+  "sector-router": 2,
+  macro: 3,
+  memory: 2,
+  technical: 5,
+  fundamental: 6,
+  "devils-advocate": 3,
+  synthesizer: 1,
+};
+
 // Per-agent ilerleme tavanı — `agent_done` gelene dek pct bu değeri geçmez.
 // Eski kod 99'a kadar dolduruyordu → bar uzun süre 99'da donmuş görünüyordu.
 // 88'e indirince done geldiğinde 88→100 sıçraması "tamamlandı" hissi veriyor.
-// (Store içinde tekrar tanımlı — component-side smoothing creep için lazım.)
 const AGENT_PCT_CEILING = 88;
 
+type PhaseId =
+  | "Hazırlanıyor"
+  | "Veri Toplanıyor"
+  | "Ajanlar Değerlendiriyor"
+  | "Sentezleniyor"
+  | "Tez Hazır";
+
+type Persona = "default" | "conservative";
+
 const POPULAR = ["TUPRS", "ASELS", "EREGL", "THYAO", "BIMAS", "GARAN"];
+const ASSEMBLY_DURATION_MS = 4500;
 
 const PHASES: { id: PhaseId; label: string }[] = [
   { id: "Hazırlanıyor", label: "Hazırlık" },
@@ -129,6 +157,20 @@ const PHASE_COPY: Record<PhaseId, { title: string; body: string }> = {
   },
 };
 
+function normalizePhase(phase?: string): PhaseId {
+  if (phase === "Yönlendirme") return "Veri Toplanıyor";
+  if (phase === "Müzakere") return "Ajanlar Değerlendiriyor";
+  if (phase === "Sentez") return "Sentezleniyor";
+  if (phase === "Hazır") return "Tez Hazır";
+  if (phase && phase in PHASE_COPY) return phase as PhaseId;
+  return "Hazırlanıyor";
+}
+
+const initAgents = (): Record<string, AgentState> =>
+  Object.fromEntries(
+    AGENT_REGISTRY.map((a) => [a.id, { status: "idle", text: "" }]),
+  );
+
 export function LiveThesisRunner({
   defaultSymbol = "",
   defaultPersona = "default",
@@ -144,25 +186,27 @@ export function LiveThesisRunner({
 }) {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const session = useLiveSession();
-  const {
-    symbol,
-    persona,
-    running,
-    assembling,
-    phase,
-    confidence,
-    sources,
-    agents,
-    done,
-    error,
-    thesisId,
-    phaseProgress,
-    startTick,
-  } = session;
+  const [symbol, setSymbol] = useState(defaultSymbol);
+  const [persona, setPersona] = useState<Persona>(defaultPersona);
+  const [running, setRunning] = useState(false);
+  const [assembling, setAssembling] = useState(false);
+  const [phase, setPhase] = useState<PhaseId>("Hazırlanıyor");
+  const [confidence, setConfidence] = useState(0);
+  const [sources, setSources] = useState<string[]>([]);
+  const [agents, setAgents] = useState<Record<string, AgentState>>(initAgents);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [thesisId, setThesisId] = useState<string | null>(null);
+  const [phaseProgress, setPhaseProgress] = useState(0);
+  const handleRef = useRef<{ stop: () => void } | null>(null);
+  const assemblyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const setSymbol = (s: string) => liveSessionActions.setSymbol(s);
-  const setPersona = (p: Persona) => liveSessionActions.setPersona(p);
+  const clearAssemblyTimer = () => {
+    if (assemblyTimerRef.current) {
+      clearTimeout(assemblyTimerRef.current);
+      assemblyTimerRef.current = null;
+    }
+  };
 
   const start = (overrideSymbol?: string) => {
     const sym = (overrideSymbol ?? symbol).trim().toUpperCase();
@@ -173,37 +217,178 @@ export function LiveThesisRunner({
       router.push(`/login?next=${encodeURIComponent("/app/thesis/live")}`);
       return;
     }
-    liveSessionActions.start({ symbol: sym, persona });
+    clearAssemblyTimer();
+    handleRef.current?.stop();
+    setSymbol(sym);
+    setRunning(true);
+    setAssembling(true);
+    setDone(false);
+    setError(null);
+    setThesisId(null);
+    setPhase("Hazırlanıyor");
+    setConfidence(0);
+    setSources([]);
+    setAgents(initAgents());
+    setPhaseProgress(0);
+    assemblyTimerRef.current = setTimeout(() => {
+      setAssembling(false);
+      assemblyTimerRef.current = null;
+    }, ASSEMBLY_DURATION_MS);
+
+    handleRef.current = streamThesis(
+      {
+        symbol: sym,
+        persona,
+      },
+      {
+        onMeta: ({ thesisId: tid }) => setThesisId(tid),
+        onError: (msg) => {
+          clearAssemblyTimer();
+          setAssembling(false);
+          setError(msg);
+          setRunning(false);
+        },
+        onEvent: (e: StreamEvent) => {
+          if (e.type === "phase" && e.phase) setPhase(normalizePhase(e.phase));
+          if (e.type === "agent_start" && e.agentId) {
+            setPhase(
+              e.agentId === "synthesizer"
+                ? "Sentezleniyor"
+                : "Ajanlar Değerlendiriyor",
+            );
+            setAgents((p) =>
+              p[e.agentId!]
+                ? {
+                    ...p,
+                    [e.agentId!]: {
+                      ...p[e.agentId!],
+                      status: "running",
+                      // pct'yi başlangıçta undefined bırak → AgentCard
+                      // indeterminate shimmer gösterir (sahte sayı yerine).
+                      // İlk tool_progress geldiğinde gerçek yüzdeye geçer.
+                      pct: p[e.agentId!]?.pct,
+                    },
+                  }
+                : p,
+            );
+          }
+          if (e.type === "token" && e.agentId) {
+            setAgents((p) => {
+              const cur = p[e.agentId!];
+              const prevText = cur?.text ?? "";
+              const nextText = prevText + (e.payload as string);
+              // Synthesizer için pct proxy: tam tez ortalama ~5500 char. Her
+              // 55 char ~%1 ilerleme. CEILING ile diğer ajanlara hizalı — done
+              // gelene dek 88'i aşmasın (88→100 snap "tamamlandı" hissi verir).
+              const synthPct =
+                e.agentId === "synthesizer"
+                  ? Math.min(
+                      AGENT_PCT_CEILING,
+                      5 + Math.floor(nextText.length / 65),
+                    )
+                  : cur?.pct;
+              return {
+                ...p,
+                [e.agentId!]: {
+                  status: "running",
+                  text: nextText,
+                  confidence: cur?.confidence,
+                  pct: synthPct,
+                },
+              };
+            });
+          }
+          if (e.type === "source" && typeof e.payload === "string") {
+            setPhase((p) => (p === "Hazırlanıyor" ? "Veri Toplanıyor" : p));
+            setSources((p) =>
+              p.includes(e.payload as string) ? p : [...p, e.payload as string],
+            );
+          }
+          if (e.type === "confidence" && typeof e.payload === "number") {
+            setConfidence(e.payload);
+            setAgents((p) => {
+              const next = { ...p };
+              for (const id of Object.keys(next)) {
+                if (
+                  next[id].status === "running" &&
+                  next[id].confidence === undefined
+                ) {
+                  next[id] = { ...next[id], confidence: e.payload as number };
+                }
+              }
+              return next;
+            });
+          }
+          if (e.type === "agent_done" && e.agentId) {
+            setAgents((p) =>
+              p[e.agentId!]
+                ? {
+                    ...p,
+                    [e.agentId!]: {
+                      ...p[e.agentId!],
+                      status: "done",
+                      pct: 100,
+                    },
+                  }
+                : p,
+            );
+          }
+          if (e.type === "tool_progress" && e.agentId) {
+            // Asimptotik boost: her tool, mevcut pct'yi CEILING'e olan farkın
+            // bir fraksiyonu kadar yaklaştırır → 0→44→69→81→86… şeklinde gider,
+            // CEILING'e ulaşmaz. expected=1 olan ajanlar bile artık ilk event'te
+            // 99'a sıçramıyor (önceki linear formül çok agresifti). tool_progress
+            // ayrıca time-based creep'in altına düşmemek için floor görevi görür.
+            setAgents((p) => {
+              const cur = p[e.agentId!];
+              if (!cur) return p;
+              const expected = AGENT_EXPECTED_TOOLS[e.agentId!] ?? 4;
+              const stepFrac = 1 / Math.max(2, expected);
+              const curPct = cur.pct ?? 0;
+              const proposed = curPct + (AGENT_PCT_CEILING - curPct) * stepFrac;
+              const newPct = Math.min(
+                AGENT_PCT_CEILING,
+                Math.max(curPct, proposed),
+              );
+              return {
+                ...p,
+                [e.agentId!]: { ...cur, status: "running", pct: newPct },
+              };
+            });
+          }
+          if (e.type === "done") {
+            clearAssemblyTimer();
+            setAssembling(false);
+            setPhase("Tez Hazır");
+            setDone(true);
+            setRunning(false);
+            if (typeof e.payload === "string") setThesisId(e.payload);
+            setAgents((p) =>
+              Object.fromEntries(
+                AGENT_REGISTRY.map((a) => [
+                  a.id,
+                  { ...p[a.id], status: "done", text: p[a.id]?.text ?? "" },
+                ]),
+              ),
+            );
+          }
+        },
+      },
+    );
   };
 
-  // Inline WS event handler'ları artık `liveSession` store'unun applyEvent
-  // reducer'ında — bkz. `frontend/src/lib/state/liveSession.ts`. Component
-  // unmount olsa bile WS açık kalır, sekme dönüşünde state korunur.
-
-  // Sayfaya ilk girişte store boşsa, route'dan gelen defaults form'a yansısın.
-  // Aktif bir session (running/done) varsa override yok — kullanıcı geri dönerken
-  // mevcut tezini görmeye devam etsin.
   useEffect(() => {
-    if (running || done) return;
-    if (!symbol && defaultSymbol) {
-      liveSessionActions.setSymbol(defaultSymbol);
+    let t: NodeJS.Timeout;
+    if (autoStart && defaultSymbol) {
+      t = setTimeout(() => start(defaultSymbol), 300);
     }
-    if (persona !== defaultPersona) {
-      liveSessionActions.setPersona(defaultPersona);
-    }
+    return () => {
+      if (t) clearTimeout(t);
+      clearAssemblyTimer();
+      handleRef.current?.stop();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultSymbol, defaultPersona]);
-
-  // autoStart: URL'de ?symbol= ile gelindiyse otomatik başlat. Aktif bir
-  // session zaten varsa (running/done) yeniden başlatma — kullanıcı sekme
-  // değiştirip geri döndüğünde mevcut tezi görmeye devam etsin.
-  useEffect(() => {
-    if (!autoStart || !defaultSymbol) return;
-    if (running || done) return;
-    const t = setTimeout(() => start(defaultSymbol), 300);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart, defaultSymbol, startTick]);
+  }, [autoStart, defaultSymbol]);
 
   // Zaman tabanlı asimptotik creep — running ajanlar tool_progress event'i
   // gelmese bile CEILING'e doğru sürekli ilerlesin. Bu sayede:
@@ -214,7 +399,7 @@ export function LiveThesisRunner({
   useEffect(() => {
     if (!running) return;
     const id = setInterval(() => {
-      liveSessionActions.setAgents((p) => {
+      setAgents((p) => {
         let changed = false;
         const next: typeof p = { ...p };
         for (const a of AGENT_REGISTRY) {
@@ -288,20 +473,18 @@ export function LiveThesisRunner({
   // 100'e bir defalık snap.
   useEffect(() => {
     if (done) {
-      const id = window.setTimeout(
-        () => liveSessionActions.setPhaseProgress(100),
-        0,
-      );
+      const id = window.setTimeout(() => setPhaseProgress(100), 0);
       return () => window.clearTimeout(id);
     }
     const id = setInterval(() => {
-      const cur = phaseProgress;
-      if (cur >= targetProgress) return;
-      const step = Math.max(0.4, (targetProgress - cur) * 0.08);
-      liveSessionActions.setPhaseProgress(Math.min(targetProgress, cur + step));
+      setPhaseProgress((cur) => {
+        if (cur >= targetProgress) return targetProgress;
+        const step = Math.max(0.4, (targetProgress - cur) * 0.08);
+        return Math.min(targetProgress, cur + step);
+      });
     }, 120);
     return () => clearInterval(id);
-  }, [targetProgress, done, phaseProgress]);
+  }, [targetProgress, done]);
 
   const openViewer = () => {
     if (thesisId) router.push(`/app/thesis/${thesisId}`);
@@ -309,7 +492,18 @@ export function LiveThesisRunner({
   };
 
   const reset = () => {
-    liveSessionActions.reset();
+    clearAssemblyTimer();
+    handleRef.current?.stop();
+    setRunning(false);
+    setAssembling(false);
+    setDone(false);
+    setError(null);
+    setThesisId(null);
+    setPhase("Hazırlanıyor");
+    setConfidence(0);
+    setSources([]);
+    setAgents(initAgents());
+    setPhaseProgress(0);
   };
 
   const state: "idle" | "assembling" | "running" | "done" = done

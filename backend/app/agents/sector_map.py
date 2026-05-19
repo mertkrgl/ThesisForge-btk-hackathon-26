@@ -22,20 +22,10 @@ def load_sector_map() -> dict[str, Any]:
 
 
 def squad_for_ticker(ticker: str) -> SquadType:
-    """Hisseden squad'a haritalama. Bulunamazsa 'Generic'.
-
-    Önce YAML'daki `ticker_overrides` sözlüğüne bakılır — duplicate ticker'lar için
-    iş kararı YAML sırasından bağımsızlaştırılır. Sözlük boş veya ticker yoksa
-    mevcut squad listelerinde ilk match döner.
-    """
+    """Hisseden squad'a haritalama. Bulunamazsa 'Generic'."""
     upper = ticker.upper()
     sm = load_sector_map()
-    overrides = sm.get("ticker_overrides") or {}
-    if upper in overrides:
-        return overrides[upper]  # type: ignore[return-value]
     for squad, cfg in sm.items():
-        if squad == "ticker_overrides":
-            continue
         tickers = cfg.get("tickers") if isinstance(cfg, dict) else None
         if tickers and upper in tickers:
             return squad  # type: ignore[return-value]

@@ -99,9 +99,6 @@ def _thesis_to_dict(t) -> dict[str, Any]:
         "ground_truth_return": t.ground_truth_return,
         "outcome": t.outcome,
         "had_kaynaksiz_flag": t.had_kaynaksiz_flag,
-        # P0-B citation health audit (sayaçlar + had_kaynaksiz mirror).
-        # Eski tezlerde NULL — frontend null-güvenli render etmeli.
-        "citation_audit": t.citation_audit,
     }
 
 

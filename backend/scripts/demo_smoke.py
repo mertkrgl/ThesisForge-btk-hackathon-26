@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import sys
 import time
 from pathlib import Path
@@ -32,24 +31,12 @@ BASE = "http://127.0.0.1:8000"
 WS_BASE = "ws://127.0.0.1:8000"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-# Smoke runner kendi test user'ı ile auth eder — /chat artık JWT zorunlu.
-# Env override edilebilir: SMOKE_EMAIL / SMOKE_PASSWORD.
-SMOKE_EMAIL = os.getenv("SMOKE_EMAIL", "smoke-runner@example.com")
-SMOKE_PASSWORD = os.getenv("SMOKE_PASSWORD", "smoke-runner-2026-pw!")
-ACCESS_TOKEN: str | None = None
-
 # Default modda 5 hisse; conservative modda Gemini quota'sını tüketmemek için 2 hisse.
-# Tekil ticker test için: SMOKE_TICKERS="EREGL" veya "ASELS,GARAN" env'i set edilebilir.
 TICKERS_DEFAULT = ["ASELS", "GARAN", "TUPRS", "MGROS", "EREGL"]
 TICKERS_CONSERVATIVE = ["ASELS", "TUPRS"]
-_TICKERS_OVERRIDE = os.getenv("SMOKE_TICKERS")
-if _TICKERS_OVERRIDE:
-    TICKERS_DEFAULT = [t.strip().upper() for t in _TICKERS_OVERRIDE.split(",") if t.strip()]
-    TICKERS_CONSERVATIVE = TICKERS_DEFAULT
-# Pipeline timeout 240s (orchestrator.run_thesis default). Pro 2.5 ortalama
-# 110-135s; ASELS gibi yoğun KAP/Defense ticker'ları 180-200s bandında dönebiliyor.
-# 200s smoke eşiği: Pro'nun gerçekçi üst bandı, 240s timeout'a 40s buffer korunur.
-MAX_DURATION_SEC = 200.0
+# Pipeline timeout 200s; ortalama 80-100s, ilk ticker cold start ~150s.
+# 160s smoke eşiği: cold start'a tolerans ama 200s timeout'a hâlâ buffer var.
+MAX_DURATION_SEC = 160.0
 CONFIDENCE_MIN = 30.0
 CONFIDENCE_MAX = 90.0
 CONSERVATIVE_CAP = 70.0
@@ -72,23 +59,17 @@ async def run_one(ticker: str) -> dict:
         "had_kaynaksiz_flag": None,
         "bull_count": None,
         "bear_count": None,
-        # P0-B citation audit (sources_count WS event'inden yakalanır).
-        "citation_audit": None,
-        # P2-A provider observability — kategorize source_type sayaçları.
-        "provider_stats": None,
     }
 
     print(f"\n=== {ticker} ===")
     t0 = time.time()
 
     # 1. POST /chat
-    auth_headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"} if ACCESS_TOKEN else {}
     try:
         async with httpx.AsyncClient(timeout=30) as ac:
             r = await ac.post(
                 f"{BASE}/chat",
                 json={"message": f"{ticker} analiz et", "mode": MODE},
-                headers=auth_headers,
             )
             r.raise_for_status()
             body = r.json()
@@ -106,19 +87,6 @@ async def run_one(ticker: str) -> dict:
                 raw = await asyncio.wait_for(ws.recv(), timeout=MAX_DURATION_SEC + 20)
                 ev = json.loads(raw)
                 etype = ev.get("type")
-                if etype == "sources_count":
-                    # P0-B audit metrikleri sources_count payload'ında yayılıyor.
-                    result["citation_audit"] = {
-                        "claim_count": ev.get("claim_count"),
-                        "cited_claim_count": ev.get("cited_claim_count"),
-                        "uncited_claim_count": ev.get("uncited_claim_count"),
-                        "numeric_issue_count": ev.get("numeric_issue_count"),
-                        "catalyst_count": ev.get("catalyst_count"),
-                        "catalyst_cited_count": ev.get("catalyst_cited_count"),
-                        "citation_retry_count": ev.get("citation_retry_count"),
-                    }
-                    # P2-A provider observability — aynı event'te yayılır.
-                    result["provider_stats"] = ev.get("provider_stats")
                 if etype == "done":
                     result["confidence"] = ev.get("confidence")
                     result["had_kaynaksiz_flag"] = ev.get("had_kaynaksiz_flag")
@@ -141,9 +109,7 @@ async def run_one(ticker: str) -> dict:
     # 3. GET /api/thesis/{id} — bull/bear sayısı + conservative cap doğrulaması
     try:
         async with httpx.AsyncClient(timeout=15) as ac:
-            r = await ac.get(
-                f"{BASE}/api/thesis/{thesis_id}", headers=auth_headers
-            )
+            r = await ac.get(f"{BASE}/api/thesis/{thesis_id}")
             r.raise_for_status()
             data = r.json()
             result["bull_count"] = len(data.get("bull_points") or [])
@@ -203,50 +169,12 @@ async def run_one(ticker: str) -> dict:
     return result
 
 
-async def _authenticate() -> str | None:
-    """Smoke runner için access token edin: önce register, çakışırsa login."""
-    async with httpx.AsyncClient(timeout=15) as ac:
-        # Önce register dene (idempotent: 409 olursa zaten var → login).
-        try:
-            r = await ac.post(
-                f"{BASE}/api/auth/register",
-                json={
-                    "email": SMOKE_EMAIL,
-                    "password": SMOKE_PASSWORD,
-                    "name": "Smoke Runner",
-                },
-            )
-            if r.status_code == 201:
-                return r.json()["access_token"]
-        except Exception as e:
-            print(f"⚠ register attempt failed (non-fatal): {e}")
-
-        # Register başarısızsa (409 veya başka) login dene.
-        try:
-            r = await ac.post(
-                f"{BASE}/api/auth/login",
-                json={"email": SMOKE_EMAIL, "password": SMOKE_PASSWORD},
-            )
-            r.raise_for_status()
-            return r.json()["access_token"]
-        except Exception as e:
-            print(f"❌ login failed: {e}")
-            return None
-
-
 async def main() -> int:
-    global MODE, ACCESS_TOKEN
+    global MODE
     MODE = sys.argv[1] if len(sys.argv) > 1 else "default"
     if MODE not in ("default", "conservative"):
         print(f"❌ Geçersiz mode '{MODE}'. Kullan: default | conservative")
         return 2
-
-    ACCESS_TOKEN = await _authenticate()
-    if ACCESS_TOKEN is None:
-        print("❌ Smoke için auth token alınamadı; /chat 401 ile fail edecek.")
-        return 2
-    print(f"✓ Auth OK ({SMOKE_EMAIL})")
-
     tickers = TICKERS_CONSERVATIVE if MODE == "conservative" else TICKERS_DEFAULT
 
     print(f"Demo smoke test — {len(tickers)} ticker, mode={MODE}")
@@ -271,49 +199,6 @@ async def main() -> int:
     out_path = REPO_ROOT / f"demo_smoke_results{suffix}.json"
     out_path.write_text(json.dumps(results, indent=2, ensure_ascii=False))
     print(f"\nResults → {out_path}")
-
-    # ───── P0-B citation health aggregate özet ─────
-    audits = [r["citation_audit"] for r in results if r.get("citation_audit")]
-    if audits:
-        def _avg_rate(num_key: str, denom_key: str) -> float | None:
-            pairs = [
-                (a.get(num_key) or 0, a.get(denom_key) or 0)
-                for a in audits
-                if a.get(denom_key)
-            ]
-            if not pairs:
-                return None
-            return round(sum(n / d for n, d in pairs) / len(pairs), 4)
-
-        avg_numeric_issue_rate = _avg_rate("numeric_issue_count", "claim_count")
-        avg_uncited_claim_rate = _avg_rate("uncited_claim_count", "claim_count")
-        avg_catalyst_cited_rate = _avg_rate("catalyst_cited_count", "catalyst_count")
-        avg_retry = round(
-            sum(a.get("citation_retry_count") or 0 for a in audits) / len(audits), 2
-        )
-        print("\n=== Citation Health Aggregate ===")
-        print(f"  ticker_count                = {len(audits)}")
-        print(f"  avg_numeric_issue_rate      = {avg_numeric_issue_rate}")
-        print(f"  avg_uncited_claim_rate      = {avg_uncited_claim_rate}")
-        print(f"  avg_catalyst_cited_rate     = {avg_catalyst_cited_rate}")
-        print(f"  avg_citation_retry_count    = {avg_retry}")
-
-    # ───── P2-A provider observability aggregate ─────
-    provider_stats_list = [
-        r["provider_stats"] for r in results if r.get("provider_stats")
-    ]
-    if provider_stats_list:
-        agg = {"live": 0, "fallback": 0, "fixture": 0, "stub": 0, "unknown": 0}
-        for ps in provider_stats_list:
-            for k in agg:
-                agg[k] += ps.get(k, 0) or 0
-        total_calls = sum(agg.values()) or 1
-        print("\n=== Provider Observability Aggregate ===")
-        print(f"  ticker_count                = {len(provider_stats_list)}")
-        print(f"  total_provider_calls        = {total_calls}")
-        for k in ("live", "fallback", "fixture", "stub", "unknown"):
-            pct = round(agg[k] / total_calls * 100, 1)
-            print(f"  {k:<27} = {agg[k]:>4}  ({pct}%)")
 
     passed = sum(1 for r in results if r["ok"])
     print(f"\n{passed}/{len(results)} passed")

@@ -44,18 +44,6 @@ async def _fetch(ctx: AgentContext, domain: str, **kwargs) -> dict[str, Any]:
     return result.model_dump()
 
 
-# P2-A: Lokal hesaplama yapan tool'lar (detect_patterns, find_support_resistance,
-# relative_strength, get_global_signals) `_fetch` sonucundan kendi dict'lerini
-# oluşturuyor; source_type'ı manuel propagate etmek gerek. Birden çok ProviderResult
-# kullanılırsa "en kötü" kategori kazanır (live < fallback < fixture < stub).
-_SOURCE_TYPE_RANK: dict[str, int] = {"live": 0, "fallback": 1, "fixture": 2, "stub": 3}
-
-
-def _combine_source_types(*results: dict[str, Any]) -> str:
-    types = [r.get("source_type", "live") for r in results]
-    return max(types, key=lambda t: _SOURCE_TYPE_RANK.get(t, 4))
-
-
 # ───────────────────────── Macro Context ─────────────────────────
 
 
@@ -76,11 +64,7 @@ async def get_global_signals(ctx: AgentContext, *, days: int = 30) -> dict[str, 
     """Brent + USD/TRY kombinasyonu. Tek payload."""
     brent = await _fetch(ctx, "brent", days=days)
     fx = await _fetch(ctx, "fx", currency="USD")
-    return {
-        "brent": brent,
-        "usd": fx,
-        "source_type": _combine_source_types(brent, fx),
-    }
+    return {"brent": brent, "usd": fx}
 
 
 @tool("get_recent_macro_news")
@@ -164,12 +148,7 @@ async def detect_patterns(
             patterns.append("rsi_overbought")
         if rsi < 30:
             patterns.append("rsi_oversold")
-    return {
-        "ticker": ticker.upper(),
-        "patterns": patterns,
-        "based_on": ind,
-        "source_type": tech.get("source_type", "live"),
-    }
+    return {"ticker": ticker.upper(), "patterns": patterns, "based_on": ind}
 
 
 @tool("find_support_resistance")
@@ -199,7 +178,6 @@ async def find_support_resistance(
         "ticker": ticker.upper(),
         "support": sorted(set(support)),
         "resistance": sorted(set(resistance)),
-        "source_type": _combine_source_types(price, tech),
     }
 
 
@@ -227,7 +205,6 @@ async def relative_strength(
         "stock_change_pct": stock_pct,
         "index_change_pct": index_pct,
         "relative_strength_pct": rs,
-        "source_type": _combine_source_types(p, idx),
     }
 
 

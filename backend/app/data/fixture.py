@@ -55,7 +55,6 @@ async def read_fixture(key: str) -> ProviderResult | None:
             source=data.get("provider", "fixture"),
             payload=data.get("payload", {}),
             fetched_at=data.get("fetched_at", ""),
-            source_type="fixture",
         )
     except Exception as e:
         log.warning("fixture_parse_fail", path=str(path), error=str(e))

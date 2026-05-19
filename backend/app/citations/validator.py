@@ -80,56 +80,6 @@ class ValidationReport:
     invalid_uuids: list[str]
     numeric_issues: list[str]
     had_kaynaksiz: bool
-    # P0-B citation health audit sayaçları (audit raporu §3.2).
-    # `had_kaynaksiz` tek başına kalite sinyali olamadığı için her tez için
-    # detaylı sayaç üretilir; orchestrator bunları `theses.citation_audit`
-    # JSONB kolonuna persist eder ve WS `sources_count` event'inde yayınlar.
-    claim_count: int = 0
-    cited_claim_count: int = 0
-    uncited_claim_count: int = 0
-    numeric_issue_count: int = 0
-    catalyst_count: int = 0
-    catalyst_cited_count: int = 0
-    citation_retry_count: int = 0
-
-    # ── P1-A türev metrikler ──────────────────────────────────────────
-    @property
-    def cited_claim_rate(self) -> float:
-        return self.cited_claim_count / self.claim_count if self.claim_count else 1.0
-
-    @property
-    def numeric_issue_rate(self) -> float:
-        return self.numeric_issue_count / self.claim_count if self.claim_count else 0.0
-
-    @property
-    def catalyst_cited_rate(self) -> float:
-        return (
-            self.catalyst_cited_count / self.catalyst_count
-            if self.catalyst_count
-            else 1.0
-        )
-
-    @property
-    def retry_required_rate(self) -> float:
-        # Tek retry budget var; 0 veya 1.
-        return 1.0 if self.citation_retry_count > 0 else 0.0
-
-    @property
-    def citation_health_score(self) -> float:
-        """Audit raporu §4.2 formülü — 0-100 aralığında.
-
-        citation_health = 0.40 * cited_claim_rate
-                        + 0.25 * (1 - numeric_issue_rate)
-                        + 0.20 * catalyst_cited_rate
-                        + 0.15 * (1 - retry_required_rate)
-        """
-        score = (
-            0.40 * self.cited_claim_rate
-            + 0.25 * (1.0 - min(self.numeric_issue_rate, 1.0))
-            + 0.20 * self.catalyst_cited_rate
-            + 0.15 * (1.0 - self.retry_required_rate)
-        )
-        return max(0.0, min(100.0, score * 100.0))
 
 
 SynthesizerRetryFn = Callable[[str], Awaitable[str]]
@@ -151,7 +101,6 @@ async def validate_citations(
     final_invalid: list[str] = []
     final_numeric: list[str] = []
     final_numeric_uuids: set[str] = set()
-    citation_retry_count = 0
 
     for attempt in range(2):
         # ───── Katman 1: regex parse ─────
@@ -196,7 +145,6 @@ async def validate_citations(
                 numeric_issues=len(numeric_issues),
             )
             md = await synthesizer_retry_fn(feedback)
-            citation_retry_count += 1
         else:
             break
 
@@ -210,14 +158,8 @@ async def validate_citations(
     invalid_set = set(final_invalid) | set(final_missing)
     citation_records: list[CitationRecord] = []
     had_kaynaksiz = False
-    catalyst_count = 0
-    catalyst_cited_count = 0
-    cited_claim_count = 0
 
     for claim_text, call_id_str, section_name in citations:
-        is_catalyst = section_name == "anahtar katalizörler"
-        if is_catalyst:
-            catalyst_count += 1
         if call_id_str is None or call_id_str in invalid_set:
             await insert_citation(
                 session,
@@ -254,14 +196,10 @@ async def validate_citations(
                     is_kaynaksiz=False,
                 )
             )
-            cited_claim_count += 1
-            if is_catalyst:
-                catalyst_cited_count += 1
 
     if had_kaynaksiz:
         await update_thesis_kaynaksiz_flag(session, thesis_id, True)
 
-    claim_count = len(citation_records)
     return ValidationReport(
         md=md,
         citations=citation_records,
@@ -269,13 +207,6 @@ async def validate_citations(
         invalid_uuids=final_invalid,
         numeric_issues=final_numeric,
         had_kaynaksiz=had_kaynaksiz,
-        claim_count=claim_count,
-        cited_claim_count=cited_claim_count,
-        uncited_claim_count=claim_count - cited_claim_count,
-        numeric_issue_count=len(final_numeric),
-        catalyst_count=catalyst_count,
-        catalyst_cited_count=catalyst_cited_count,
-        citation_retry_count=citation_retry_count,
     )
 
 
