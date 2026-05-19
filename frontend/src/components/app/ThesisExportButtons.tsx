@@ -84,10 +84,14 @@ function buildMarkdown(thesis: Thesis, date: string) {
 function downloadMarkdown(thesis: Thesis, date: string) {
   const markdown = buildMarkdown(thesis, date);
   const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+  downloadBlob(blob, `${thesis.ticker.toLowerCase()}-tez.md`);
+}
+
+function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${thesis.ticker.toLowerCase()}-tez.md`;
+  link.download = filename;
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -136,9 +140,7 @@ export function ThesisExportButtons({
     setPdfBusy(true);
     try {
       const blob = await fetchThesisPdf(thesis.id);
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank", "noopener,noreferrer");
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      downloadBlob(blob, `${thesis.ticker.toLowerCase()}-tez.pdf`);
     } catch (err) {
       window.alert(err instanceof Error ? err.message : "PDF açılamadı.");
     } finally {

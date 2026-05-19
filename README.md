@@ -246,8 +246,12 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 alembic upgrade head
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 --log-level info
+DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 --log-level info
 ```
+
+PDF export WeasyPrint kullanır. macOS/Homebrew ortamında Pango dylib'leri
+bulunamazsa `brew install pango` çalıştırın ve backend'i yukarıdaki
+`DYLD_FALLBACK_LIBRARY_PATH` ile başlatın.
 
 Sağlık kontrolü:
 

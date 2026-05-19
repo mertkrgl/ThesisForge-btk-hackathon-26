@@ -54,6 +54,7 @@ else
     cd "$BACKEND"
     # shellcheck disable=SC1091
     source .venv/bin/activate
+    export DYLD_FALLBACK_LIBRARY_PATH="${DYLD_FALLBACK_LIBRARY_PATH:+$DYLD_FALLBACK_LIBRARY_PATH:}/opt/homebrew/lib"
     # WSHub şu an in-memory dict; multi-worker uvicorn'da publish ve subscribe
     # farklı worker'lara düşüp event'ler kaybolur. Redis pub/sub gelene kadar
     # tek worker zorunlu (rapor §4.1).

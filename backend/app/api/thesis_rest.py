@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,6 +48,38 @@ _TOOL_LABEL_TR: dict[str, str] = {
     "base_rate_check": "Sektör Başarı Oranı",
     "similarity_search": "Benzer Tez Araması",
 }
+
+
+_PDF_PYTHON_DEPENDENCY_DETAIL = (
+    "PDF üretimi için Python paketleri eksik. Backend venv aktifken "
+    "`pip install -e .` çalıştırın; bu `markdown` ve `weasyprint` "
+    "bağımlılıklarını kurar."
+)
+
+_PDF_NATIVE_DEPENDENCY_DETAIL = (
+    "PDF üretimi için WeasyPrint'in sistem kütüphaneleri yüklenemedi. "
+    "macOS/Homebrew ortamında backend'i "
+    "`DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uvicorn app.main:app "
+    "--host 127.0.0.1 --port 8000 --workers 1` komutuyla başlatın. "
+    "Pango kurulu değilse önce `brew install pango` çalıştırın."
+)
+
+
+def _is_pdf_dependency_error(exc: BaseException) -> bool:
+    msg = str(exc)
+    return (
+        isinstance(exc, ImportError)
+        or "WeasyPrint could not import" in msg
+        or "cannot load library" in msg
+        or "libgobject-2.0" in msg
+        or "pango" in msg.lower()
+    )
+
+
+def _pdf_dependency_detail(exc: BaseException) -> str:
+    if isinstance(exc, ImportError) or "No module named" in str(exc):
+        return _PDF_PYTHON_DEPENDENCY_DETAIL
+    return _PDF_NATIVE_DEPENDENCY_DETAIL
 
 
 def _extract_url(tool_result: Any) -> str | None:
@@ -248,17 +280,17 @@ async def export_thesis_pdf(
             had_kaynaksiz_flag=bool(t.had_kaynaksiz_flag),
             citations=citations,
         )
-    except ImportError as e:
+    except Exception as e:
+        if not _is_pdf_dependency_error(e):
+            log.exception("pdf_render_fail", error=str(e)[:300])
+            raise HTTPException(
+                status_code=500,
+                detail=f"PDF üretilemedi: {e}",
+            ) from e
         log.error("pdf_dep_missing", error=str(e)[:200])
         raise HTTPException(
-            status_code=503,
-            detail="PDF üretimi için weasyprint kurulu değil. `pip install weasyprint markdown` çalıştırın.",
-        ) from e
-    except Exception as e:
-        log.exception("pdf_render_fail", error=str(e)[:300])
-        raise HTTPException(
-            status_code=500,
-            detail=f"PDF üretilemedi: {e}",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_pdf_dependency_detail(e),
         ) from e
 
     filename = f"{t.ticker.lower()}-tez.pdf"
@@ -266,7 +298,7 @@ async def export_thesis_pdf(
         content=pdf_bytes,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f'inline; filename="{filename}"',
+            "Content-Disposition": f'attachment; filename="{filename}"',
             "Cache-Control": "private, no-store",
         },
     )
